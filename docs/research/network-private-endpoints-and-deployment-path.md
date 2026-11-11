@@ -8,10 +8,9 @@
 
 There is no single path. Control-plane calls go to a public HTTPS endpoint, `api.fabric.microsoft.com`,
 which Fabric answers only when the request arrives from a network the tenant allows; data-plane calls
-(OneLake, TDS, Spark, shortcuts) are what private links actually carry. A public deploy path therefore
-works only while **Block Public Internet Access** is off; once it is on, the agent must egress through
-the VNet holding the private endpoint, resolve the tenant or workspace FQDN privately, and still reach
-`login.microsoftonline.com` over public HTTPS for tokens.
+(OneLake, TDS, Spark, shortcuts) are what private links actually carry. A public deploy path works only
+while **Block Public Internet Access** is off; once it is on, the agent must egress through the VNet holding
+the private endpoint, resolve the FQDN privately, and still reach `login.microsoftonline.com` for tokens.
 
 ## Detail
 
@@ -19,25 +18,23 @@ the VNet holding the private endpoint, resolve the tenant or workspace FQDN priv
 
 | Feature (doc wording) | What it isolates | Admin scoping | Cost | Status |
 | --- | --- | --- | --- | --- |
-| **Tenant-level Private Link** (how-to says **Azure Private Link**, overview **Azure Private Links**) | Inbound, whole tenant: "traffic going *into* your organization's Fabric items" | "You must be a Fabric administrator and have permissions in Azure to create and configure resources such as virtual machines (VMs) and virtual networks (VNets)" | "The cost of private links and the increase of the ExpressRoute bandwidth … might add costs"; priced as Azure Private Link, no Fabric CU figure documented | Not labelled preview on any page checked; no page states GA either. Not supported on Trial capacity |
+| **Tenant-level Private Link** (how-to says **Azure Private Link**, overview **Azure Private Links**) | Inbound, whole tenant: "traffic going *into* your organization's Fabric items" | "You must be a Fabric administrator and have permissions in Azure to create and configure resources such as virtual machines (VMs) and virtual networks (VNets)" | "The cost of private links and the increase of the ExpressRoute bandwidth … might add costs" ([protect inbound][pit]); priced as Azure Private Link, no Fabric CU figure documented | Not labelled preview on any page checked; no page states GA either. Not supported on Trial capacity |
 | **Managed private endpoints** | Outbound, from Fabric workloads to *your* data sources behind a firewall | "Users with admin permissions to a Microsoft Fabric workspace can create, view, and delete managed private endpoints" (workspace settings → **Network security**) | No cost statement. Supported on Fabric capacities "including Trial Capacities" | Unlabelled; the Eventstream use is explicitly *(Preview)* |
 | **Managed virtual network** | Spark compute: clusters leave the shared VNet for a per-workspace VNet | None — provisioned automatically on first Spark job (Private Link on) or first managed private endpoint | No charge documented, but starter pools are disabled | Unlabelled; not in Switzerland West / West Central US |
-| **Trusted workspace access** | Inbound to *storage*: a workspace identity through an ADLS Gen2 / Blob firewall via resource instance rules | Workspace admin creates the workspace identity; "A Contributor on the storage account … can configure resource instance rules or trusted service exception" | No charge documented; F SKU only | "**generally available**", explicitly |
+| **Trusted workspace access** | Inbound to *storage*: a workspace identity through an ADLS Gen2 / Blob firewall via resource instance rules | Workspace admin creates the workspace identity; "A Contributor on the storage account … can configure resource instance rules or trusted service exception" | No charge documented; F SKU only | "**generally available**", explicitly ([twa]) |
 | **Workspace-level private link** | Inbound, one workspace; other workspaces stay public | Fabric admin enables **Configure workspace-level inbound network rules** (off by default); "You must be a workspace admin and have sufficient Azure permissions"; Azure role needs `Microsoft.Fabric/privateLinkServicesForFabric/*` | No cost statement. F SKU only; P SKU and trial unsupported | Unlabelled; dependent items carry their own preview labels |
 
-Three strings name one tenant toggle: **"Tenant-level Private Link"** in the settings index, **"Azure
-Private Link"** in the setup steps, **"Azure Private Links"** in the overview. The docs never say "Allow
-trusted workspace access"; the feature is **Trusted workspace access**, and the storage-side choices are
-**resource instance rules** or the **trusted service exception**.
+Three strings name one toggle: **"Tenant-level Private Link"** in the [settings index][ts], **"Azure Private
+Link"** in the setup steps, **"Azure Private Links"** in the overview. The docs never say "Allow trusted
+workspace access"; the storage-side choices are **resource instance rules** or **trusted service exception**.
 
 ### 2. Control plane vs data plane, and whether the REST API is public
 
 Private links protect data traffic; the REST API is governed by a table rather than prose. With tenant
 public access **Restricted**, "Public internet → Can I access Fabric REST APIs? **No**", while a "Network
-with tenant private link" gets "**Yes, using tenant-specific FQDN or api.fabric.microsoft.com endpoint,
-and only if the client allows outbound public access**" ([inbound overview][inbound]). The endpoint is not
-made private; the source network is checked. `api.fabric.microsoft.com` is the documented API host in four
-rows of that table.
+with tenant private link" gets "**Yes, using tenant-specific FQDN or api.fabric.microsoft.com endpoint, and
+only if the client allows outbound public access**" ([inbound overview][inbound]). The endpoint is not made
+private; the source network is checked, and `api.fabric.microsoft.com` is the host named in four table rows.
 
 The communication-policy API is reachable "using `api.fabric.microsoft.com` endpoint or workspace-specific
 FQDN" under tenant-level private link, but **not** over `api.fabric.microsoft.com` from a workspace-private-
@@ -53,8 +50,7 @@ the private-link network may use the public endpoint. The tenant private API nam
 ### 3. What actually respects a private endpoint
 
 - **OneLake** — "OneLake supports Private Link", but "Direct calls using OneLake regional endpoints don't
-  work via private link"; connect by workspace FQDN (`https://<wsid>.z<xy>.dfs.fabric.microsoft.com`) or
-  the tenant path ([OneLake access][onelake], [private links][pl]).
+  work via private link"; use the workspace FQDN (`https://<wsid>.z<xy>.dfs.fabric.microsoft.com`) or tenant path ([onelake]).
 - **OneLake shortcuts** — supported "when both the shortcut source and target are within the same tenant".
   Cross-tenant shortcuts "aren't supported over Private Link"; external ADLS/S3 needs the account to allow
   private access. Managed private endpoints "do not yet support connections to ADLS Gen2 storage accounts
@@ -72,13 +68,13 @@ the private-link network may use the public endpoint. The tenant private API nam
 
 ### 4. What the agent VMs need
 
-- **Position.** The request must arrive from the approved network; a private endpoint exists only inside
-  its VNet/peered network. No page names an "agent VNet", but there is an effective one: if tenant or
-  workspace public access is restricted, an agent outside that VNet is denied by design.
+- **Position.** The request must arrive from the approved network; a private endpoint exists only inside its
+  VNet/peered network. No page names an "agent VNet", but there is an effective one: if public access is
+  restricted, an agent outside that VNet is denied by design.
 - **DNS.** Tenant: `privatelink.analysis.windows.net`, `privatelink.pbidedicated.windows.net`,
-  `privatelink.prod.powerquery.microsoft.com`. Workspace: `privatelink.fabric.microsoft.com`. Link the
-  zone to the agent VNet. A new capacity "doesn't support private link until its endpoint is reflected in
-  the private DNS zone, which can take up to 24 hours" ([private links][pl], [workspace setup][ws-setup]).
+  `privatelink.prod.powerquery.microsoft.com`. Workspace: `privatelink.fabric.microsoft.com`. Link the zone
+  to the agent VNet: a new capacity "doesn't support private link until its endpoint is reflected in the
+  private DNS zone, which can take up to 24 hours" ([private links][pl], [workspace setup][ws-setup]).
 - **Ports.** "Fabric requires only TCP Port 443" for platform and OneLake endpoints; add TCP 1433 for
   `*.datawarehouse.fabric.microsoft.com` and SQL database, TCP 11000–11999 for SQL database under the
   redirect policy, and 5672/5673/9093 only if eventstreams are consumed directly ([allowlist][allow]).
@@ -89,28 +85,25 @@ the private-link network may use the public endpoint. The tenant private API nam
 - **A proxy can break private link.** "Network proxies and traffic interceptors (for example, Zscaler) can
   prevent traffic from reaching the workspace's private endpoint … when users or network egress points are
   in a different Azure region than the workspace's capacity", giving `RequestDeniedByInboundPolicy` ([support][ws-support]).
-- **Terraform provider / fabric-cicd.** Proxy behaviour could not be established from Microsoft sources;
-  neither the provider repo nor the Fabric docs state it. Test the agent image.
+- **Terraform provider / fabric-cicd.** Proxy behaviour could not be established from Microsoft sources; test the agent image.
 
 ### 5. Known unsupported or caveated
 
-- **Deployment pipelines**: "aren't currently supported for workspace with inbound access protection", and
-  a workspace assigned to a pipeline can't be restricted ([CI/CD security][cicd]). No page says this for
-  tenant-level private links.
-- **Git integration**: allowed by default under inbound protection, but Git features "must be done from
-  within the approved VNet. … This restriction also applies to the Git APIs"; "Branching out is blocked".
+- **Deployment pipelines**: "aren't currently supported for workspace with inbound access protection", and a
+  workspace assigned to a pipeline can't be restricted ([CI/CD security][cicd]). Tenant-level is unstated.
+- **Git integration**: allowed by default under inbound protection, but Git features "must do so from
+  within the approved VNet. … This restriction also applies to the Git APIs"; "Branching out is blocked" ([cicd]).
 - **Copilot**: "isn't currently supported for Private Link or closed network environments"; Copilot in
   Dataflow Gen2 is separately unsupported under workspace-level private links ([private links][pl]).
 - **Unsupported items** in a workspace-private-link workspace: deployment pipelines and semantic models —
-  if present, "inbound public access can't be restricted". Item sharing, workspace monitoring and shortcut
+  if present, "inbound public access can't be restricted"; item sharing, workspace monitoring and shortcut
   transforms are also unsupported ([support][ws-support]).
-- **Cross-workspace**: reading another restricted workspace's lakehouse needs an MPE plus "approval from
-  the target workspace private link service owner"; "Cross-region shortcuts aren't supported"; an MPE to
-  "a private link service for your Fabric tenant isn't supported" ([support][ws-support], [MPE create][mpe-create]).
+- **Cross-workspace**: another restricted workspace's lakehouse needs an MPE plus "approval from the target
+  workspace private link service owner"; "Cross-region shortcuts aren't supported"; an MPE to "a private link
+  service for your Fabric tenant isn't supported" ([support][ws-support], [MPE create][mpe-create]).
 - **Tenant-wide**: on-premises data gateways fail to register; Capacity Metrics app, OneLake Catalog
-  **Govern**, Publish to Web, PDF/PowerPoint export and email subscriptions are unsupported; mirroring
-  pauses for most sources; tenant migration is blocked; "Fabric supports up to 450 capacities in a tenant
-  where Private Link is enabled"; each private endpoint serves one tenant ([private links][pl]).
+  **Govern**, Publish to Web, PDF/PowerPoint export and email subscriptions are unsupported; mirroring pauses;
+  tenant migration is blocked; "up to 450 capacities" per private-link tenant; one tenant per endpoint ([pl]).
 
 ## What this settles
 
@@ -126,10 +119,9 @@ the private-link network may use the public endpoint. The tenant private API nam
 - **What sits between agent and Fabric (proxy, Zscaler, forced tunnelling)?** A proxy in another region is
   a documented cause of `RequestDeniedByInboundPolicy`; pin egress to the capacity region and resolve
   FQDNs locally.
-- **Is every target workspace on an F SKU?** Workspace-level private link and trusted workspace access
-  reject P SKU and trial; tenant-level private link rejects trial.
-- **Do the workspaces hold semantic models or deployment pipelines?** If so, workspace-level restriction
-  cannot be enabled at all.
+- **Is every target workspace on an F SKU and free of semantic models or deployment pipelines?**
+  Workspace-level private link rejects P SKU and trial, and those two item types block the restriction
+  entirely; tenant-level private link rejects trial.
 - **What do shortcuts target?** Same-tenant OneLake is fine; ADLS/Blob needs Trusted workspace access (MPEs
   don't cover shortcuts yet); cross-tenant is out.
 - **Is Spark used, and is the tenant home region supported?** Spark implies managed VNet, no starter pools
@@ -148,7 +140,6 @@ the private-link network may use the public endpoint. The tenant private API nam
   browser, not an agent, and no private endpoint for `login.microsoftonline.com` is described.
 - The mechanism by which `api.fabric.microsoft.com` is allowed from a private-link network; the tables
   assert the result, not the rule.
-- Proxy behaviour of the Terraform provider and `fabric-cicd`.
 - Whether deployment pipelines work under *tenant-level* private links — only the workspace-level block is
   documented.
 - The work tenant's actual settings, DNS, capacity SKUs and item inventory.
@@ -178,7 +169,6 @@ the private-link network may use the public endpoint. The tenant private API nam
 [mpe-create]: https://learn.microsoft.com/en-us/fabric/security/security-managed-private-endpoints-create
 [mvn]: https://learn.microsoft.com/en-us/fabric/security/security-managed-vnets-fabric-overview
 [twa]: https://learn.microsoft.com/en-us/fabric/security/security-trusted-workspace-access
-[ws-pl]: https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-overview
 [ws-support]: https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support
 [ws-setup]: https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-set-up
 [inbound]: https://learn.microsoft.com/en-us/fabric/security/security-inbound-overview
