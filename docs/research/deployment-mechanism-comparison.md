@@ -160,8 +160,10 @@ treat that as a stale name, not a second setting, and check the tenant's own por
 
 ## What this does not establish
 
-- Per-item-type parity: whether every item in Git integration's supported list is also deployable
-  via `fabric-cicd` and via a Terraform resource. The lists agree in bulk but were not diffed.
+- Per-item-type parity: **answered** in
+  [`item-type-deployment-coverage.md`](item-type-deployment-coverage.md) — 23 item types are
+  deployable, 7 are manual-only. What remains open there is whether the API support table is
+  complete.
 - Whether Terraform item resources can import and round-trip every item definition, or what
   happens to an item created outside Terraform.
 - Whether Fabric admin REST APIs can set tenant settings directly; only the Terraform resource

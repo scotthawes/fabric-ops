@@ -64,9 +64,19 @@ disqualifies them as the promotion mechanism for a Git-first repo. They remain u
 
 ## Risks
 
-- **Item-type coverage.** Only items with a public create/update definition API can deploy. A
-  notebook and a semantic model are fine; check anything newer against the supported list before
-  promising it ships with the pipeline.
+- **Item-type coverage.** 23 item types survive all three gates — Git support, a public
+  create/update definition API, and a `fabric-cicd` handler — and can be promised. Seven cannot
+  be deployed by any route: **SQL analytics endpoint, Dashboard, Scorecard, Datamart,
+  MirroredWarehouse, ML model, ML experiment**. Four more are API-only (Power BI Dataflow, Org
+  app audience, Azure Databricks Storage, Mirrored catalog), so they can be created headlessly
+  but never committed out of the Git-bound dev workspace. Full matrix:
+  [item-type coverage](../research/item-type-deployment-coverage.md).
+- **Two service-principal gaps.** `MirroredDatabase` and `Reflex` (Activator) are
+  definition-deployable but mark service-principal support as unsupported. Do not put either
+  behind the deploy principal without testing in the work tenant.
+- **Shells, not schemas.** For Warehouse, SQL database and Lakehouse, `fabric-cicd` deploys the
+  item shell only — DDL, tables and schemas need their own step. A "deployed" warehouse can be
+  empty and still look successful.
 - **Provider support.** `microsoft/fabric` is outside Microsoft support. Keep the Terraform
   small enough that falling back to REST is an afternoon, not a project.
 - **First-run ordering.** Capacity creation is subscription-scope Azure, the rest is Fabric-scope.

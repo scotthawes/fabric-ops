@@ -37,8 +37,13 @@ support the provider under Fabric support policies.
 - `fabric-cicd` deploys everything on every run and does not diff commits, so a portal edit to
   a deployed item is silently overwritten rather than surfaced as drift. Content edits belong
   in the dev workspace, committed through a pull request (ADR 0005).
-- Item types with no public create/update definition API cannot be deployed this way. Check the
-  item against the supported list before promising it.
+- Item types with no public create/update definition API cannot be deployed this way: the SQL
+  analytics endpoint, Dashboard, Scorecard, Datamart, MirroredWarehouse, ML model and ML
+  experiment are manual-only, and lakehouse tables and workspace settings are not items at all.
+  See [`item-type-deployment-coverage.md`](../research/item-type-deployment-coverage.md) before
+  promising an item type ships with the pipeline.
+- For Warehouse, SQL database and Lakehouse, this deploys the **item shell only** — DDL, tables
+  and schemas need a separate step, so a green pipeline can leave an empty warehouse behind.
 - The `microsoft/fabric` provider is explicitly outside Microsoft support. When it breaks, the
   fallback is the Core REST API by hand — keep the Terraform small enough that this is cheap.
 - Tenant settings in Terraform are tenant-wide. A pipeline that can set them is a

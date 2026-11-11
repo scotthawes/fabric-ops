@@ -12,6 +12,7 @@ docs.
 | [`capacity-provisioning-and-cost-control.md`](capacity-provisioning-and-cost-control.md) | How is Fabric capacity provisioned and cost-controlled per environment? | answered 2026-11-11 |
 | [`network-private-endpoints-and-deployment-path.md`](network-private-endpoints-and-deployment-path.md) | Which network path does each kind of Fabric traffic take, and what must the agent VMs reach? | answered 2026-11-11 |
 | [`governance-access-and-workspace-roles.md`](governance-access-and-workspace-roles.md) | Who can see what in Fabric, and what does the platform not tell you about it? | answered 2026-11-11 |
+| [`item-type-deployment-coverage.md`](item-type-deployment-coverage.md) | Which item types can actually be deployed through the pipeline, and which must be created by hand? | answered 2026-11-11 |
 
 ## Adding a note
 
