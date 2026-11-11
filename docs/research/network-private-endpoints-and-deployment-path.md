@@ -39,17 +39,16 @@ and only if the client allows outbound public access**" ([inbound overview][inbo
 made private; the source network is checked. `api.fabric.microsoft.com` is the documented API host in four
 rows of that table.
 
-The workspace communication-policy API is reachable "using `api.fabric.microsoft.com` endpoint or
-workspace-specific FQDN" under tenant-level private link, but **not** over `api.fabric.microsoft.com` from
-a workspace-private-link network when tenant access is restricted ([workspace setup][ws-setup], Table 1).
-That is a self-lockout shape: the API that reopens a workspace is the one the policy can close.
+The communication-policy API is reachable "using `api.fabric.microsoft.com` endpoint or workspace-specific
+FQDN" under tenant-level private link, but **not** over `api.fabric.microsoft.com` from a workspace-private-
+link network when tenant access is restricted ([workspace setup][ws-setup], Table 1) — a self-lockout shape:
+the API that reopens a workspace is the one the policy can close.
 
 What the docs do **not** say: that `api.fabric.microsoft.com` resolves to a private IP, or why a client on
 the private-link network may use the public endpoint. The tenant private API name is
 `{tenantId}-api.privatelink.analysis.windows.net` ([setup][pl-use], step 7). Entra stays public:
-`login.microsoftonline.com` and `graph.microsoft.com` are "Required for auth" for private-link tenants,
-with `aadcdn.msauth.net`, `msauth.net`, `msftauth.net`, `login.live.com` ([private links][pl]). No page
-describes a private path for Entra token acquisition.
+`login.microsoftonline.com` and `graph.microsoft.com` are "Required for auth", with `aadcdn.msauth.net`,
+`msauth.net`, `msftauth.net`, `login.live.com` ([private links][pl]); no private path for Entra is described.
 
 ### 3. What actually respects a private endpoint
 
@@ -57,10 +56,9 @@ describes a private path for Entra token acquisition.
   work via private link"; connect by workspace FQDN (`https://<wsid>.z<xy>.dfs.fabric.microsoft.com`) or
   the tenant path ([OneLake access][onelake], [private links][pl]).
 - **OneLake shortcuts** — supported "when both the shortcut source and target are within the same tenant".
-  Cross-tenant shortcuts "aren't supported over Private Link"; external ADLS/S3 needs the external account
-  to allow private access. Managed private endpoints "do not yet support connections to ADLS Gen2 storage
-  accounts and Azure Blob Storage accounts", so firewall-enabled storage goes through **Trusted workspace
-  access**, not an MPE ([MPE][mpe]).
+  Cross-tenant shortcuts "aren't supported over Private Link"; external ADLS/S3 needs the account to allow
+  private access. Managed private endpoints "do not yet support connections to ADLS Gen2 storage accounts
+  and Azure Blob Storage accounts", so firewall-enabled storage uses **Trusted workspace access** ([MPE][mpe]).
 - **SQL analytics endpoint / Warehouse TDS** — supported, but add `z{xy}` and use
   `{GUID}-{GUID}.z{xy}.datawarehouse.fabric.microsoft.com`. "Visual query in Warehouse doesn't work when
   the **Block Public Internet Access** tenant setting is enabled" ([private links][pl], [support][ws-support]).
@@ -70,8 +68,7 @@ describes a private path for Entra token acquisition.
 - **Semantic model refresh** — weakest link. Under workspace-level private link, "Power BI semantic models
   aren't supported" and their presence blocks enabling it. Under tenant-level, if internet access is
   disabled and a model "connects to a Power BI semantic model or Dataflow as a data source, the connection
-  fails"; the usage metrics dataset refresh also fails. Import-mode models reading firewall-enabled ADLS
-  need **Trusted workspace access** as a cloud connection ([private links][pl], [trusted access][twa]).
+  fails"; usage metrics refresh also fails. Import-mode ADLS models need **Trusted workspace access** ([twa]).
 
 ### 4. What the agent VMs need
 
@@ -86,14 +83,12 @@ describes a private path for Entra token acquisition.
   `*.datawarehouse.fabric.microsoft.com` and SQL database, TCP 11000–11999 for SQL database under the
   redirect policy, and 5672/5673/9093 only if eventstreams are consumed directly ([allowlist][allow]).
 - **Proxy.** `az` is documented: behind a proxy "HTTP_PROXY and HTTPS_PROXY must be set" ([CLI][cli]). The
-  agent's bypass list is `https://dev.azure.com`, `https://*.dev.azure.com`,
-  `https://login.microsoftonline.com`, `https://management.core.windows.net`,
-  `https://download.agent.dev.azure.com`; the page warns "your build pipeline and scripts must still
-  handle bypassing your web proxy for each task and tool you run" ([Linux agent][linux]).
+  agent's bypass list is `https://dev.azure.com`, `https://*.dev.azure.com`, `https://login.microsoftonline.com`,
+  `https://management.core.windows.net`, `https://download.agent.dev.azure.com`; and "your build pipeline and
+  scripts must still handle bypassing your web proxy for each task and tool you run" ([Linux agent][linux]).
 - **A proxy can break private link.** "Network proxies and traffic interceptors (for example, Zscaler) can
-  prevent traffic from reaching the workspace's private endpoint, especially when users or network egress
-  points are in a different Azure region than the workspace's capacity", giving
-  `RequestDeniedByInboundPolicy` ([support][ws-support]).
+  prevent traffic from reaching the workspace's private endpoint … when users or network egress points are
+  in a different Azure region than the workspace's capacity", giving `RequestDeniedByInboundPolicy` ([support][ws-support]).
 - **Terraform provider / fabric-cicd.** Proxy behaviour could not be established from Microsoft sources;
   neither the provider repo nor the Fabric docs state it. Test the agent image.
 
@@ -101,7 +96,7 @@ describes a private path for Entra token acquisition.
 
 - **Deployment pipelines**: "aren't currently supported for workspace with inbound access protection", and
   a workspace assigned to a pipeline can't be restricted ([CI/CD security][cicd]). No page says this for
-  tenant-level private links; that case is unestablished.
+  tenant-level private links.
 - **Git integration**: allowed by default under inbound protection, but Git features "must be done from
   within the approved VNet. … This restriction also applies to the Git APIs"; "Branching out is blocked".
 - **Copilot**: "isn't currently supported for Private Link or closed network environments"; Copilot in
@@ -125,9 +120,9 @@ describes a private path for Entra token acquisition.
   needs `z{xy}` FQDNs and a different DNS zone, so the mechanism and every connection string change.
   Tenant-level keeps deployment pipelines usable but blocks all public callers.
 - **Which DNS zones are linked to the agent VNet, and does the tenant FQDN resolve?** If not, the fallback
-  is `api.fabric.microsoft.com` plus public egress — which the tenant may have forbidden.
-- **Can the agent reach `api.fabric.microsoft.com:443` and `login.microsoftonline.com:443`?** Without the
-  second, no service principal or federated credential gets a token, private link or not.
+  is `api.fabric.microsoft.com` plus public egress — which the tenant may have forbidden. And can the agent
+  reach `api.fabric.microsoft.com:443` and `login.microsoftonline.com:443`? Without the second, no service
+  principal or federated credential gets a token, private link or not.
 - **What sits between agent and Fabric (proxy, Zscaler, forced tunnelling)?** A proxy in another region is
   a documented cause of `RequestDeniedByInboundPolicy`; pin egress to the capacity region and resolve
   FQDNs locally.
@@ -137,10 +132,9 @@ describes a private path for Entra token acquisition.
   cannot be enabled at all.
 - **What do shortcuts target?** Same-tenant OneLake is fine; ADLS/Blob needs Trusted workspace access (MPEs
   don't cover shortcuts yet); cross-tenant is out.
-- **Is Spark used, and is the tenant home region supported?** Spark implies managed VNet, no starter pools,
-  3–5 minute starts and a home-region requirement.
-- **How old is the capacity?** A capacity created by the deploy has no private path for up to 24 hours, so
-  the pipeline cannot assume immediate private connectivity.
+- **Is Spark used, and is the tenant home region supported?** Spark implies managed VNet, no starter pools
+  and a home-region requirement. **How old is the capacity?** A capacity created by the deploy has no
+  private path for up to 24 hours, so the pipeline cannot assume immediate private connectivity.
 - **Who holds Fabric administrator plus Azure RBAC on the endpoint subscription?** None of this is
   workspace-admin self-service at tenant scope, and the workspace path still needs Azure rights.
 
@@ -168,7 +162,6 @@ describes a private path for Entra token acquisition.
 | [Managed private endpoints][mpe] / [create][mpe-create] | scope, Trial support, shortcut gap, approval flow | 2025-05-12 / 2026-08-20 |
 | [Managed VNets][mvn] | automatic provisioning, starter pools, regions | 2024-05-30 |
 | [Trusted workspace access][twa] | GA, F SKU, resource instance rules, coverage | 2026-08-13 |
-| [Workspace-level private links][ws-pl] | FQDN patterns, one PLS per workspace | 2026-05-26 |
 | [Workspace-level support][ws-support] | item support, admin APIs, proxy failure | 2026-10-13 |
 | [Workspace-level setup][ws-setup] | tenant setting, Azure RBAC, policy-API table | 2026-02-04 |
 | [Inbound protection overview][inbound] | portal vs REST API access matrix | 2026-01-27 |

@@ -54,6 +54,13 @@ that outlives the person who made it is the main risk this pack carries.
   capacity **Admin** is documented for users, so the group-based lever is Contributor.
 - **Record:** the SKU size, because it sets the sizing floor for three environments at once
   ([ADR 0004](../adr/0004-one-shared-capacity.md)).
+- **Check the overage setting before anything else runs.** Capacity overage is enabled by
+  default at a 25% threshold and billed at **3× pay-as-you-go**; AzureRM cannot express it, so
+  it never appears in `terraform plan`. Keep the threshold below one-third of the capacity's
+  daily CU hours. Turn on surge protection at the same time.
+- **Note what you cannot see:** the Azure Monitor supported-metrics index has no
+  `Microsoft.Fabric` entry, so utilisation alerting has to come from the Capacity Metrics app or
+  Real-Time hub `Capacity.Summary` / `Capacity.State` events.
 
 ## 4. Service principals and identities
 
