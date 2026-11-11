@@ -1,0 +1,41 @@
+# 0005 — Authoring in a bound dev workspace, promotion by pinned commit
+
+- **Status:** accepted
+- **Date:** 2026-11-11
+- **Deciders:** Scott
+- **Evidence:** [`deployment-mechanism-comparison.md`](../research/deployment-mechanism-comparison.md)
+
+## Context
+
+Report authors and semantic-model developers will not write item-definition JSON by hand, and
+a repo-only workflow cuts them out. But a portal-first workflow makes the platform the source of
+truth, which inverts promotion and hides drift. Fabric's Git integration exists precisely to
+bridge the two, at the cost of being workspace-bound and lossy at the edges (labels, item IDs
+and data do not round-trip).
+
+## Decision
+
+- **Authoring:** the `dev` workspace is bound through Git integration to a branch in the work
+  repo (Azure Repos, same ADO organisation). Authors work in the workspace; changes are
+  committed out and reviewed as pull requests into `main`.
+- **Promotion:** ADO YAML pipelines. `dev` deploys on merge to `main`; `test` follows the same
+  artefact; `prod` requires a manual approval on the stage. The artefact is the commit SHA, so
+  what was approved is what ships.
+- **No Git integration on `test` or `prod`.** Those workspaces are deployment targets only, so
+  the only way in is the pipeline.
+
+## Consequences
+
+- The repo stays the source of truth for deployed content without asking authors to leave the
+  visual tools.
+- Drift is possible in one direction only: an edit in `test` or `prod` is invisible to the repo
+  and will be overwritten on the next deploy. That is deliberate, and must be stated to anyone
+  with Contributor on those workspaces.
+- Git integration's known losses apply to the dev workspace: sensitivity labels, item IDs and
+  data do not survive the round trip, and `Update from Git` replaces the whole branch. Item
+  types outside the supported list are silently ignored — check before authoring in one.
+- Because the `main` branch is what the pipeline deploys, `dev` must be updated from Git to see
+  what was merged, or the next commit will resurrect what the merge removed.
+- A pull request touches JSON, so review is a diff of serialised definitions — reviewable for
+  structure and names, weak for behaviour. Behaviour still needs a human in the dev workspace
+  before approval.
