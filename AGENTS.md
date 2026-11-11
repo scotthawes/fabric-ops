@@ -2,11 +2,13 @@
 
 Conventions for working in this repo. Read `README.md` first, then `GLOSSARY.md`.
 
-## Before changing code
+## No code in this repo
 
-- Read `docs/adr/` — a decision that looks odd is usually recorded there.
-- The deployment mechanism is not settled yet. Do not scaffold a project structure, package
-  manifest or CI pipeline until the ADR that picks one exists.
+- This repo is a research artefact (`docs/adr/0001-research-artefact-not-deployment-tool.md`).
+  Do not add a package manifest, Terraform root, CI pipeline or deploy script. Reference
+  artefacts belong inside a research note, labelled illustrative and dated.
+- Read `docs/adr/` before questioning a decision; one that looks odd is usually recorded there.
+- Never add credentials, service connections or tenant-specific identifiers.
 
 ## Research notes
 

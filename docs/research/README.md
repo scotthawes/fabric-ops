@@ -7,7 +7,7 @@ docs.
 
 | Note | Question it answers | Status |
 | --- | --- | --- |
-| _(none yet)_ | | |
+| [`deployment-mechanism-comparison.md`](deployment-mechanism-comparison.md) | Which way should a repo deploy and promote Fabric content, given it must also administer workspace users and roles? | answered 2026-11-11 |
 
 ## Adding a note
 

@@ -30,4 +30,4 @@ What becomes easy, what becomes hard, and what we are now committed to maintaini
 
 | ADR | Decision | Status |
 | --- | --- | --- |
-| _(none yet)_ | | |
+| [0001](0001-research-artefact-not-deployment-tool.md) | This repo is a research artefact, not a deployment tool | accepted |

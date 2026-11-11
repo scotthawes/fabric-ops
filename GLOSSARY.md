@@ -6,6 +6,21 @@ Definitions here are the ones this project relies on. Each will gain a Microsoft
 as `docs/research/` fills in — until then, treat a definition without a link as
 *provisional* and check it before building on it.
 
+## This project
+
+**Work tenant**
+The Microsoft Entra tenant that holds the real Fabric estate under management. Not reachable
+from the machine this repo lives on, which is signed into a personal tenant instead.
+
+**Work repo**
+The repository that actually deploys: it owns the Azure DevOps pipeline, the service
+connection, Terraform state and environment topology. This repo carries findings *to* it and
+never becomes it.
+
+**Trial capacity**
+The free, time-limited Fabric capacity used for experimentation. Useful for learning
+mechanics, never for judging the work tenant's settings.
+
 ## Platform
 
 **Tenant**

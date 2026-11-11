@@ -1,33 +1,45 @@
 # fabric-ops
 
-Research and tooling for deploying and administering **Microsoft Fabric**: provisioning
-workspaces and their items, and managing the content and users of the platform.
+A research pack for deploying and administering **Microsoft Fabric** in a work tenant:
+capacities and tenant settings, workspace lifecycle, item deployment, and the users and roles
+that see the content.
 
-**Status: scoping.** The design is being settled by interview before any code is written.
-Open decisions live in the grilling thread; settled ones land in `GLOSSARY.md` and
-`docs/adr/`.
+**Status: research only.** Nothing here deploys. There is no code, no pipeline and no
+credential in this repo — by decision, not by accident (`docs/adr/0001-…`). The audience is a
+human who carries the findings into the **work repo**, where an Azure DevOps pipeline with a
+service connection does the deploying.
+
+## Why this repo exists
+
+The work tenant is not reachable from the machine this repo was created on, and the work is
+delivered in a separate repository. So the thing worth building here is the part that
+transfers: a defensible answer to *how* the fabric should be deployed, administered and
+governed, with sources a colleague can check in five minutes.
+
+Every claim about Fabric behaviour cites Microsoft Learn or an official `microsoft/*`
+repository, and carries the date it was checked. Fabric ships monthly and previews graduate,
+so an undated claim is a liability.
 
 ## What lives where
 
 | Path | Purpose |
 | --- | --- |
-| `docs/research/` | Cited research notes, one file per question. Index in `docs/research/README.md`. |
-| `docs/adr/` | Architecture decision records — one file per hard-to-reverse decision. |
-| `GLOSSARY.md` | The project's Fabric vocabulary, so terms stop drifting. |
-| `AGENTS.md` | Conventions for agents (and humans) working in this repo. |
+| `docs/research/` | Cited research notes, one per question. Index in `docs/research/README.md`. |
+| `docs/adr/` | Decisions taken here, with the reasoning that outlived the conversation. |
+| `GLOSSARY.md` | Project vocabulary — Fabric terms plus ours (work tenant, work repo). |
+| `AGENTS.md` | Conventions for anyone, human or agent, working in this repo. |
 
-## Ground rules
+## How findings travel
 
-- **No unverified Fabric claim.** Tenant settings, API limits, permission models and role
-  names are the things we most often get wrong from memory. Every such claim in
-  `docs/research/` carries a link to Microsoft Learn.
-- **Research feeds decisions, not code.** A research note ends in what it settles, what it
-  rules out, and what it leaves open.
-- **Nothing here is a replacement for the portal.** Anything one-off or unrepeatable is
-  documented, not automated.
+Research note → decision → handover. A note that settles something gets referenced from the
+ADR that records the choice; the ADR is what the person building the work repo reads first.
+Anything that cannot be automated is written down as a procedure, because the alternative is
+explaining it again in three months.
 
-## Not yet decided
+## Out of scope
 
-Language and deployment mechanism (REST + `fabric-cicd`, Fabric Git integration and
-deployment pipelines, or a Terraform provider), the identity used by automation, and the
-environment topology. See the grilling thread.
+- Deploying from here, in any form. No credentials to the work tenant, no service connection.
+- Restating the Microsoft documentation. Notes answer questions and record what the docs do
+  *not* say.
+- Being the work repo. The work repo owns the pipeline, the Terraform state and the
+  environment topology; this one suggests and cites.
