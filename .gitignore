@@ -26,3 +26,6 @@ node_modules/
 .idea/
 .vscode/
 *.swp
+
+# Scratch work from the ecosystem sweep
+.tmp/
