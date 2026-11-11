@@ -29,6 +29,7 @@ so an undated claim is a liability.
 | `docs/adr/` | Decisions taken here, with the reasoning that outlived the conversation. |
 | `docs/runbook/` | Ordered checks to run in the work tenant, since nothing here is verifiable. |
 | `docs/reference/` | Illustrative artefacts for the work repo to adapt — YAML, Terraform, naming, layout. |
+| `docs/ecosystem/` | What exists on GitHub: a curated index plus the full machine-readable sweep. |
 | `GLOSSARY.md` | Project vocabulary — Fabric terms plus ours (work tenant, work repo). |
 | `AGENTS.md` | Conventions for anyone, human or agent, working in this repo. |
 
@@ -40,6 +41,9 @@ so an undated claim is a liability.
 3. `docs/runbook/01-…` — what a human must confirm in the work tenant before any of it is
    trusted.
 4. `docs/research/` — only when you want the citation behind a claim.
+5. `docs/ecosystem/` — when you need a tool, a sample or a prior art reference, start with
+   [`github-index.md`](docs/ecosystem/github-index.md) rather than searching GitHub: it is
+   curated, dated, and says which of the popular repos are archived or star-farmed.
 
 ## How findings travel
 

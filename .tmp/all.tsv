@@ -1,0 +1,464 @@
+1987	2025-06-07	false	none	100daysofdevops/100daysofdevops		
+4	2026-06-27	false	MIT	Abdoulkarimouattara/microsoft-fabric-unified-analytics-platformre		End-to-end data engineering project using Microsoft Fabric, Lakehouse, Dataflow Gen2, PySpark, and Power BI following the Medallion Architecture.
+229	2024-06-19	false	MIT	Advanced-Rocketry/AdvancedRocketry		Space mod for minecraft
+4	2026-05-11	false	none	Akbarsait/ai-powertools-data	azure,dotnet,microsoft-fabric,microsoft-power-apps,microsoft-power-bi,power-automate,python	Practices, exploration and notes on Programming, Power Platform Apps, Azure, Power BI and Microsoft Fabric
+0	2025-07-23	false	none	AmolDRaut/FabricCICDwithDevOps		A sample repository for setting up CI CD for Fabric with Azure DevOps deployment pipelines. 
+0	2026-10-29	false	none	AmudaPalani/fabric-cicd		
+12	2024-03-07	false	MIT	AnthonyByansi/MicrosoftFabric-Exploratorium	analytics,big-data,collaboration,data-analytics,data-engineering,data-integration,data-science,data-transformation,data-warehousing,delta-lake,lakehouse,microsoft-fabric,one-lake,powerbi,real-time-analytics,serverless-computing,spark	A comprehensive educational resource hub dedicated to mastering Microsoft Fabric, offering in-depth tutorials, real-world use cases, and hands-on guides for sea
+149	2026-11-11	false	MIT	ArteVisualenVivo/fabric-pipeline-express-7	activator,data-engineering,data-factory,data-pipeline,delta-lake,dp-600,dp-700,etl,event-driven,francais,lakehouse,microsoft-fabric,microsoft-teams,onelake,python,real-time-intelligence,sql,upsert,user-data-functions	Event-driven OneLake pipeline with automated Upsert merge and Python reporting
+25	2025-09-30	false	MIT	Augustab/microsoft_fabric_mcp	mcp,mcp-server,microsoft-fabric,microsoft-fabric-api,microsoft-fabric-data-engineer,model-context-protocol	MCP server wrapping around the Fabric Rest API
+18	2026-07-08	false	MIT	Azure-Player/Real-Time-Data-Simulator		Windows Desktop application to generate and stream data into EventHub & Microsoft Fabric (RTI)
+5	2025-05-01	true	MIT	Azure-Samples/azure-ai-content-understanding-with-fabric		This sample will show you how to use a Fabric Pipeline template to process your document, video, image or audio content with Azure AI Content Understanding and 
+1	2026-10-14	false	MIT	Azure-Samples/fabric-cicd-generic-git		CI/CD sample for generic git with Microsoft Fabric
+15	2026-01-21	true	MIT	Azure-Samples/fabric-rag-langchain-chainlit		Repository contains sample chatbot application built using SQL database in Microsoft Fabric as a vector store and search, Langchain and Chainlit for interacting
+710	2026-02-25	true	MIT	Azure-Samples/modern-data-warehouse-dataops	automatedtesting,azure,cicd,data,databricks,datafactory,dataops,devops,fabric	DataOps for Microsoft Data Platform technologies. https://aka.ms/dataops-repo
+275	2025-06-27	false	MIT	Azure/jp-techdocs		A repository for providing Japanese technical documents by volunteer employees belonging to technical divisions in Microsoft Japan.
+272	2026-09-15	true	MIT	Azure/terraform-azurerm-naming		
+17	2026-09-26	false	MIT	AzureCosmosDB/travel-multi-agent-workshop		Build a multi-agent application with LangGraph and Cosmos Agent Memory. Analyze and optimize with Microsoft Fabric
+0	2026-10-13	false	none	BD-e61/fabric-project-cicd		Fabric CICD demo repository
+14	2026-09-21	false	LGPL-3.0	BVengo/simple-shulker-preview		A minecraft fabric mod that displays a configurable icon indicating the contents of a shulker box, as well as a capacity bar. 
+350	2026-06-25	false	MIT	Batman0506/openclaw-sec-skills		🛡️ 网络安全/AI Agent Skills 集合 | Cybersecurity Security Skills Collection
+199	2026-11-06	false	Apache-2.0	BeSmarterWithData/ImpactIQ		One-click solution for Power BI and Fabric Impact Analysis + Governance. Automatically backs up reports, models, and dataflows while extracting complete metadat
+12	2026-11-05	false	none	BeSmarterWithData/ImpactIQ-SemanticLinkLabs		Power BI and Fabric Governance using Python with Semantic Link Labs to automatically extract the metadata for reports, models, and dataflows; giving impact anal
+6	2026-10-06	false	none	BeSmarterWithData/ImpactIQ-TenantAdmin		Impact IQ - Tenant Admin Edition: One-click tenant-wide solution for Power BI and Fabric Impact Analysis + Governance for Tenant Admins. Discovers all workspace
+175	2026-11-10	false	MIT	Bertverbeek4PS/bc2adls	bcopensource	Exporting data from Dynamics 365 Business Central to Azure data lake storage or MS Fabric lakehouse
+0	2026-02-10	false	none	BillMSFTFabric/FabricCICD		
+1	2026-03-30	false	NOASSERTION	BralaBee-LEIT/usf_fabric_cicd_codebase		contains code for managing, ochestrating and developing infrastructure on ms fabric
+4	2026-11-11	false	MIT	CSalcedoDataBI/powerquery-m-for-agents	agent-skills,ai-agents,claude-code-plugin,m-language,microsoft-fabric,power-bi,power-query,powerquery-m,reference	The canonical Power Query M language reference for AI agents - every library function exported from the engine's own #shared, with signatures, types, host avail
+1	2026-06-08	false	MIT	Ceili2026/fabric-cicd-local		
+14	2026-10-26	false	none	Chalmers2000/build-fabric-ontology-demo		Build a Microsoft Fabric Ontology demo in under one hour!
+13	2026-11-11	false	MIT	ChrisDevRepo/vscode_data_lineage	azure-sql,azure-synapse,dacpac,data-engineering,data-lineage,dependency-graph,impact-analysis,microsoft-fabric,sql-server,ssdt,vscode,vscode-extension	VS Code extension for visualizing SQL Server database object dependencies from .dacpac files or MS SQL DB import. Interactive graph with trace, search, DDL prev
+6	2026-07-29	false	MIT	Cloud2BR-MSFTLearningHub/Fabric-EnterpriseFramework	best-practices,cost-management,da-academy,deployment-pipelines,github-integration,microsoft-fabric,monitoring,observability	This repository contains demos and guides for building a well-architected framework for a Microsoft Fabric enterprise-level data platform. These demos are inten
+0	2026-07-21	false	MIT	Clouds-on-Mars/Fabric-cicd	cicd,devops,git,microsoft-fabric	Starter CI/CD pipeline for Microsoft Fabric — Git integration and deployment automation.
+5	2026-10-21	false	MIT	DanielAndreassen97/futils		Interactive CLI for Microsoft Fabric — run notebooks with parameters, refresh semantic-model tables, and move items between workspaces
+1199	2025-08-22	false	none	DanielRizvi/oreilly-books-collection-		
+21	2026-10-29	false	Apache-2.0	DataCraftersLab/craftys-fabric-skills	agent-skills,claude-code,claude-skills,microsoft-fabric,power-bi,power-query,semantic-model,tmdl	Crafty’s Fabric Skills are open-source Fabric and Power BI skills by Data Crafters, helping the community accelerate time to value in the age of AI. Built from 
+99	2026-09-16	false	MIT	DataFabric-Academy/ms-fabric-data-science	churn-prediction,data-science,machine-learning,medallion-architecture,microsoft-fabric,microsoft-learn,mlflow,pyspark	Hands-on Microsoft Fabric Data Science labs (FreshMart churn) with Thai study notes, PySpark/MLflow, and DP-604-aligned learning path.
+0	2025-08-13	false	none	DhaneshwariKumari/FabricCICD		This repository is for Fabric CICD VBD artefacts.
+0	2026-10-08	false	none	DhaneshwariKumariPersonal/FabricCICD		
+445	2026-11-03	false	CC0-1.0	ElYusubov/AWESOME-Azure-Bicep	awesome,awesome-list,azure,azure-bicep,azure-bicep-github,azure-resource-manager,cloud-management,code-as-infrastructure,command-line,community,devops,infrastructure-as-code,learn-azure-bicep	A curated list of blogs, videos, tutorials, code, tools, scripts, and anything useful to help you learn Azure Bicep - by @ElYusubov, @johnlokerse and @lukemurra
+2	2026-11-07	false	none	EvaluationContext/fabric-cicd-example		Sample repo for the "Fabric-CICD in Practice" series: one Fabric workspace, five items, deployed dev → test → prod with fabric-cicd via Azure Pipelines
+11	2026-06-24	false	none	FabricDevCamp/fabric-cicd-best-practices		Slides and other resources to learn about Fabric CI/CD 
+9	2026-06-17	false	none	FabricDevCamp/fabric-cicd-whitepaper		Fabric CI/CD Whitepaper Resources 
+6	2016-09-10	true	none	FabricMC/outdated-fabric-mod-template		Template for Fabric mod workspaces
+74	2026-11-09	false	MIT	FabricTools/fabric-icons	fabric,icons,svg	Publicly available SVG icons for Microsoft Fabric from the '@fabric-msft/svg-icons' NPM package
+0	2026-05-06	false	none	Farhad-Heybati/Fabric-CICD		Fabric-CICD
+0	2025-11-01	false	none	FilipposADor/MS_Fabric_CICD		Microsoft Fabric CICD process
+2136	2026-11-11	false	Apache-2.0	GoogleCloudPlatform/cloud-foundation-fabric	gcp,google-cloud,terraform	End-to-end modular samples and landing zones toolkit for Terraform on GCP.
+1138	2026-11-11	false	Apache-2.0	GoogleCloudPlatform/cloud-foundation-toolkit		The Cloud Foundation toolkit provides GCP best practices as code.
+223	2026-06-29	false	Apache-2.0	GoogleCloudPlatform/terraform-python-testing-helper	python,terraform,testing	Simple Python test helper for Terraform.
+18	2026-11-11	false	MIT	Guust-Franssens/tableau-to-powerbi-migration		AI-assisted migration of Tableau workbooks to Microsoft Fabric Power BI (semantic model + report), built as GitHub Copilot CLI custom agents.
+0	2025-07-31	false	none	H0A0M0mer/FabricCICD		
+0	2026-11-09	false	none	HashiruNewland/fabric_cicd		Fabric CICD
+1749	2026-11-09	false	GPL-3.0	Hiflylabs/awesome-dbt	analytics-engineering,awesome,awesome-list,data-engineering,dbt	A curated list of awesome dbt resources 
+0	2026-06-22	false	none	JJTBravent/fabric-cicd		
+309	2026-11-03	false	MIT	JSONbored/awesome-claude	agent-skills,ai-agents,ai-directory,ai-tools,anthropic,artificial-intelligence,awesome-list,claude,claude-ai,claude-api,claude-code,claude-desktop,claude-skills,claudecode,developer-tools,gittensor,llm,mcp-servers,open-source,openclaw-skills	HeyClaude is a curated registry and distribution surface for Claude and AI-workflow assets: agents, MCP servers, skills, commands, hooks, rules, guides, tools, 
+0	2025-09-30	false	none	Jamaleise/Fabric-CICD-Option2-Sample		Fabric CICD Option 2
+17	2026-04-26	false	OSL-3.0	JamesDBartlett3/Fabric-Archive-Bot	hacktoberfest	A fully automated Microsoft Fabric/Power BI tenant backup solution written in PowerShell
+62	2026-07-08	false	OSL-3.0	JamesDBartlett3/PowerBits	external-tools,hacktoberfest,microsoft-fabric,pbit,pbix,power-bi,powerbi,powershell	A collection of useful, time-saving tools for working with Microsoft Power BI
+36	2025-05-26	false	MIT	Jojobit/Fabtools	microsoft-fabric,powerbi,powershell,powershell-module	Fabtools is a free, open-source, community-driven PowerShell module designed to facilitate the management of Microsoft Fabric workspaces and capacities. This pr
+10	2026-10-07	false	MIT	JonathanJihwanKim/isHiddenInViewMode	data-visualization,developer-tools,governance,microsoft-fabric,pbir,power-bi,powerbi,powerbi-tools,report-management,tmdl	Free tool to bulk-manage filter visibility and layer order in Power BI PBIR reports
+64	2026-09-30	false	MIT	JonathanJihwanKim/pbip-documenter	data-governance,dax,developer-tools,documentation,microsoft-fabric,pbip,pbir,power-bi,semantic-model,tmdl	Generate comprehensive documentation from Power BI PBIP/TMDL semantic models — instantly, in your browser
+5	2023-10-04	false	none	KRSNagaraj/Empowering-Enterprises-with-Microsoft-Fabric		Empowering Enterprises with Microsoft Fabric: The Ultimate Analytics Solution for Onelake & Lakehouse 
+17	2024-09-13	false	none	KratosDataGod/FabricAdventureWorksLakehouse		This repo shows how to build a Microsoft Fabric Lakehouse Data platform, a unified data management and analytics solution using Azure services. The platform sup
+46	2026-11-11	false	Apache-2.0	KratosDataGod/KratosForge		Windows desktop app that runs data jobs on your own machine with DuckDB and Polars, then publishes the results as Delta tables straight to Microsoft Fabric OneL
+1240	2023-12-27	false	GPL-3.0	Kyuu-Ji/Awesome-Azure-Pentest		A collection of resources, tools and more for penetration testing and securing Microsofts cloud platform Azure.
+11	2025-07-06	false	MIT	LazaUK/AIFoundry-MCPConnector-FabricGraphQL	agent,ai,azure,data-warehouse,graphql,mcp-client,mcp-server,microsoft-fabric,openai	MCP Client and Server apps to demo integration of Azure OpenAI-based AI agent with a Data Warehouse, exposed through GraphQL in Microsoft Fabric.
+3145	2025-04-28	false	none	LearnGolang/LearnGolang	0e0w,365golang,go,golang,gopher,learngolang	《Golang学习资源大全-只有Go语言才能改变世界》Only Golang Can Change The World.
+797	2026-10-21	false	MIT	LelouchFR/skill-icons	github-profile,github-readme,icons,readme-stats	"Fork" of official skill-icons repository. Showcase your skills on your Github readme or resumé with ease ✨
+647	2026-09-29	false	MIT	MBSTUPC/tech-companies-in-bangladesh	bangladesh,jobs,jobsearch,jobseeker,tech-companies	List of tech companies to help developers to find job.
+1	2026-09-18	false	none	Majo0101/fabric-release-helpers		Selective Microsoft Fabric item promotion and deployment helpers using Git, pull requests, Fabric CLI, and the official fabric-cicd tool.
+0	2026-03-13	false	none	MarketEmergence/fabric-cicd		
+6	2026-03-19	false	Apache-2.0	MartinPankraz/DSAGTechXChange26	microsoft-copilot,microsoft-fabric,red-teaming,sap-bdc,sap-btp,sap-on-azure,sap-security,sentinel-for-sap-btp	Content supporting the DSAG TechXChange March 19th 2026
+14	2024-08-07	false	MIT	Microsoft-USEduAzure/Data_Science_in_Fabric_workshop		Welcome to the Data Science in Fabric Workshop repository! 🎉  This workshop is designed to introduce you to the powerful capabilities of Microsoft Fabric for da
+393	2026-11-05	false	MIT	MicrosoftLearning/mslearn-fabric	msl-data-ai	This repository hosts content related to Microsoft Fabric content on Microsoft Learn.
+309	2026-10-29	false	Apache-2.0	MontrealAI/AGI-Alpha-Agent-v0	agentic,agentic-ai,agentic-framework,ai,aiagent,aiagents,llm,meta-agentic,meta-learning,reinforcement-learning	♾️ TRANSFORMATIONAL META‑AGENTIC α‑AGI 👁️✨ — Mission 🎯  End‑to‑end: Identify 🔍 → Out‑Learn 📚 → Out‑Think 🧠 → Out‑Design 🎨 → Out‑Strategise ♟️ → Out‑Execute ⚡ → 
+6	2025-06-01	false	none	MoraQs/powerbi-fabric-cicd-pipeline		
+15	2026-11-09	false	MIT	MrKruge/fabric-vending-machine		Terraform-driven Microsoft Fabric workspace vending machine
+91313	2026-10-01	false	none	MunGell/awesome-for-beginners	awesome,awesome-list,beginner-project,beginners-friendly,list	A list of awesome beginners-friendly projects.
+0	2026-02-19	false	none	Muz-tek/fabric		CICD for fabric workspaces
+0	2026-05-27	false	none	Muz-tek/fabric-cicd		terraform and devops yaml for fabric
+95	2026-11-08	false	MIT	NatVanG/fab-inspector	microsoftfabric,powerbi,powerbi-report,powerbi-visuals	Deterministic rules-based testing for Microsoft Fabric in the age of AI.
+1	2025-07-14	false	NOASSERTION	NatVanG/fab-inspector-fabric-cli-cicd-example		
+0	2025-09-02	false	none	NickOlsonRBA/fabric-cicd		Testing Fabric CI-CD options
+14	2026-09-21	false	Apache-2.0	Open-Education-AI/OEAI	data-engineering,education,microsoft-fabric,multi-academy-trust	Open Education AI: an open, standards-based data framework for schools and trusts
+4	2026-09-16	false	none	PBI-Guy/map-fabric-cu-consumption-by-user		A practical guide for attributing Microsoft Fabric Capacity Unit (CU) consumption to Power BI users by correlating Capacity Operation Events with Workspace Moni
+12	2025-03-03	false	MIT	PacktPublishing/Implementing-Analytics-Solutions-Using-Microsoft-Fabric-DP-600-Exam-Study-Guide		Implementing Analytics Solutions Using Microsoft Fabric Exam DP600 StudyGuide, published by Packt
+39	2026-03-02	false	MIT	PacktPublishing/Learn-Microsoft-Fabric		Learn Microsoft Fabric, published by Packt
+3	2026-02-27	false	MIT	PatrickGallucci/fabric-mcp-claude-extension	claude,claude-desktop,claude-extensions,fabric-mcp,fabric-mcp-server,mcp,mcp-server,microsoft-fabric	Microsoft Fabric MCP Server - Claude Desktop Extension
+17	2026-06-07	false	MIT	PatrickGallucci/fabric-skills	claude,claude-skills,copilot,copilot-skills,fabric,microsoft-fabric	Copilot, Claude AI Skills for Microsoft Fabric
+6	2025-09-22	false	MIT	PatrickGallucci/fabric-stencils	fabric,icon,icons,microsoft-fabric,microsoft-fabric-data-engineer,microsoft-visio,shape,visio,visio-stencil	Visio Stencils for Microsoft Fabric
+10098	2026-11-11	false	CC0-1.0	PatrickJS/awesome-angular	angular,angular-components,angular10,angular11,angular2,angular4,angular9,awesome,awesome-list	:page_facing_up: A curated list of awesome Angular resources
+2200	2026-11-01	false	CC0-1.0	PavelGrigoryevDS/awesome-data-analysis	ai,analytics,awesome-list,big-data,business-intelligence,dashboard,data-analysis,data-science,data-visualization,datasets,eda,jupyter-notebook,ml,numpy,pandas,python,resources,sql,statistics,tutorials	🚀 500+ curated resources for Data Analysis & Data Science: Python, SQL, Statistics, ML, AI, Visualization, Cheatsheets, Roadmaps, Interview Prep. For beginners 
+0	2026-07-05	false	none	PratikhyaManas/Fabric-CICD		Microsoft Fabric CI/CD integrates GitHub for version control and automation, allowing teams to continuously build, test, and deploy Fabric artifacts across envi
+51	2025-05-14	false	MIT	RuiRomano/fabric-cli-powerbi-cicd-sample		
+1	2026-01-27	false	MIT	RyanMicrosoftContosoUniversity/fabric-cicd-demo		
+11	2026-11-11	false	MIT	SoomroFarhanH/SemanticModelBPforAI	ai-readiness,best-practices,data-analysis,microsoft-fabric,power-bi,semantic-link-labs,semantic-model	Toolkit to make Power BI semantic models and Fabric Data Agents AI/Copilot-ready: semantic model AI-readiness analyzers, a Data Agent config validator, a natura
+4	2026-11-04	false	MIT	Statyx/Azure-Brain	ai-agents,azure,data-engineering,github-copilot,knowledge-base,microsoft-fabric	A brain that spares you the usual Fabric and Azure mistakes
+1130	2026-09-11	false	MIT	TabularEditor/TabularEditor	azure-analysis-services,microsoft-fabric,powerbi,powerbi-desktop,powerbi-service,ssas-tabular,winforms	This is the code repository and issue tracker for Tabular Editor 2.X (free, open-source version). This repository is being maintained by Daniel Otykier.
+29	2026-01-19	false	none	TheDanielCoelho/Fabric-DE-CICD		Mastering Data Engineering Git and CI/CD in Microsoft Fabric Workshop - FabCon Europe 2025
+2	2026-09-07	false	MIT	VEDAFORGE/fabric-cicd-reference	azure-devops,cicd,data-engineering,deployment-automation,fabric,fabric-cicd,microsoft-fabric,platform-engineering,python	Production-inspired Microsoft Fabric CI/CD reference implementation using Azure DevOps, Service Principals, reusable deployment automation, and enterprise deplo
+37094	2026-11-05	false	MIT	VoltAgent/awesome-agent-skills	agent-skills,ai-agents,awesome-list,claude-code,claude-code-skills,claude-skills,codex,codex-skills,cursor,cursor-skills,gemini-skills,skills	A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more.
+12	2025-04-29	false	MIT	aboerger/Custom-Admin-Monitoring-Microsoft-Fabric		Session slides & demonstration code from the "Custom Admin Monitoring for Microsoft Fabric & Power BI" session
+910	2026-11-09	false	CC0-1.0	ahmet/awesome-web3	awesome,awesome-list,blockchain,ethereum,smart-contracts,solidity,web3	A curated list of awesome Web3 resources, libraries, tools and more.
+709	2026-11-11	false	MIT	ai-boost/awesome-a2a	a2a,a2a-cli,a2a-mcp,a2a-protocol,a2a-server,agent,agent2agent,mcp	Agent2Agent (A2A) – awesome A2A agents, tools, servers & clients, all in one place.
+0	2025-03-18	false	MIT	akpattnaiksre/AzureDevOps-fabric-cicd-sample		Repository tooperationalize fabric-cicd to work with Microsoft Fabric and YAML Pipelines in Azure DevOps.
+1	2026-07-10	false	none	alerrandrofrederik/workshop_cicd_no_microsoft_fabric		workshop_cicd_no_microsoft_fabric
+1	2025-02-06	false	MIT	alesaez/msft-fabric-cicd		Microsoft Fabric CI/CD process
+0	2026-03-16	false	none	alishadua/fabric-cicd		
+8	2025-11-27	false	MIT	alisonpezzott/calendario-sql	azure-sql,microsoft-fabric,powerbi,sql,sql-server	Gerador de tabela completa de dimensão calendário com SQL
+6	2024-11-25	false	MIT	alisonpezzott/calendario_fabric_lakehouse	calendar-table,calendario,date-table,direct-lake,lakehouse,microsoft,microsoft-fabric,pyspark,pyspark-notebook,semantic-model,tabular-editor	Tabela calendário para lakehouse Fabric a partir do notebook spark
+4	2026-04-27	false	MIT	alisonpezzott/community-contributions-20250401-20260331	devops,microsoft-fabric,microsoft-mvp,power-bi,python	Community contributtions of Alison Pezzott between 2025-04-01 and 2026-03-31
+6	2025-01-22	false	MIT	alisonpezzott/fabric-medallion-cotacoes-bcb	microsoft-fabric,microsoft-power-bi,pyspark,sparksql	
+19	2026-03-15	false	MIT	alisonpezzott/fabricopsflow	cicd,devops,microsoftfabric,powerbi	A CI/CD framework for end-to-end automation of Microsoft Fabric projects, integrating Azure DevOps Pipelines, Service Principal authentication, and automated de
+49	2026-10-27	false	MIT	alisonpezzott/pyfabricops	ci-cd,microsoft-fabric,power-bi,python	A Python wrapper library for Microsoft Fabric and Power BI that provides a simple, consistent interface to the official Fabric REST APIs, with automatic fallbac
+0	2024-07-11	false	none	amaldevk88/bayer		cicd fabric learning
+860	2026-11-11	false	NOASSERTION	amanbolat/awesome-go-with-stars	awesome,awesome-list,aws,go,lambda,stars	Awesome-go list with stars. Automatically updated.
+4	2026-10-31	false	none	amattas/microsoft-excalidraw	azure,diagrams,excalidraw,excalidraw-library,exempt,icons,microsoft-fabric	Hand-drawn-style Excalidraw libraries of 845 Microsoft product icons - Azure, Fabric, Dynamics 365, Power Platform, and Microsoft 365 - converted from the offic
+4	2026-11-04	false	MIT	amattas/retail-demo	data-generator,demo,microsoft-fabric,python,retail	Microsoft Fabric demo for retail customers with data generator
+9440	2026-11-11	false	none	anbeime/skill	agent-skills,claude-skills,codex,deepseek,deepseek-harness,developer-tools,dsh-plugin,finance-skill,gemini-skills,hermes-skill,office-skill,openclaw-skills,opencode,skill,skill-md,skills	收录最全、更新最快的技能Skills商店：精选原创技能包（涵盖文档处理、内容创作、编程开发、机器学习、自动化工作流），全部打包好可直接安装使用！同时自动抓取GitHub上万个Skills项目，按分类、更新时间、Star数量整理。The most comprehensive and frequently updated 
+222	2026-11-11	false	CC0-1.0	andrew/ultimate-awesome	awesome,awesome-list,awesome-lists,awesome-readme,resources	Every awesome list on every topic, including awesome lists of awesome lists, updated daily.
+215	2026-10-29	false	none	angristan/awesome-stars	github,stars	A curated list of my GitHub stars!
+0	2025-03-11	false	none	anildwarepo/fabric-cicd		
+114	2026-11-11	false	none	animetanver-commits/fabric-unified-data-blueprint	ai-azd-templates,azd-template,azd-templates,azure-databricks,data-engineering,data-governance,data-lineage,domain-models,medallion-architecture,microsoft-fabric,microsoft-purview,powerbi-dashboards,powerbi-report,pyspark,python,t-sql	Microsoft Fabric Unified Data Foundation with Databricks & Purview 2026
+15	2023-07-19	false	none	anshulsharmas/fabric-iss-demo		Monitoring International Space Station with Microsoft Fabric
+18	2024-10-23	false	MIT	arasdk/fabric-code-samples		Various samples and code snippets for automating or performing certain tasks in Microsoft Fabric
+8818	2026-11-05	false	Apache-2.0	ariga/atlas		Declarative schema migrations with schema-as-code workflows
+30	2026-10-31	false	MIT	astrzala/FabricToolset		Ready to use tools for Microsoft Fabric, Power BI, and Azure.
+722	2026-11-11	false	Apache-2.0	automateyournetwork/netclaw		An AI agent that claws through your network
+193355	2026-11-11	false	MIT	avelino/awesome-go	awesome,awesome-list,go,golang,golang-library,hacktoberfest	A curated list of awesome Go frameworks, libraries and software
+35676	2026-10-22	false	NOASSERTION	awesome-foss/awesome-sysadmin	awesome,awesome-list,devops,list,ops,self-hosted,software,sre,sysadmin	A curated list of amazingly awesome open-source sysadmin resources.
+4	2024-10-27	false	MIT	azurespheredev/MicrosoftFabric-Exploratorium	analytics,data-science,data-transformation,lakehouse,microsoft-fabric,one-lake,powerbi,real-time-analytics,spark,warehouse	A comprehensive educational resource hub dedicated to mastering Microsoft Fabric, offering in-depth tutorials, real-world use cases, and hands-on guides for sea
+4	2026-09-02	false	none	bablulawrence/ms-fabric-mcp-server		MCP server for Microsoft Fabric with tooling support for workspaces, Notebooks, Livy, Pipelines, Lakehouses, Warehouses,  Jobs and Semantic Models
+149	2026-11-11	false	none	balkewkidane/grizl-fabric-observability	activator,anomaly-detection,azure,cloud-run,copilot,eventhouse,kql,microsoft-fabric,observability,real-time-intelligence	grizl-fabric-observability: Fabric Eventhouse/KQL observability and anomaly-signal library
+156	2026-11-02	false	GPL-2.0	bennyaustin/fabric-accelerator	accelerator,data-factory,datawarehouse,elt-framework,eventstream,fabric-cli,kusto,lakehouse,metadata-driven-pipelines,microsoft-fabric,pipeline,real-time-intelligence,spark-notebook	Accelerator for building a Microsoft Fabric data platform with reusable components and an ELT orchestration framework. Automates up to 80% of Bronze and Silver 
+4	2026-10-17	false	MIT	bgarcevic/northwind-rayfin-app	finance,ibcs,microsoft-fabric,power-bi,rayfin,react	IBCS P&L and outlook app for a fictional brewer, built on Microsoft Fabric with Rayfin
+67	2026-10-07	false	none	bhakthan/awesome-microsoft-fabric		A curated list of awesome Microsoft Fabric resources, updates,  blogs, videos and more
+4	2024-03-08	false	GPL-3.0	bricrsa/fabric_pipelines		Pause, resume, scale Microsoft Fabric capacity using Fabric pipeline
+318	2025-07-10	false	none	brunokktro/auladobruno	amazon-web-services,aws	Links e materiais disponibilizados como conteúdo adicional para os estudos nos treinamentos da AWS.
+245	2026-03-27	false	CC0-1.0	brunorrr/Anotacoes-AWS-Cloud-Practitioner-Certified	aws,certification,portuguese,practitioner,tutorial	Conjunto de anotações para a certificação AWS Cloud Practitioner
+26	2026-11-10	false	Apache-2.0	calvinchengx/fabric-emulator	azure,delta-lake,emulator,entra-id,golang,microsoft-fabric,onelake,spark,testing	Local Microsoft Fabric emulator in one Go binary. Control plane, OneLake, T-SQL warehouse and Spark, verified against unmodified Microsoft tools.
+4	2025-08-06	false	none	carlosacchi/microsoft-fabric-with-terraform	data-engineering,fabric,iac,microsoft,microsoft-fabric,microsoft-fabric-api,terraform,terraform-module	Enterprise-ready Terraform modules for deploying Microsoft Fabric workspaces with medallion architecture. Automate Bronze, Silver & Gold layers with proper secu
+5	2009-01-17	false	none	cchandler/meson		High capacity message fabric based on Erlang and exposed via Ruby/Merb
+1	2026-03-08	false	none	chantifiedlens/ADO-deploy-fabric-items-task-examples	azure-devops,cicd,fabric-cicd,microsoft-fabric	Contains example YAML pipelines demonstrating how to use the Deploy Microsoft Fabric items with fabric-cicd task extension in Azure DevOps
+1	2026-10-18	false	MIT	chantifiedlens/ADO-fabric-cicd-sample	azure-devops,fabric-cicd,fabric-cli,microsoft-fabric	Shows how to operationalize fabric-cicd to work with Microsoft Fabric and YAML Pipelines in Azure DevOps
+1	2026-06-05	false	none	chantifiedlens/GH-fabric-cicd-sample	fabric-cicd,fabric-cli,github-actions,microsoft-fabric,oidc	Example of how to operationalize fabric-cicd to work with Microsoft Fabric and GitHub Actions.
+1	2026-06-16	false	none	chantifiedlens/ado-fabric-app-cicd	azure-devops,fabric-apps,microsoft-fabric,rayfin	Example of how to perform CI/CD for Fabric App to new workspace with Azure DevOps
+3	2026-01-10	false	MIT	chantifiedlens/deploy-microsoft-fabric-items	github,github-actions,microsoft-fabric	Composite action to deploy Microsoft Fabric workspace items using fabric-cicd and Az PowerShell authentication
+1	2026-02-19	false	MIT	chantifiedlens/fabric-cicd-local	fabric-cicd,microsoft-fabric	This repository demonstrates the first steps of a fabric-cicd deployment workflow from a local machine.
+1	2026-10-08	false	MIT	chmald/fabric-dev-to-prod-cicd	azure-demo	Promote Microsoft Fabric items from Dev to Prod with Azure DevOps pipelines, Git integration and per-environment Direct Lake values
+22	2025-04-16	true	MIT	chriscrcodes/talk-to-your-factory	azure-iot-operations,azure-openai,cloud-computing,edge-computing,generative-ai,industrial-iot,medallion-architecture,microsoft-azure,microsoft-fabric,python,semantic-kernel,streamlit	'Talk to Your Factory' demo leveraging Edge (Azure IoT Operations), Cloud (Microsoft Fabric), and a Factory Agent (Azure OpenAI), to streamline factory operatio
+44	2026-11-09	false	NOASSERTION	clemensv/real-time-sources	azure,cloudevents,event-hubs,event-streams,fabric,gtfs,gtfs-realtime,kafka,kafka-producer,microsoft-azure,microsoft-fabric,nextbus,noaa-data,pegelonline,rss	Real Time Sources for Apache Kafka, Azure Event Hubs, and Fabric Event Streams
+5	2026-07-22	false	Apache-2.0	cloudandthings/terraform-azurerm-fabric-platform	azure,fabric,terraform	A composable Terraform module for provisioning Microsoft Fabric capacities, domains, and workspaces — with built-in cost controls.
+77406	2026-11-01	false	MIT	colbymchenry/codegraph		Pre-indexed code knowledge graph, auto syncs on code changes, for Claude Code, Codex, Gemini, Cursor, OpenCode, AntiGravity, Kiro, CoPilot, and Hermes Agent — f
+3143	2026-03-20	false	Apache-2.0	collabnix/kubelabs	beginners,hacktoberfest,hacktoberfest2020,helm,kubernetes,kubetools	Get Started with Kubernetes
+7	2026-09-05	false	MIT	croblesm/library-app	devcontainer,github-copilot,microsoft-fabric,nodejs,react,sql-server-2025,terraform,vector-search	This is sample app using Azure SQL Database and Node.js for the backend and React for the frontend
+232	2018-04-17	true	none	cuuupid/awesome-lists	curated,curated-list,github,list,top	[DEPRECATED] A curated list of curated lists.
+0	2024-07-12	false	none	danhas14/FabricCICD_Dataverse_Lakehouse		
+6695	2023-12-28	false	CC0-1.0	dastergon/awesome-chaos-engineering	awesome,awesome-list,chaos,chaos-community,chaos-engineering,chaos-monkey,chaos-testing,netflix-chaos-monkey,resilience,simian-army,site-reliability-engineering	A curated list of Chaos Engineering resources.
+12	2026-10-15	true	NOASSERTION	data-goblin/nb-cli	microsoft-fabric,microsoft-power-bi,notebook,notebook-jupyter,notebooks	A command-line interface for notebooks in Microsoft Fabric
+1089	2026-11-10	false	GPL-3.0	data-goblin/power-bi-agentic-development	agentic-development,agents,ai,ai-agents,business-intelligence,claude,claude-code,copilot,dax,fabric,github-copilot,microsoft-fabric,pbip,plugin,power-bi,reporting,semantic-model,skills,tmdl	Power BI AI skills and Power BI agents for Claude Code and GitHub Copilot: a plugin marketplace of Power BI skills, subagents, and hooks for semantic models, DA
+0	2025-02-02	false	none	databayes/FabricCICD		Repository for CI/CD testing with Fabric
+11	2026-11-06	false	MIT	datacoolie/datacoolie	aws,data-engineering,databricks,delta-lake,etl,etl-framework,iceberg,lakehouse,metadata-driven,microsoft-fabric,pipeline,polars,pyspark,spark	DataCoolie — A Python data pipeline framework for Polars and Spark, across Local, AWS, Microsoft Fabric, and Databricks.
+29	2026-06-25	false	GPL-2.0	datahai/GenMLV		Project to manage MLVs in Microsoft Fabric Lakehouse
+60	2026-11-10	false	MIT	dataplat/FabricTools		FabricTools is a free, open-source, community-driven PowerShell module designed to facilitate the management of Microsoft Fabric workspaces and capacities.
+1082	2025-05-27	false	none	davidetaibi/Microservices_Project_List		A curated List of project that migrated to microservices
+3	2026-05-16	false	MIT	dereknguyenio/fabric-automation-bundles	ci-cd,data-engineering,databricks,declarative-automation-bundles,devops,fabric,fabric-cli,iac,infrastructure-as-code,microsoft-fabric,python	Declarative project definitions for Microsoft Fabric, enabling seamless CICD
+1	2026-03-26	false	none	dereknguyenio/fabric-fab-cicd-ado-example		Azure DevOps CI/CD for Microsoft Fabric using Fabric Automation Bundles
+536	2021-01-04	false	CC-BY-SA-4.0	dharmeshkakadia/awesome-mesos	awesome,awesome-list,mesos	Everything about Apache Mesos
+0	2026-09-14	false	none	dibakardharchoudhury/FabricCICD		
+111	2026-09-01	false	none	djouallah/Fabric_Notebooks_Demo	duckdb,microsoft-fabric,python	Fabric Python Notebooks examples
+33	2025-12-28	false	MIT	djouallah/aemo_fabric		example of a Microsoft Fabric Solution 
+4	2026-11-11	false	none	djouallah/direct-lake-parquet-layout		How parquet layout drives Power BI Direct Lake cost - row groups, dictionary encoding, sorting and V-Order, measured on real Fabric capacity
+11	2026-11-11	false	MIT	djouallah/onelake_studio	microsoft-fabric,onelake,power-bi,vscode-extension	VS Code extension to browse Microsoft Fabric OneLake — tables, files and Power BI semantic models, read only.
+1	2025-11-26	false	none	donovanwhite/fabric-cicd-framework		Uses fabric-cicd library for CICD and migrating workspaces etc
+1906	2024-04-20	false	none	drop-ice/dear-github-2.0		📨 An open letter to GitHub from the maintainers of open source projects 
+8	2025-12-22	false	MIT	dyneth02/Earthquake-Data-Engineering-Pipeline-on-Azure	adls-gen2,api-integrations,azure,azure-data-factory,azure-databricks,azure-sql-management,azure-syn,big-data,cloud-data-platform,data-engineering,earthquake-data,etl-pipeline,lakehouse,medallion-architecture,microsoft-fabric,pipeline-orchestration,power-bi,pyspark,scheduled-jobs,usgs-api	End-to-end Azure data engineering pipeline ingesting real-time earthquake data from the USGS API. Implements a Bronze–Silver–Gold lakehouse using Azure Data Fac
+166	2026-09-08	false	MIT	edkreuk/FMD_FRAMEWORK	data-engineering,fabric-framework,fmd,framework,metadata-framework,microsoft-fabric,microsoft-fabric-pipelines	The Fabric Metadata-Driven (FMD) Framework is a community-driven accelerator for Microsoft Fabric that provides the foundation for automated, scalable, and ente
+59	2026-10-28	false	MIT	edwinweber/dbt_duckdb_demo_public	dagster,data-engineering,dbt,delta-lake,dlt,docker,duckdb,medallion-architecture,microsoft-fabric,open-data,python,scd2	Open Source data engineering demo project using dbt, DuckDB, dlt, Dagster and Metabase.
+23	2025-11-18	false	none	ekote/Build-Your-First-End-to-End-Lakehouse-Solution	apache-spark,data-engineering,data-factory,data-pipeline,data-science,dataflows,delta-lake,lakehouse,machine-learning,microsoft-azure,microsoft-fabric,parquet,powerbi,tutorial,warehouse,workshop	Big Data CONFERENCE Europe 2025 🇱🇹 AI, Cloud and Data Conference - Build Your First End-to-End Lakehouse Solution (aka.ms/fabconlake)
+12	2026-05-12	false	Apache-2.0	eosovngas/pyfabricconnect		Unified Python connectivity toolkit for Microsoft Fabric Warehouses, Lakehouses, and SQL Endpoints.
+4	2025-02-08	false	NOASSERTION	erwinkramer/reference-architecture-secure-cross-tenant-API-traffic	azure,azure-api-management,azure-application-gateway,azure-networking,azure-private-link-service,microsoft-fabric,private-endpoint,synapse-workspaces	A reference architecture for secure cross-tenant API traffic, preserves the idea of private network connections, and makes use of a single API Management instan
+1	2026-01-26	false	none	eugenecp/ms-fabric-cicd		
+27	2026-09-17	false	MIT	gbrueckl/Fabric.Toolbox		Tools for Microsoft Fabric
+0	2025-05-28	false	none	gethynellis/Fabric-CICD		
+499	2025-04-29	false	none	ghostinthewires/Azure-Readiness-Checklist	azure,azure-active-directory,azure-app-service,azure-blob,azure-devops,azure-functions,azure-pipelines,azure-resource-manager,azure-storage,checklist	This checklist is your guide to the best practices for deploying secure, scalable, and highly available infrastructure in Azure. Before you go live, go through 
+2983	2026-11-11	false	MIT	glincker/thesvg	aws,brand-assets,brand-logos,cdn,cloud-icons,icon-library,icon-pack,icons,logos,mcp-server,nextjs,npm-package,open-source,react,svelte,svg,svg-icons,svg-logos,typescript,vue	The open SVG brand library: 7,600+ brand logos and cloud icons (AWS, Azure, GCP) as official SVG. Search, copy, ship via npm, CDN, CLI, React, Vue, Svelte, Figm
+1	2026-11-09	false	MIT	godatadriven/xebia-fabric-cicd-kit		CI/CD for Microsoft Fabric, built on fabric-cicd, with extra checks
+1	2026-07-30	false	MIT	gonzalonao/fabric-energy-lakehouse		Batch medallion lakehouse on Microsoft Fabric over Spanish electricity market data - DQ gates, Direct Lake, fabric-cicd CI/CD, Real-Time Intelligence extension
+26	2025-10-03	false	none	gronnerup/Fabric		Microsoft Fabric related samples
+3	2026-06-11	false	MIT	gusbavia/fabric-apps-skills	agent-skills,ai-agents,business-intelligence,claude,claude-code,copilot,fabric-apps,graphql,lakehouse,microsoft-fabric,msal,onelake,powerbi	Agent skills for building Microsoft Fabric Apps (preview): headless deploys, browser-to-Lakehouse live reads, and transactional write-back architecture. Battle-
+1027	2026-11-11	false	Apache-2.0	hashgraph-online/awesome-ai-plugins	ai-assistant,ai-plugin,awesome,awesome-list,best-ai-plugins,best-antigravity-plugins,best-claude-plugins,best-codex-plugins,best-dsh-plugins,best-grok-plugins,best-kimi-plugins,best-opencode-plugins,best-zcode-plugins,chatgpt,claude-code,codex,extensions,grok,mcp,skills	A curated list of the best awesome AI plugins for AI assistants including Claude Code, OpenAI Codex / ChatGPT, Gemini, Antigravity, Pi / Oh My Pi, Grok, OpenCod
+282	2026-11-11	false	MIT	hoilc/scoop-lemon	scoop,scoop-apps,scoop-bucket,windows	🍋Yet Another Personal Bucket for Scoop
+14	2026-11-11	false	MIT	iemejia/fabio		The agent-native CLI for Microsoft Fabric
+14	2026-01-26	false	none	imtkain/Fabric-Pathfinder		Maps Microsoft Fabric artifacts across DEV/UAT/PROD environments via Admin API. Great for creating variable libraries. Generates YAML find/replace config for fa
+7	2026-01-12	false	none	imtkain/Fabric-Prefab		Batch-provision Fabric Lakehouses, Notebooks, Warehouses, Pipelines, and Dataflows via REST API. Service Principal ownership prevents production outages when us
+9	2026-01-30	false	none	imtkain/Fabric-Usurp		Batch ownership transfer for Microsoft Fabric workspace items via undocumented WABI takeover API. Inventories all items in a workspace and transfers ownership t
+3	2025-03-12	false	none	itssyd/microsoftfabric_customerserviceanalysis	analytics,data-engineering,data-science,data-visualization,fabric,microsoft-azure,microsoft-fabric,powerbi	Microsoft Fabric for the end to end scenario
+9	2026-11-07	false	NOASSERTION	itumelengj-debug/powerbi-llm	ai,business-intelligence,dax,fabric,gemma,llm,local-first,local-llm,microsoft-fabric,ollama,power-bi,power-query,powerbi,rag,self-hosted,tmdl	A Power BI specialist LLM for Ollama — local-first, grounded, 12/12 on a 12-task Power BI benchmark at ~156 tok/s. Built on gemma4:26b with a baked-in Power BI 
+4	2025-10-11	false	none	ivinnyaraujo/sql-database-analyticsengineer-powerbi	analytics,data,data-engineering,data-science,database,microsoft-fabric,sql,sql-server	SQL | SQL Spatial | Database | Microsoft Fabric | More
+274	2026-10-19	false	Apache-2.0	jddevtime/open-lakehouse-compute-fabric	apache-iceberg,apache-spark,data-engineering,delta-lake,lakehouse,mcp,microsoft-fabric,onelake,python	Open Lakehouse Compute Fabric: an open-source lakehouse platform with Microsoft Fabric Compute Extension.
+15716	2026-01-12	false	none	jhuangtw/xg2xg	cheatsheet,devops-tools,googlers,infrastructure,lookup-table,management	by ex-googlers, for ex-googlers - a lookup table of similar tech & services
+0	2026-08-13	false	none	jjespeciais00/fabric-cicd		
+0	2025-09-07	false	none	jmd247-keertheerajcgr/fabric-cicd		
+4	2026-03-16	false	MIT	jmuziki/fabric-monitoring		Monitoring utilities for Microsoft Fabric workspaces
+11655	2026-11-05	false	CC0-1.0	jnv/lists	awesome,awesome-list,curated-lists,lists,resources	The definitive list of lists (of lists) curated on GitHub and elsewhere
+0	2026-03-25	false	none	joaria/fabric-cicd		
+0	2025-07-03	false	none	joel-domingo/fabric-cicd		
+0	2026-05-20	false	none	johnismet/fabric-cicd		
+550	2026-11-10	false	CC0-1.0	jqueryscript/awesome-claude-code	awesome-list,awesome-lists,claude,claude-code,claude-code-plugin,claude-skills,cli,code-generation,coding-agents,vibe-coding	A curated list of awesome tools, IDE integrations, frameworks, and other resources for developers working with Anthropic's Claude Code. 
+10	2024-04-12	false	NOASSERTION	jugi92/manage_fabric_capacity_python_runbook	azureautomationrunbookgallery,fabric,msfabric,python3	Start/Stop Suspend/Resume and Scale Microsoft Fabric Capacities with Managed Identity Python Runbook
+5	2026-04-24	false	none	jukkan/pp-inventory-portal		Power Platform governance dashboard · Evidence.dev + Fabric Lakehouse
+0	2025-11-04	false	MIT	juliuspope20/fabric-cicd		
+149	2026-11-11	false	none	kaan123434/cart-abandonment-rti	activator,cart,eventstream,fabric,html5,javascript,python,realtimeintelligence,udf	Real-Time Cart Abandonment Insights with Microsoft Fabric Eventstreams
+24357	2024-03-26	false	NOASSERTION	kahun/awesome-sysadmin		A curated list of amazingly awesome open source sysadmin resources inspired by Awesome PHP.
+2124	2025-09-16	false	none	keenanromain/AWS-SAA-C02-Study-Guide		How to become a certified AWS Solutions Architect
+11	2026-08-01	false	MIT	kengio/dp-700-study-guide	certification,data-engineering,dp-700,exam-prep,fabric,kql,lakehouse,microsoft,microsoft-certification,microsoft-fabric,obsidian,onelake,practice-exams,pyspark,real-time-intelligence,study-guide,tsql	Open-source community study guide for Microsoft DP-700: Implementing Data Engineering Solutions Using Microsoft Fabric. Aligned to the July 2026 blueprint. Cove
+34	2026-07-11	false	MIT	kengio/dp-800-study-guide	ai,azure-sql,certification,diskann,dp-800,embeddings,exam-prep,mcp,microsoft,microsoft-fabric,obsidian,rag,sql-server,study-guide,tsql,vector-search	Open-source community study guide for Microsoft DP-800: Developing AI-Enabled Database Solutions. Aligned to the March 2026 official blueprint. Covers SQL Serve
+64	2026-05-24	false	MIT	kerski/fabric-dataops-patterns		Templates for weaving DataOps into Microsoft Fabric
+5	2024-06-11	false	none	kevchant/AzureDevOps-AutomateFabricDeploymentPipeline	microsoft-fabric	Template to automate your Microsoft Fabric Deployment Pipeline deployments using YAML Pipelines in Azure DevOps
+8	2025-10-16	false	MIT	kevchant/AzureDevOps-fabric-cicd-sample	microsoft-fabric,microsoft-fabric-data-engineer	Shows how to operationalize fabric-cicd to work with Microsoft Fabric and YAML Pipelines in Azure DevOps
+2	2025-05-02	false	MIT	kevchant/AzureDevOps-fabric-cicd-with-automated-tests	microsoft-fabric,microsoft-fabric-data-engineer	AzureDevOps-fabric-cicd-with-automated-tests to show how to operationalize fabric-cicd to work with Microsoft Fabric and YAML Pipelines in Azure DevOps and perf
+9	2025-07-28	false	MIT	kevchant/GitHub-FUAM-Deploymenator	fuam,microsoft-fabric	FUAM deployment accelerator to push FUAM deployments from GitHub to a Microsoft Fabric tenant
+4	2025-07-10	false	none	kevchant/GitHub-fabric-cicd-sample	microsoft-fabric	Repository to operationalize fabric-cicd to work with Microsoft Fabric and GitHub Actions.
+6	2026-10-14	false	MIT	kilianbs/fabric-schedule-inventory	fabric-app,microsoft-fabric,rayfin	Microsoft Fabric app that inventories every scheduled item across your workspaces and shows when it runs on a typical-day Gantt timeline, to spot overlaps and c
+79	2023-12-18	false	none	kinfey/MSFabricCopilotWorkshop	azureopenai,dotnet,qdrant-vector-database,semantickernel	This is Microsoft Fabric Copilot Workshop
+767	2022-12-01	false	BSD-3-Clause	kiteco/kiteco-public		Primary Kite repo — private bits replaced with XXXXXXX
+28	2024-05-20	false	MIT	klinejordan/fabric-tenant-admin-notebooks		Notebooks for querying Fabric APIs and storing data in Fabric Lakehouses
+8	2022-12-14	false	MIT	korkridake/FabricChamps	bi-platform,bi-strategy,biops,business-analytics,business-insights,business-intelligence,champions,data,data-visualization,fabric,microsoft-fabric,microsoft-fabric-api,microsoft-fabric-data-engineer,microsoft-fabric-lakehouse,power-bi,power-bi-project,power-bi-service	From Power BI to Microsoft Fabric 🤔 Introducing Power BI Adoption Framework 🌱
+18835	2026-11-11	false	Apache-2.0	kubernetes-sigs/kubespray	ansible,aws,bare-metal,gce,hacktoberfest,high-availability,k8s-sig-cluster-lifecycle,kubernetes,kubernetes-cluster,kubespray	Deploy a Production Ready Kubernetes Cluster
+0	2025-09-07	false	none	kudnan-d/fabric-cicd		
+0	2026-09-09	false	none	kuldeeptyagiau/fabric-cicd		
+13	2026-10-20	false	MIT	ladataweb/SimplePBI	microsoft-fabric,powerbi,python	SimplePBI is an unoficial open source Python library wrapper for Power Bi and Fabric
+26	2026-01-16	false	MIT	ladparth/fabricflow	microsoftfabric,python	FabricFlow is a code-first Python SDK for building, managing, and automating Microsoft Fabric data pipelines, workspaces, and core items. It provides a high-lev
+1634	2026-07-10	false	none	learning-zone/python-basics	python,python-interview-questions,python-libraries,python3-library	Python Basics ( v3.x )
+1500	2026-11-11	false	Apache-2.0	liqotech/liqo	cloud-computing,clusters,k8s,kubernetes,kubernetes-clusters,liquid-computing,multi-cluster,resource-sharing	Enable dynamic and seamless Kubernetes multi-cluster topologies
+7	2026-05-17	false	MIT	lmoloney/OneLakeTools		Terminal UI and async Python client for browsing Microsoft Fabric workspaces and OneLake storage
+259	2026-10-28	false	MIT	luanmorenommaciel/agentspec		
+29	2025-03-21	false	none	lucid-bi/Fabric-Architecture-Diagrams		Repo containing sample architecture diagrams for Microsoft Fabric
+4	2026-10-13	false	MIT	lukas-novacek/GatewayLens	access-management,admin-tools,bulk-operations,credentials,data-gateway,entra-id,gateway-monitoring,governance,microsoft-fabric,microsoft-graph,monitoring,on-premises-data-gateway,power-bi,power-bi-gateway,powerbi,powershell,sysadmin,vnet-data-gateway,windows,wpf	Free admin console for Power BI and Microsoft Fabric data gateways, on-premises and VNet: monitor every gateway cluster with alerts, bulk-update credentials, gr
+1735	2026-11-05	false	CC0-1.0	lukemurraynz/awesome-azure-architecture	architecture,awesome,awesome-list,azure,cloud,microsoft,security	AWESOME-Azure-Architecture - https://aka.ms/AwesomeAzureArchitecture
+293	2026-11-07	false	Apache-2.0	luthermonson/go-proxmox	api,api-client,go,golang,golang-package,lxc-containers,proxmox,proxmox-apis,proxmox-cluster,proxmox-ve,qemu	Go client with types and tests for the Proxmox-VE REST API
+120	2024-07-23	true	MIT	m-kovalsky/fabric_cat_tools	analysis-services,analysis-services-tabular,fabric,microsoft,notebook,powerbi,python	Supercharge your Microsoft Fabric development with the fabric_cat_tools library
+0	2026-11-02	false	none	mahesh-lognormal/fabric-cicd		
+0	2025-12-11	false	none	mango-storage/fabric-cicd		
+19	2026-09-06	false	MIT	marclelijveld/Fabric-Automation		This repository contains solution templates for Microsoft Fabric. 
+27	2023-10-13	false	MIT	marclelijveld/Fabric-Icons		Provide a draw.io file to build architectural diagrams for anything Microsoft Fabric. 
+11	2026-10-30	false	none	marcogrimaldi29/dp-600-study-notes	certification,dp-600,microsoft,microsoft-fabric,power-bi,powerbi	Study notes for the Microsoft Certification DP-600
+5	2026-10-30	false	none	marcogrimaldi29/dp-700-study-notes	dp-700,microsoft,microsoft-fabric,microsoft-fabric-data-engineer	Study notes for the Microsoft certification DP-700
+8	2026-08-25	false	none	mariyaali/fabric-dw-query-capacity-correlation		Correlate Microsoft Fabric Capacity Metrics with Warehouse Query Insights in a customer-owned Power BI project.
+0	2026-05-26	false	none	masinavorg/fabric-cicd		
+9	2026-11-03	false	MIT	mdrakiburrahman/fabric-workspace-deployment		A production-ready Fabric Workspace Deployment application
+21	2026-03-19	false	none	mdrakiburrahman/spark-devcontainer		A VSCode Devcontainer for Apache Spark based Data Engineering with a focus on Microsoft Fabric compatibility.
+26	2026-06-21	false	none	mdrakiburrahman/spark-sandbox		Apache Spark Sandbox with patterns often focusing on Microsoft Fabric
+11782	2026-10-15	false	CC0-1.0	mehdihadeli/awesome-software-architecture	architectural-patterns,architectural-styles,architecture,awesome-list,clean-architecture,ddd,ddd-architecture,design-pattern,design-patterns,design-systems,event-driven-architecture,microservice,microservices,microservices-architecture,modular-monoliths,onion-architecture,oop,software-architecture,system-design,vertical-slice-architecture	📚 A curated list of awesome articles, videos, and other resources to learn and practice software architecture, patterns, and principles.
+0	2026-01-31	false	none	mehrdadabdollahi/fabric-cicd		The repository for keeping the items of CI/CD in Fabric
+281	2025-12-31	false	MIT	metorial/metorial-index	agentic-ai,agents,awesome-list,mcp,mcp-server	Metorial MCP Index - An ever growing list of open source MCP servers 📁 🎉
+16	2026-11-03	false	none	michaeldeongreen/microsoft-fabric-sdlc-patterns		Reference implementation of a Microsoft Fabric SDLC that demonstrates Git‑based development workflows, branching strategies, and automated CI/CD deployments acr
+0	2025-08-20	false	none	michelmsft/fabric-cicd		
+109	2026-11-09	false	NOASSERTION	microsoft/AI-in-One-Dashboard	agents,analytics,business-intelligence,copilot,microsoft,powerbi-report	Free Power BI dashboard for Microsoft 365 Copilot, Copilot Chat and agent adoption. Nearly 20 report pages on usage, adoption, habits, agent health and licensin
+66	2025-10-30	false	MIT	microsoft/ApplicationInsights-ServiceFabric		ApplicationInsights SDK for ServiceFabric projects
+10	2026-08-19	true	MIT	microsoft/Build26-BRK240-build-context-aware-agents-from-data-to-decisions	ai-agents,azure-ai-foundry,build-2026,enterprise-ai,knowledge-graph,microsoft-build,microsoft-fabric	Resources for designing agents with Foundry IQ, Fabric IQ, and Work IQ — search across organizational knowledge, reason over business data, and operate within t
+11	2026-08-12	true	MIT	microsoft/Build26-LAB514-ship-ai-apps-fast-with-a-managed-backend-in-microsoft-fabric		
+8	2026-08-21	true	MIT	microsoft/Build26-OD810-build-fast-not-fragile-with-rayfin-on-microsoft-fabric	app-development,backend-as-a-service,build-2026,data-platform,microsoft-build,microsoft-fabric,rayfin	Demo resources for shipping apps with Rayfin on Microsoft Fabric — typesafe schemas, APIs, functions, storage, and app hosting with built-in governance and anal
+8	2026-08-19	true	MIT	microsoft/Build26-OD812-bringing-enterprise-ontology-directly-into-the-developer-workflow	build-2026,enterprise-ai,fabric-iq,microsoft-build,microsoft-fabric,ontology,semantic-data	Resources showing how Microsoft Fabric IQ unifies real-time data and semantic context to power trusted operational AI — helping teams and agents reason and act 
+21	2026-10-21	false	MIT	microsoft/CollectServiceFabricData	collectsfdata,service-fabric,service-fabric-support,servicefabric	CollectSFData is a Service Fabric support utility to collect detailed cluster traces and other diagnostics data for ingestion into Log Analytics or Azure Data E
+78	2026-09-21	true	MIT	microsoft/Data-and-Agent-Governance-and-Security-Accelerator	ai-azd-templates,azd-templates,compliance-automation,data-security,data-security-posture-management-for-ai,defender-for-cloud,dspm,governance,microsoft-365-copilot,microsoft-fabric,microsoft-foundry,microsoft-purview	Automate end-to-end AI governance with Microsoft Purview DSPM for AI and Defender for AI. Configure DLP, sensitivity labels, audit logging, and threat detection
+15	2022-11-28	true	MIT	microsoft/DataCenterBridging	lldp,msftnet	LLDP Fabric Info Parsing and DSC Resources used to configured Data Center Bridging - Check https://aka.ms/Validate-DCB for more information
+11	2026-11-11	false	MIT	microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots	ai-adoption,ai-governance,analytics-dashboard,azure,copilot-analytics,copilot-studio,microsoft-365-copilot,microsoft-copilot,microsoft-fabric,power-bi,purview	DataHub App - for Microsoft Copilot, Agents, Cowork and Autopilots
+235	2026-09-16	true	MIT	microsoft/Deploy-Your-AI-Application-In-Production	ai-azd-templates,ai-landing-zone,azd-templates,fabric,microsoft-fabric,microsoft-foundry,onelake-indexer,purview-data-governance	A deployment of a secure, extensible and integrated environment for running AI Foundry workloads in Production. It simplifies the process of including essential
+21	2025-11-27	false	MIT	microsoft/FabConRTIWorkshop		Workshop tutorial for Real-Time Intelligence delivered at Microsoft Fabric Community Conference
+9	2026-03-09	false	none	microsoft/Fabric-IQ-and-Real-Time-Intelligence-assets		This repository contains various assets like demos, accelerators, decks and more created by Microsoft FTEs 
+22	2026-06-11	true	MIT	microsoft/Fabric-RTA-FlightStream	etl,kql,lakehouse,powerbi,pyspark-notebook,streaming	Microsoft Fabric Real-time Analytics flight streaming 
+273	2024-03-22	false	CC-BY-4.0	microsoft/Fabric-Readiness		A collection of useful materials for presenters interested in topics related to Microsoft Fabric 
+33	2024-09-11	true	MIT	microsoft/Fabric-metadata-scanning		Sample application for using the Fabric / Power BI metadata Scanner API
+13	2026-03-04	false	MIT	microsoft/FabricAccelerateFactory		Framework and toolkit for migrating to Microsoft Fabric. Includes methodologies, automation tools, and best practices to ensure smooth, secure transitions.
+26	2026-10-30	false	MIT	microsoft/FabricBQSync		
+29	2026-09-03	false	MIT	microsoft/FabricCAT		Content built for the community, with love, by The Fabric Customer Advisory Team!
+61	2025-03-20	false	MIT	microsoft/FabricRTA-in-a-Day		Fabric Real Time Analytics in a Day workshop
+21	2025-07-25	false	MIT	microsoft/FabricRTIWorkshop	analytics,batch,dashboard,intelligence,realtime,streaming-data	How to build a Medallion design pattern using Fabric Real-Time Intelligence
+34	2024-01-08	true	MIT	microsoft/Fabric_Workshops		Microsoft Fabric Readiness and Workshops
+19	2019-09-20	true	MIT	microsoft/GuardedFabricTools		PowerShell tools for managing a Hyper-V guarded fabric and shielded virtual machines
+104	2024-07-02	false	MIT	microsoft/Hack-Together-Fabric-AI		Hack Together: The Microsoft Fabric Global AI Hack
+58	2026-08-06	false	MIT	microsoft/Microsoft-Fabric-workload-development-sample		Demonstrates how to implement a Microsoft Fabric workload in .net and typescript
+8	2025-01-23	false	MIT	microsoft/Microsoft_Fabric_RTI_API_Sample		
+3039	2026-10-31	false	MIT	microsoft/Ontology-Playground		Free, open-source web app for learning about ontologies and Microsoft Fabric IQ. Explore a catalogue of pre-built ontologies, design your own visually, export a
+10	2026-10-16	false	MIT	microsoft/PAX-Fabric		Enterprise-grade Microsoft Fabric analytics pipeline for ingesting, transforming, and processing telemetry data across 365 Apps, Copilot, agents, and work solut
+15	2022-12-08	true	MIT	microsoft/Service-Fabric-AppDRTool		The Service Fabric Application Disaster Recovery Tool is a disaster recovery tool for Service Fabric clusters which allows users to recover their primary cluste
+40	2024-05-31	false	MIT	microsoft/Service-Fabric-POA	patching,servicefabric,windowsupdate	Patch Orchestration Application (POA) is an Azure Service Fabric application that automates operating system patching on a Service Fabric cluster without downti
+42	2026-02-04	false	MIT	microsoft/SynapseVSCode		this is the repo of the Synapse VS Code extension for Microsoft Fabric
+21	2026-09-10	false	MIT	microsoft/TWL300-Fabric-w-Databricks-for-Data-Analytics		To gain access, please finish setting up this repository now at: 
+1911	2026-11-11	false	MIT	microsoft/WhatTheHack		A collection of challenge based hack-a-thons including student guide, coach guide, lecture presentations, sample/instructional code and templates.  Please visit
+139	2026-11-09	false	MIT	microsoft/agentic-applications-for-unified-data-foundation-solution-accelerator	ai-azd-templates,azd-templates	This accelerator unifies enterprise data with Microsoft Fabric and applies agentic AI to enable faster, smarter decisions. With Microsoft Foundry agents and the
+14	2026-09-26	false	MIT	microsoft/airflow-providers-microsoft-fabric		Repository containing the source code for the Microsoft Fabric provider for Airflow. 
+16	2025-03-18	true	MIT	microsoft/aitour-get-started-with-fabric		
+8	2026-08-24	true	MIT	microsoft/aitour-reimagine-fabric-intelligence		
+11	2026-08-24	true	MIT	microsoft/aitour-whats-new-with-fabric		
+44	2026-02-23	true	MIT	microsoft/aitour26-BRK462-enable-agentic-ai-apps-with-a-unified-data-estate-in-microsoft-fabric		
+28	2026-02-23	true	MIT	microsoft/aitour26-WRK560-modernize-your-data-estate-ms-fabric-azure-databricks-and-microsoft-foundry		
+25	2024-10-22	false	Apache-2.0	microsoft/apache-airflow-microsoft-fabric-plugin		
+16	2026-11-02	false	MIT	microsoft/azure-ai-search-foundry-iq-live-knowledge-sources	agentic-retrieval,azure-ai-search,foundry-iq,github-pages,knowledge-sources,mcp-server,microsoft-fabric	Reusable accelerator for Foundry IQ live grounding with Fabric Ontology and MCP Server Knowledge Sources.
+6	2026-08-31	false	MIT	microsoft/azurekorea	azure,azure-ai,azure-ai-foundry,azure-data,azure-databricks,azure-devops,azure-ml,azure-openai,azure-tech-blog,cloud,data-engineering,devsecops,fsi,generative-ai,korea,microsoft,microsoft-fabric,microsoft-korea,mlops,technical-blog	This repository hosts the Azure Tech Blog, authored by Microsoft Korea employees, sharing insights, best practices, and real-world experiences with Azure.
+43	2021-01-26	true	MIT	microsoft/create-react-app-uifabric		A Create React App based starter with UI Fabric goodness baked in
+136	2026-11-11	false	MIT	microsoft/data-factory-testing-framework	azure-data-factory,azure-synapse,data-factory,fabric,functional-tests,microsoft-fabric,test,testing-framework,unit-tests	A stand-alone test framework that allows to write unit tests for Data Factory pipelines on Microsoft Fabric, Azure Data Factory and Azure Synapse Analytics.
+153	2026-10-26	false	MIT	microsoft/dbt-fabric		
+72	2026-11-11	false	MIT	microsoft/dbt-fabricspark	dbt,fabric,spark	A dbt adapter for Fabric Lakehouse backed by Apache Spark.
+9	2023-11-22	true	MIT	microsoft/dstoolkit-feature-engineering-on-fabric		E2E architecture and demo of implementing the feature engineering solution on Microsoft Fabric.
+10	2026-05-05	false	MIT	microsoft/fabric-analytics-roadshow-lab		
+29	2026-11-11	false	MIT	microsoft/fabric-apps-analytic-templates		Build data analytics apps based on your data in Fabric
+28	2026-11-11	false	NOASSERTION	microsoft/fabric-architecture-review	accelerator,architecture-review,best-practices,capacity-planning,cost-management,data-agent,data-governance,fabric,governance,knowledge-graph,microsoft-fabric,performance,power-bi,python,security	An accelerator that reviews a Microsoft Fabric tenant end-to-end through metadata-only scans across governance, cost, capacity, performance, and security, deliv
+347	2026-11-11	false	MIT	microsoft/fabric-cicd		Jumpstart CICD deployments in Microsoft Fabric
+176	2026-11-04	false	MIT	microsoft/fabric-cli		⚡ Microsoft Fabric CLI
+10	2025-02-10	true	Apache-2.0	microsoft/fabric-cosmosdb-chat-analytics		fabconeurope2024: Demo material and fabric notebooks to analyze chat history stored in a CosmosDB noSQL container
+57	2026-09-14	false	MIT	microsoft/fabric-extensibility-toolkit		
+60	2026-11-05	false	MIT	microsoft/fabric-jumpstart		Fabric Jumpstart provides high-quality accelerators, demos, and tutorials that install directly into your workspace in minutes.
+10	2026-10-29	false	MIT	microsoft/fabric-launcher		A toolkit for automating and orchestrating the initial deployment and configuration of solutions to a Microsoft Fabric workspace.
+31	2024-04-09	false	MIT	microsoft/fabric-migration		Scripts and tooling to migrate DW and Spark workloads to Fabric.
+48	2026-11-10	false	NOASSERTION	microsoft/fabric-rest-api-specs		The source for REST API specifications for Microsoft Fabric.
+133	2026-11-05	false	MIT	microsoft/fabric-rti-mcp		MCP server for Fabric Real-Time Intelligence (https://aka.ms/fabricrti) supporting tools for Eventhouse (https://aka.ms/eventhouse), Azure Data Explorer (https:
+644	2026-10-23	false	MIT	microsoft/fabric-samples		Samples and data for Microsoft Fabric Learn content
+20	2026-11-11	false	MIT	microsoft/fabric-sdk-go	api-client,fabric,go,golang,microsoft-fabric,sdk,sdk-go	Microsoft Fabric SDK for GoLang
+50	2026-05-22	false	MIT	microsoft/fabric-task-flows		Task flows let you describe your problem and have an AI agent generate your Microsoft Fabric solution—workspaces, pipelines, notebooks, data agents, models, rep
+49	2026-11-11	false	MIT	microsoft/fabric-terraform-quickstart	fabric,microsoft-fabric,quickstart,quickstarts,terraform,terraform-modules	Examples for using the Terraform Provider for Microsoft Fabric
+947	2026-11-02	false	MIT	microsoft/fabric-toolbox		Fabric toolbox is a repository of tools, accelerators, scripts, and samples to accelerate your success with Microsoft Fabric, brought to you by Fabric CAT.
+29	2026-11-06	false	MIT	microsoft/fabric-user-data-functions-samples		Samples for fabric user data functions 
+36	2026-10-22	true	MIT	microsoft/fabric_data_agent_client		a sample to call a fabric data agent outside of fabric
+31	2026-09-23	false	MIT	microsoft/fabriccatalyst		Fabric Catalyst
+118	2026-11-01	false	CC-BY-4.0	microsoft/fabricnotes		Simple drawings illustrating the main concepts of Microsoft Fabric to empower anyone to build stuff on Fabric.
+51	2024-10-02	false	MIT	microsoft/fabricrealtimelab		Microsoft Fabric real-time lab
+28	2025-03-28	false	MIT	microsoft/flashcards-workshop	azure,fabric,openai	Create self-study Flashcards with Microsoft Fabric and Azure OpenAI
+6	2026-10-30	false	MIT	microsoft/frontiertour27-BRK240-building-context-aware-agents-with-microsoft-iq	agent-365,agent-grounding,ai-agents,ai-tour,ai-tour-2027,context-aware-ai,enterprise-ai,fabric-iq,foundry-iq,microsoft,microsoft-fabric,microsoft-foundry,microsoft-iq,web-iq,work-iq	
+30	2026-06-03	true	MIT	microsoft/fuse-webui		reusable React components built on Office UI Fabric React
+30	2023-06-23	true	MIT	microsoft/gatsby-starter-uifabric		Gatsby.js starter for UI Fabric projects
+18	2023-07-12	true	MIT	microsoft/generator-azuresfcsharp		Yeoman generator for scaffolding Azure Service Fabric C# projects
+14	2026-01-22	true	MIT	microsoft/ignite25-LAB533-build-scalable-ai-and-data-solutions-in-sql-database-in-microsoft-fabric		
+8	2026-01-22	true	MIT	microsoft/ignite25-PREL14-unify-data-act-on-insights-and-build-ai-solutions-with-microsoft-fabric		
+409	2026-11-10	false	MIT	microsoft/iq-series	ai,azure,copilot-api,fabric-iq,foundry-iq,generative-ai,github-copilot,jupyter-notebook,knowledge-base,knowledge-source,language-model,llm,microsoft-365-copilot,microsoft-fabric,microsoft-foundry,microsoft-iq,rag,responsible-ai,sample-code,work-iq	The IQ Series is a hands-on learning experience for Microsoft IQ: Microsoft's unified intelligence layer for the enterprise, spanning Foundry IQ, Work IQ, and F
+102	2026-11-04	false	MIT	microsoft/microsoft-iq-solution-accelerator	ai-azd-templates,azd-templates	Single intelligence layer unifying enterprise data, knowledge and decisions from Work IQ, Foundry IQ and Fabric IQ.
+36	2026-09-29	false	NOASSERTION	microsoft/microsoft-sql		Microsoft SQL installable agent plugins for Azure SQL development, operations, local containers, migrations, and Fabric Database Hub workflows. The plugins pack
+24	2026-10-28	false	NOASSERTION	microsoft/project-osmos		Project Osmos is the copilot/codex/claude code plugin to interact with the Osmos Data Engineer in Microsoft Fabric  to solve complex data engineering tasks
+36	2026-09-21	false	MIT	microsoft/real-time-intelligence-operations-solution-accelerator	activator,ai-azd-templates,anomaly-detection,anomaly-detection-and-notification,azd-templates,data-analysis,data-visualization,event,eventhouse,fabric,fabric-data-agent,interactive-dashboard,kql,kql-queries,python,real-time-analytics,real-time-dashboard,real-time-data,real-time-intelligence,telemetry-data-simulator	This solution accelerator provides the architecture and working solution for real-time intelligence for operations. Key features include real-time dashboard, an
+596	2026-11-10	false	MIT	microsoft/semantic-link-labs	analysis-services,analysis-services-tabular,dax,jupyter-notebook,microsoftfabric,powerbi,python	Early access to new features for Microsoft Fabric's Semantic Link.
+3071	2026-11-04	false	MIT	microsoft/service-fabric	cloud-computing,cloud-native,containers,distributed-systems,microservices,orchestration	Service Fabric is a distributed systems platform for packaging, deploying, and managing stateless and stateful distributed applications and containers at large 
+153	2026-01-04	true	NOASSERTION	microsoft/service-fabric-aspnetcore		This repo contains ASP.NET Core integration for Service Fabric Reliable Services.
+19	2026-04-14	false	MIT	microsoft/service-fabric-backup-explorer		A set of artifacts to load service fabric reliable collections backups offline and then inspect, modify and take further new backups
+63	2026-11-02	false	NOASSERTION	microsoft/service-fabric-cli	azure,azure-service-fabric,python	Service Fabric CLI Tools
+71	2025-12-09	true	MIT	microsoft/service-fabric-client-dotnet		.NET client library for Service Fabric
+276	2026-11-05	false	NOASSERTION	microsoft/service-fabric-dotnet		Service Fabric .NET Libraries
+116	2026-11-06	false	MIT	microsoft/service-fabric-explorer	angular8,service-fabric,sfx,typescript	Service Fabric Explorer is a web based dashboard for visualizing the state of a Service Fabric cluster.
+22	2025-08-08	false	MIT	microsoft/service-fabric-healer	auto-mitigation,csharp,guan,linux,logic-programming,net6,service-fabric,windows	Service Fabric Auto-Repair Service with Declarative Logic for Repair Policy Specification. Targets both Windows and Linux SF clusters.
+168	2020-05-06	true	none	microsoft/service-fabric-issues		This repo is for the reporting of issues found with Azure Service Fabric.
+109	2026-05-05	false	MIT	microsoft/service-fabric-observer	cluster,csharp,fabric-observer,linux,net8,service-fabric,watchdog-service,windows	Highly configurable, extensible and performant Service Fabric watchdog service that, out of the box, monitors a broad range of physical machine resources that t
+27	2023-06-12	true	MIT	microsoft/service-fabric-reverse-proxy		Service Fabric Reverse Proxy is an HTTP proxy for Service Fabric applications
+25	2025-03-12	false	MIT	microsoft/service-fabric-scripts-and-templates		A collection of useful Service Fabric scripts and Resource Manager templates.
+14	2026-10-19	false	MIT	microsoft/service-fabric-traefik		service-fabric-traefik contains services to fetch endpoint information from Service Fabric and expose Traefik endpoints.
+38	2026-10-19	false	MIT	microsoft/service-fabric-yarp		YARP integration with Service Fabric
+3198	2026-11-11	false	MIT	microsoft/skills	agent-skills,agents,azure,foundry,mcp,sdk,skills	Skills, MCP servers, Custom Agents, Agents.md for SDKs to ground Coding Agents
+1339	2026-11-05	false	MIT	microsoft/skills-for-fabric		A collection of skills and MCP systems to enable users of CLI, VSCode, Claude to operate over Microsoft Fabric
+47	2026-10-20	false	MIT	microsoft/sqlsimtools	azure-sql,azure-sql-database,benchmarking,database-performance,github-copilot,load-testing,microsoft-fabric,mssql-python,odbc,performance-testing,python,query-store,sql,sql-server,stress-testing,tsql,workload	Open-source load testing and benchmarking tools for SQL Server, Azure SQL, and SQL database in Microsoft Fabric: sqlsim, sqlpysim, and sqlsim Studio
+41	2026-11-11	false	MIT	microsoft/synapse-spark-runtime		Release notes for Apache Spark based Runtime for Azure Synapse Analytics and Microsoft Fabric
+130	2026-11-11	false	MPL-2.0	microsoft/terraform-provider-fabric	fabric,microsoft-fabric,terraform,terraform-provider	Terraform Provider for Microsoft Fabric
+58	2026-05-26	true	MIT	microsoft/thematic		Thematic is a library and web application to aid designers in creating color palettes that unify application colors based on a desired look and feel (e.g., corp
+50	2026-10-23	false	MIT	microsoft/unified-data-foundation-with-fabric-solution-accelerator	ai-azd-templates,azd-template,azd-templates,azure-databricks,data-engineering,data-governance,data-lineage,domain-models,medallion-architecture,microsoft-fabric,microsoft-purview,powerbi-dashboards,powerbi-report,pyspark,python,t-sql	Unified Data Foundation with Microsoft Fabric with Options to Integrate with Azure Databricks and Microsoft Purview
+45	2026-11-05	false	MIT	microsoft/vscode-fabric		Microsoft Fabric extension for VS Code
+22	2024-06-06	true	MIT	microsoft/vscode-service-fabric-reliable-services		Visual Studio Code extension for Reliable Services in Service Fabric 
+559	2024-01-04	false	none	mikeroyal/AWS-Guide	amazon-web-services,awesome-list,aws,aws-apigateway,aws-cdk,aws-certification,aws-cli,aws-dynamodb,aws-ec2,aws-lambda,aws-s3,aws-sdk,aws-security,aws-serverless,cloud-computing,cloudformation,cloudwatch,credentials,dynamodb,secrets	Amazon Web Services (AWS) Guide. Learn all about Amazon Web Services Tools, Services, and Certifications.
+237	2024-01-04	false	none	mikeroyal/Azure-Guide	azure,azure-app-service,azure-blob-storage,azure-certification,azure-cli,azure-cloud,azure-cloud-services,azure-devops,azure-functions,azure-pipelines,azure-resource-manager,azure-security,cloud-computing,cloudcomputing,cognitive-services,copilot,github-actions,microsoft-azure,monitor,multi-cluster	Microsoft Azure Guide. Learn all about Microsoft Azure Tools, Services, and Certifications.
+23529	2025-06-27	false	none	mikeroyal/Self-Hosting-Guide	authentication,awesome,awesome-list,decentralized,docker-compose,home-assistant,home-automation,linux,oauth,observability,open-source,privacy,raspberry-pi,reverse-proxy,search,self-hosted,self-hosting,selfhosted,ssh,wireguard	Self-Hosting Guide. Learn all about  locally hosting (on premises & private web servers) and managing software applications by yourself or your organization. In
+623	2024-01-04	false	none	mikeroyal/WireGuard-Guide	2fa,encryption,firewall,linux-firewall,multi-factor-authentication,nat,network-security,openwrt,pfsense,privacy,sso,synology,tailscale,unraid-server,vpn,wireguard,wireguard-tunnel,wireguard-ui,wireguard-vpn,yubikey	WireGuard Guide. Learn all  about WireGuard for Networking and in the Cloud (Microsoft Azure, AWS, and Google Cloud).
+586	2014-11-17	false	none	mindreframer/golang-devops-stuff		
+5	2026-09-22	false	MIT	misantibanez/fabric-governance-hub		Streamlined provisioning, batch governance, and visual mapping for Microsoft Fabric workspaces — powered by Fabric & Power BI REST APIs.
+0	2026-04-02	false	MIT	misantibanez/fabric_cicd		fabric_cicd
+447	2026-11-11	false	NOASSERTION	mondoohq/cnspec	cloud-native,compliance,declarative,kubernetes,opensource,policy,policy-as-code,security,security-as-code	An open source, cloud-native security to protect everything from build to runtime
+414	2026-11-10	false	NOASSERTION	mondoohq/mql	aws,azure,cis,cloud-computing,cloud-native,gcp,kubernetes,linux,macos,security,security-as-code,unix,windows	open source, cloud-native, graph-based query language
+0	2026-05-02	false	MIT	mouhamadougueyetechniir/fabric-cicd		
+13	2024-07-21	false	MIT	mrjonlunn/tapestry		Meta data driven spark notebooks, for loading data in Microsoft Fabric
+16	2025-06-24	false	MIT	mrjsj/fabric-ducklake-sqlmesh		A sample project combining Microsoft Fabric Lakehouse, DuckLake and SQLMesh
+45	2026-05-20	false	MIT	mrjsj/msfabricutils	data-engineering,dataframe,delta-rs,deltalake,duckdb,fabric,microsoft-fabric,polars,python	Spark-free Python utilities for Microsoft Fabric focused on Data Engineering using Polars and delta-rs
+3	2025-03-12	false	none	msamblancat/microsoft-fabric-cicd		Code examples to release code in Fabric via CICD
+149	2026-11-11	false	MIT	muhammadusamakhan911-bit/fabric-mlv-agent-healthcare-starter	activator,cross-workspace,data-product,direct-lake,extended-lineage,fabric-activator,fabric-data-agent,fabric-demo,fabric-iq,healthcare,hospital-operations,lakehouse,materialized-lake-views,medallion-architecture,microsoft-fabric,ontology,patient-safety,power-bi,readmission-risk,zava	Fabric MLV healthcare demo template: lake views, ontology, data agents
+11	2024-01-17	false	none	murggu/fabric-capacity-iac		IaC scripts for Microsoft Fabric capacity
+597	2025-12-18	false	none	mzazon/cloud-projects	amazon-web-services,aws,aws-cdk,azure,azure-bicep,cloud,cloudformation,devops,education,gcp,google-cloud-platform,microsoft-azure,terraform	Over 1100 cloud recipes, projects, tutorials, and real-world solutions to gain hands-on experience across Amazon Web Services (AWS), Microsoft Azure, and Google
+0	2025-08-12	false	none	n1dz6/FabricCICD		
+7	2026-09-08	false	none	nairsanjeev/FabricHackathon		End-to-end Microsoft Fabric healthcare analytics lab — Lakehouse, Data Engineering, Semantic Model, Real-Time Analytics, Gen AI, Data Agent
+7	2026-07-08	false	MIT	naveenjujaray/microsoft-fabric-schema-drift-detection	ai-agents,automation,claude,claude-fable-5,drift-detection,lakehouse,llm-agents,microsoft-fabric,notebooks,semantic-model,warehouse	Enterprise-grade schema drift detection for Microsoft Fabric with automated change detection, impact analysis, schema history, and DevOps integration.
+0	2026-09-26	false	none	ncttan-DE/fabric-CICD		
+7	2024-05-15	false	none	ndamulelonemakh/azure-dp600-fabrics-analytics-engineer-study-guide	azure,data-analytics,data-engineering,fabric,microsoft-fabric	Azure DP600 (Fabric Analytics Engineer Associate) Exam topics and tips
+2888	2026-11-11	false	NOASSERTION	networktocode/awesome-network-automation	awesome,awesome-list	Curated Awesome list about Network Automation
+1	2026-08-25	false	none	nikosoukov/FabricCICD		Fabric CICD best practices
+50	2023-06-06	false	none	nocsi-zz/fabric-capacity-management		Code snippets to help with Microsoft Fabric Capacity Management
+97958	2024-07-19	false	MIT	nvbn/thefuck	python,shell	Magnificent app which corrects your previous console command.
+5	2026-11-01	false	NOASSERTION	omardotcontent/InteractiveStuff	fabric-mod,minecraft,multiversion	Interactive first-person items powered by Vyn resource-pack scripts. One unified Fabric and Gradle workspace for all supported Minecraft versions.
+3505	2021-08-02	true	none	operator-framework/awesome-operators	kubernetes,operator	A resource tracking a number of Operators out in the wild.
+2110	2026-10-24	false	MIT	opsre/awesome-ops	awesome,awesome-list,awesome-ops,backup,cicd,cmdb,docker,elasticsearch,eryajf,jenkins,kubernetes,mysql,ops,ops-admin,prometheus,prometheus-exporter,redis,shorturl	🧰 记录每一个与运维相关的优秀项目，⚗️ 项目内表格通过 GitHub Action 自动生成，📥 当前收录项目 656 个。
+7	2026-05-20	false	none	pandabear-neil/microsoft_fabric_mods	data-engineering,data-factory,microsoft-fabric,spark	Code Snippets, Designs, and other things about building a Data Analytics Solution in Microsoft Fabric
+0	2026-09-21	false	MIT	pedrocamargo99/fabric-cicd		
+0	2026-10-29	false	none	pgenero/fabric-cicd		
+0	2025-08-23	false	none	pmoarshaduk/fabric-cicd-demo		Arshad fabric-cicd-demo for CICD
+0	2026-05-28	false	none	praveeng20138/Fabric-CICD		
+1	2026-11-03	false	none	prdpsvs/fabric-cicd-demo		
+3	2026-05-29	false	MIT	psistla/fabric-delta-maintenance	data-engineering,delta-lake,lakehouse,microsoft-fabric,onelake,optimize,pyspark,spark,vacuum,vorder	Automated Delta table maintenance for Microsoft Fabric Lakehouses: OPTIMIZE, V-Order, VACUUM, and conditional repartitioning across every table, with SKU-aware 
+13	2026-11-10	false	MIT	psistla/fabric-lens		Open-source tenant governance & health intelligence for Microsoft Fabric
+97619	2026-11-06	false	MIT	punkpeye/awesome-mcp-servers	ai,mcp	A collection of MCP servers.
+0	2025-11-06	false	none	pushkarjethwa/fabric-cicd		
+4	2025-09-21	false	none	ravikiran-srini/DP-700-Practice-Test-Exam-lab-files	dp-700,dp-700-practice-exam,dp-700-practice-questions,dp-700-practice-test,fabric,microsoft-fabric,microsoft-fabric-data-engineer	This repository contains sample lab files that are used to demo in my DP-700 Practice Test Course in Udemy.
+6	2026-07-03	false	MIT	ravikiranpagidi/microsoft-data-ai-learning-blueprints	azure-data-engineering,cicd,data-engineering,data-governance,data-pipelines,data-quality,delta-lake,fabric-data-engineering,lakehouse,learning-path,medallion-architecture,microsoft-fabric,onelake,open-source,power-bi,pyspark,semantic-model,spark,sql-analytics-endpoint	Practical Microsoft learning blueprints for Fabric, Power BI, Azure Data, AI, governance, CI/CD, and real-world analytics engineering projects.
+1	2026-05-25	false	none	rebremer/presidio-fabric-cicd-locked-down		CI/CD for deploying Microsoft Presidio into a Microsoft Fabric workspace locked down with WSPL (workspace-level private link, no public inbound) and DEP (data e
+0	2026-11-05	false	none	redhatpeter/Fabric-CICD-Workshop		Hands-on GitHub Copilot and Microsoft Fabric CI/CD workshop with attendee starters and presenter guides
+239	2024-09-27	false	MIT	rkm-ravi94/awesome-devops-interview		This repository contains frequently asked questions from various domains of devops.
+2551	2026-11-11	false	CC0-1.0	rootsongjc/awesome-cloud-native	awesome,awesome-list,cloud-native,containers,devops,microservices	A curated list for awesome cloud native tools, software and tutorials.
+4	2025-08-20	false	none	rrana157/microsoft-fabric-handbook	data-engineering,fabric,microsoft-fabric,microsoft-fabric-data-engineer	This repository is dedicated to Microsoft Fabric, providing clear explanations, practical examples, and best practices to help you understand and work effective
+60465	2026-11-11	false	CC0-1.0	rust-unofficial/awesome-rust	awesome,rust	A curated list of Rust code and resources.
+0	2026-09-01	false	none	rutuja-deshmukh-del/fabric-cicd1-repository		
+16	2026-11-11	false	NOASSERTION	ruvnet/RuLake	agent-memory,agentic-ai,ai,mcp,vector-search,wasm	A cache-coherent vector execution fabric — sits in front of any vector store/lakehouse and makes queries fast. Part of the RuVector ecosystem.
+1	2026-10-21	false	MIT	ryanMicrosoftTest/fabric-data-engineering-ws		This workspace is designed for use with the fabric-cicd framework.  It will check out the framework at runtime and attach the fabric items to the workspace depl
+4	2026-11-02	false	none	ryanpjbyrne/fabric-git-lab	data-engineering,git,github,lab,microsoft-fabric,training	Hands-on lab repo for learning Git and GitHub with Microsoft Fabric-style data projects: branching, pull requests, merge conflicts and reverts.
+5	2026-06-25	false	none	sabledattatray/dp600-study-companion-notebook		DP-600 Study Companion Notebook for Microsoft Fabric covering OneLake, Lakehouse, Warehouse, Direct Lake, Semantic Models, DAX, Security, Governance, and Exam P
+110	2025-12-23	false	MIT	santhoshravindran7/Fabric-Analytics-MCP	mcp,microsoft,microsoft-fabric,model-context-protocol	A Model Context Protocol (MCP) server that enables AI assistants to securely access and analyze Microsoft Fabric Analytics data through authenticated API calls.
+10	2026-11-01	false	MIT	sdebruyn/fabric-dw-mcp-cli	ai-tools,claude,cli,data-warehouse,fabric,fabric-data-warehouse,mcp,mcp-server,microsoft-fabric,model-context-protocol,pypi,python,uvx	Python CLI and MCP server for Microsoft Fabric Data Warehouses and SQL Analytics Endpoints: administer, query, optimize, and secure them from your terminal or y
+4	2026-10-10	false	MIT	sdebruyn/onelake-explorer-macos	azure,data-engineering,fabric,file-provider,finder,homebrew,macos,microsoft-fabric,onelake,swift	OneLake File Explorer for macOS - native Finder integration with Microsoft Fabric
+329	2026-09-02	false	none	sderosiaux/every-single-day-i-tldr	akka,architecture,bigdata,category-theory,data-engineering,ddd,googlecloudplatform,java,javascript,kafka,kubernetes,microservices,reactjs,scala,spark,technology,watch	A daily digest of the articles or videos I've found interesting, that I want to share with you.
+28	2023-09-08	false	none	sethiaarun/mapping-data-flow-to-spark		Fast and Easy to convert Mapping data flows from Azure Data Factory to Microsoft Fabric Notebook and Spark Job.
+738	2026-10-11	false	none	shafaypro/CrackingMachineLearningInterview		A repository to prepare you for your machine learning interview, involving most of the questions asked by all the tech giants and local companies. Do this to Ac
+0	2026-04-30	false	none	sharat86-sa/Fabric-cicd		
+0	2026-08-12	false	none	shawnnesser/FabricCICD_Demo		Sanitized Microsoft Fabric CI/CD reference implementation using fabric-cicd, GitHub Actions, and Terraform.
+0	2026-10-07	false	none	shubhammore1705/FabricCICD		
+10	2026-05-30	false	none	sidneyocirqueira/workshop_cicd_no_microsoft_fabric		workshop_cicd_no_microsoft_fabric
+5147	2025-12-22	false	CC0-1.0	sindresorhus/awesome-scifi	awesome,awesome-list,books,list,movies,novels,recommendations,science-fiction,scifi	Sci-Fi worth consuming
+0	2026-08-14	false	NOASSERTION	snyderdustin/fabric-cicd		
+884	2026-08-02	false	CC0-1.0	spencerpauly/awesome-cursor-skills		A curated list of awesome skills for Cursor
+19	2025-06-23	false	none	sqlballs/MicrosoftFabricPre-Con		This is the full day pre-con for Microsoft Fabric - Introduction to Finished Product
+0	2026-05-27	false	none	sriaishwarya1709/fabric-cicd		
+92	2026-10-04	false	NOASSERTION	ssanjaychandra123/data-engineering-patterns	azure-databricks,data-engineering,data-platform,delta-lake,free,lakehouse,microsoft-fabric,pyspark,spark	600+ free patterns and concepts for data engineers on Azure Databricks, Microsoft Fabric, and PySpark. 12 books covering the full stack. Free forever.
+13	2025-06-24	false	MIT	sulaiman013/chat-with-your-data-fabric-PowerBI-		An intelligent AI-powered application that lets you chat with your Microsoft Fabric databases and Power BI semantic models using natural language.
+396	2024-04-15	false	CC-BY-SA-4.0	sunlei/awesome-tools	awesome,awesome-list,tools	我常用或收集的工具
+924	2026-11-11	false	GPL-3.0	superiorlu/AITreasureBox	agentic,agi,ai,ai-gents,ai-prompts,ai-tools,alpaca,awesome-list,deep-learning,deepseek,gpt,harness,llama,llm,machine-learning,mcp,openai	🤖 Automatically collected AI repos, tools, websites, papers & tutorials. 实用AI百宝箱 💎
+1404	2025-12-04	false	none	taielab/awesome-hacking-lists	agents,ai,aiagent,awesome-list,bounty-hunters,bug-bounty,bugbounty,bugbounty-tool,hacker,hacking,hacking-tool,hacking-tools,kali-scripts,llm,llm-inference,mcp,mcp-server,pentest-scripts,pentesting-tools,web	A curated collection of top-tier penetration testing tools and productivity utilities across multiple domains. Join us to explore, contribute, and enhance your 
+3369	2026-11-08	false	CC0-1.0	taishi-i/awesome-ChatGPT-repositories	agent,agent-skills,ai,awesome,awesome-list,chatgpt,codex,gpt-5,llm,openai,skills	A curated list of open source GitHub repositories related to ChatGPT, the OpenAI API, and Codex. Searchable via Claude Code  and Codex skills.
+479	2026-04-02	false	Apache-2.0	taojintianxia/github-bookmark		 收集了Github上的优秀工具,框架,知识合集
+584	2025-07-08	false	none	techiescamp/python-for-devops	boto3,devops,devops-automation,devops-scripts,python,python-for-devops,python-scripts,python3,scripting	Python for DevOps repo with useful python scripts to learn and implement in your day-to-day devops automation tasks.
+4	2026-10-20	false	none	tertiarycourses/TGS-2024042602-Microsoft-Certified-Fabric-Data-Engineer-Associate-DP-700-Training	courseware,data-engineering,data-warehouse,delta-lake,dp-700,eventstream,kql,labs,lakehouse,microsoft-fabric,onelake,pyspark,real-time-analytics,skillsfuture,training,tsql,wsq	WSQ - Microsoft Certified Fabric Data Engineer Associate (DP-700) Training (TGS-2024042602) - a hands-on 4-day / 32-hour intermediate course on Microsoft Fabric
+5	2026-11-07	false	none	thedatashepherd/Presentations	conference-talks,data-engineering,duckdb,microsoft-fabric,power-bi,spark	Slides and demo files from my conference and user group sessions on Microsoft Fabric, Power BI, and data engineering.
+1	2026-07-30	false	none	timoteoallock/fabric-cicd-testing-templates		Automated PR gates and CI/CD for Microsoft Fabric: deploy, test and rebind semantic models, lakehouses and data pipelines from hosted Azure DevOps agents.
+4249	2025-05-20	false	CC0-1.0	tomhuang12/awesome-k8s-resources	awesome-list,kubernetes,kubernetes-clusters,kubernetes-networking,kubernetes-operational,kubernetes-resources,list	A curated list of awesome Kubernetes tools and resources.
+0	2026-11-03	false	none	tomzhou31/Fabric-CICD		
+2677	2026-11-10	false	none	toolleeo/awesome-cli-apps-in-a-csv	awesome,awesome-list,cli,cli-apps,command-line,command-line-tool,linux,linux-command,resources,terminal-based,tui	The largest Awesome Curated list of command line programs (CLI/TUI) with source data organized into CSV files
+265	2026-05-23	false	MIT	tools-collection/apis-collection	api,awesome,awesome-list,community-project,javascript,list,public-api,rest	Community maintained, human, machine and AI readable list of Public APIs 📝
+1918	2026-11-06	false	CC-BY-SA-4.0	trailofbits/publications	academic-papers,conference-presentations,security-reviews	Publications from Trail of Bits
+1347	2026-11-09	false	none	trevor-vincent/awesome-high-performance-computing	awesome,awesome-list,hpc	A curated list of awesome high performance computing resources
+239	2026-11-02	false	NOASSERTION	tunnetio/Tunnet	mesh-networks,networking,quic,self-hosted,vpn	Open-source mesh networking platform. Connect your machines into a private network, wherever they are
+4	2025-09-13	false	none	tysoncung/azure-fabric-data-platform	azure,data-engineering,data-platform,infrastructure-as-code,microsoft-fabric,terraform	☁️ Production-ready Terraform infrastructure-as-code for building enterprise data platforms on Azure with Microsoft Fabric integration
+0	2026-01-27	false	none	uday31in/fabric-cicd		
+1852	2026-10-17	false	none	uhub/awesome-go	awesome,awesome-list,curated-list,go,list,resources	A curated list of awesome Go frameworks, libraries and software.
+534	2026-10-19	false	none	uhub/awesome-java	awesome,awesome-list,curated-list,java,list,resources	A curated list of awesome Java frameworks, libraries and software.
+1199	2026-10-30	false	none	uhub/awesome-python	awesome,awesome-list,curated-list,list,python,python3,resources	A curated list of awesome Python frameworks, libraries and software.
+0	2026-01-12	false	none	urigaziel/fabric-cicd		fabric ci dc testing
+20	2025-12-21	false	MIT	vdvoorder/pro-bpa-scanner	best-practices-analyzer,bpa,fabric,fabric-cli,power-bi,semantic-model,tabular-editor,tabular-editor-cli	BPA scanning for Fabric semantic models without Premium capacity or XMLA endpoints. Vibe-coded with Claude Code.
+836	2026-11-11	false	CC0-1.0	viktorbezdek/awesome-github-projects		Curated list of GitHub projects I starred over the years
+2	2026-05-18	false	none	vinod-soni-microsoft/FABRIC-CICD-PROJECT		Enterprise-grade CI/CD solution for Microsoft Fabric using fabric-cicd Python library and GitHub Actions. Git-driven deployments across DEV → QA → PROD with env
+35	2017-03-19	true	MIT	vturecek/service-fabric-xray		A visualizer for Service Fabric cluster capacity and application load metrics written with ASP.NET Core 1 + Angular 2 with TypeScript
+398	2022-07-12	false	none	webVueBlog/Leetcode	css,ecmascritpt,front-end,html,javascript,node,nodejs,react,typescript,vue,webpack	🎲【每日更新 question & answers】一个 ☝️ 正经的前端学习，每天进步一点点！手写源码，api，算法；包含JavaScript / Vue / React /  TypeScript /HTML / CSS / Nodejs / Leetcode……Suggest 👍  
+4451	2026-11-11	false	CC0-1.0	wmariuss/awesome-devops	awesome,awesome-list,collections,development,devops,observability,platform,production,productivity,resources,sre,tools	A curated list of awesome DevOps platforms, tools, practices and resources
+8	2026-11-05	false	NOASSERTION	yang-jiayi/furusato-fabric-workshop		Microsoft Fabric hands-on workshop: OneLake, Lakehouse, Eventhouse, Ontology, Data Agents and Power BI with synthetic furusato donation data.
+2490	2026-11-03	false	MIT	yogsec/Hacking-Tools	awesome-list,blue-team,ctf,cybersecurity,ethical-hacking,hacking-tools,infosec,kali-linux,malware-analysis,penetration-testing,reverse-enginnering,security-tools,threat-intelligence	A curated list of 900+ penetration testing and ethical hacking tools.
+8	2026-09-27	false	NOASSERTION	zhshah/Azure-FinOps-Automation-Deployment-Utility		Azure FinOps deployment utility orchestrate end to end deployment of FinOps Hub with Fabric workspace creation and posting data with exporting jobs and much mor
