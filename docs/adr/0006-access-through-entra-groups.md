@@ -27,6 +27,14 @@ and can hand out access the pipeline never sees.
 ## Consequences
 
 - Offboarding happens in one place, and the pipeline does not need to know who works here.
+- The convention is not an enforcement: a **group can hold `Admin`**, and nested groups work, so
+  nothing structural stops a group from becoming admin. The pipeline cannot tell the difference
+  between a group assignment and a person. Review is the control.
+- "Who can see what" is no longer a Fabric query: role assignments return a bare `Group`
+  principal with no members, so the answer is Fabric's admin API joined to Entra group
+  membership. Item sharing, OneLake security roles and SQL grants are outside it entirely.
+- A workspace whose admins have all left reports `Orphaned` and still looks `Active` to the admin
+  API, and role changes only take effect at the member's next Fabric sign-in.
 - Group sprawl: three environments × N workspaces means 3N groups, each needing an owner and a
   naming convention. Budget for the naming, not just the groups.
 - A workspace with a group-based `Contributor` cannot express "this person is a Contributor in

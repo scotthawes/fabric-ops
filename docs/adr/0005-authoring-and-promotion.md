@@ -34,6 +34,9 @@ and data do not round-trip).
 - Git integration's known losses apply to the dev workspace: sensitivity labels, item IDs and
   data do not survive the round trip, and `Update from Git` replaces the whole branch. Item
   types outside the supported list are silently ignored — check before authoring in one.
+- **Sensitivity labels are not a deployed property.** Git does not export them, and REST item
+  creation applies one only when `sensitivityLabelSettings` is passed. Apply labels in the
+  workspace and treat the pipeline as label-blind.
 - Because the `main` branch is what the pipeline deploys, `dev` must be updated from Git to see
   what was merged, or the next commit will resurrect what the merge removed.
 - A pull request touches JSON, so review is a diff of serialised definitions — reviewable for

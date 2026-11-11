@@ -8,6 +8,10 @@ docs.
 | Note | Question it answers | Status |
 | --- | --- | --- |
 | [`deployment-mechanism-comparison.md`](deployment-mechanism-comparison.md) | Which way should a repo deploy and promote Fabric content, given it must also administer workspace users and roles? | answered 2026-11-11 |
+| [`identity-service-principal-and-tenant-settings.md`](identity-service-principal-and-tenant-settings.md) | What identity can run headless Fabric automation, and which tenant settings gate it? | answered 2026-11-11 |
+| [`capacity-provisioning-and-cost-control.md`](capacity-provisioning-and-cost-control.md) | How is Fabric capacity provisioned and cost-controlled per environment? | answered 2026-11-11 |
+| [`network-private-endpoints-and-deployment-path.md`](network-private-endpoints-and-deployment-path.md) | Which network path does each kind of Fabric traffic take, and what must the agent VMs reach? | answered 2026-11-11 |
+| [`governance-access-and-workspace-roles.md`](governance-access-and-workspace-roles.md) | Who can see what in Fabric, and what does the platform not tell you about it? | answered 2026-11-11 |
 
 ## Adding a note
 
@@ -22,9 +26,11 @@ docs.
 
 Collected during grilling; promoted to a note when they start blocking a decision.
 
-- Which Fabric items can round-trip through Git integration, and which cannot?
-- What exactly does the deployment-pipeline API let you do that Git integration does not?
-- Which admin operations need tenant admin versus workspace Admin?
-- What is the current state of the Fabric Terraform provider?
-- How do service principals get authorised for the admin APIs, and what breaks when they
-  are not?
+All of the original questions are now answered — see the index above. What remains is
+tenant-specific and not researchable from this repo:
+
+- Does the work tenant have **Block Public Internet Access** on, and is its private link
+  tenant-level or workspace-level? Run-book item 1.
+- Can a group containing only a service principal satisfy both Admin API allow-lists?
+- Does a service principal need a Fabric or Power BI licence?
+- What does Fabric display for a role assignment whose Entra group has been permanently purged?

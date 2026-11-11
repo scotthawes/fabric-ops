@@ -103,10 +103,17 @@ that outlives the person who made it is the main risk this pack carries.
 
 ## 8. Access audit
 
-- **Check:** run the workspace-users admin API and compare it with the repo's role assignments.
-- **Why:** item sharing, apps and OneLake roles grant access the pipeline never created. The
-  drift you cannot see is the drift that matters.
+- **Check:** pull the access report — `GET /v1/admin/workspaces`, then
+  `…/{workspaceId}/users` — and compare it with the repo's role assignments. Note the rate limit
+  (roughly 200 requests/hour) and that the per-workspace access endpoints are Preview.
+- **Why:** item sharing, OneLake security roles and SQL grants grant access the pipeline never
+  created, and the last two are invisible to every admin API. The drift you cannot see is the
+  drift that matters.
 - **Expected:** every entry traces to a group in the repo, or is a recorded break-glass exception.
+- **Also check:** for workspaces in state **Orphaned** (no admin). The admin API still reports
+  them `Active`, so a state-based check misses them entirely.
+- **Remember:** a role change only takes effect at the member's next Fabric sign-in, so a removal
+  verified in the portal can still be live in someone's open session.
 
 ## Things this run-book cannot settle
 
