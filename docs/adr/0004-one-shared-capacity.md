@@ -26,6 +26,14 @@ service principal holds capacity **Contributor** so it can assign workspaces.
   including production. The cost control that motivated owning the pause/resume path only
   applies in windows where production may be down — so in practice the saving is smaller than
   the plan assumed, and it must not be automated on a timer that ignores production.
+- Pause is an ARM action, not a Terraform property, so it sits outside state. Resume must be the
+  first step of any deployment after a maintenance window, and Fabric Terraform must never run
+  against a paused capacity (`fabric_workspace` will report drift).
+- Capacity overage is enabled by default at a 25% threshold and billed at 3× the pay-as-you-go
+  rate. AzureRM is pinned to API `2023-11-01` and cannot express the setting, so a default that
+  silently triples the marginal cost of a runaway workload is a portal task on the run-book.
+- There are no Azure Monitor metrics for `Microsoft.Fabric/capacities`, so alerting has to hang
+  off the Capacity Metrics app and Real-Time hub events rather than a metric alert.
 - Sizing is driven by the peak of the *largest* environment, so dev and test ride free but
   cannot be tuned or throttled independently.
 - Throttling is shared: sustained dev load degrades interactive queries and refresh in

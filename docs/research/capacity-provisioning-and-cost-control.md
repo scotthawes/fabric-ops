@@ -9,9 +9,9 @@
 A Fabric capacity is a plain Azure resource — `Microsoft.Fabric/capacities` — so Terraform can create,
 resize and tag it, but cannot pause it, cannot set capacity overage, and cannot assign workspaces to it.
 Pausing works only on F SKUs: it stops billing for future compute but immediately bills the smoothed usage
-already accrued, and makes the capacity's content unavailable. Run one capacity per environment (prod
-separate; dev and test may share a non-prod capacity) and pause the non-prod one on a schedule, accepting
-that a paused capacity breaks scheduled refreshes and Fabric Terraform applies until it is resumed.
+already accrued, and makes the capacity's content unavailable. The evidence points to one capacity per
+environment; ADR [0004](../adr/0004-one-shared-capacity.md) accepts a single shared capacity instead, which
+makes scheduled pause impractical, and the trade-off is stated below.
 
 ## Detail
 
@@ -21,25 +21,23 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
   subscription, resource group, region and name (3–63 chars, pattern `^[a-z][a-z0-9]*$`). Latest documented
   API version is `2026-09-01-preview`; the stable one AzureRM uses is `2023-11-01`. (ARM reference, updated 2026-10-20)
 - Shape: `sku { name, tier }` where `tier` is always `Fabric`, `properties.administration.members`, and — from
-  the preview API — `properties.overage { state: Disabled|Enabled, thresholdCapacityUnitHours }`. (same)
-- CUs per SKU: `F2`=2, `F4`=4, `F8`=8, `F16`=16, `F32`=32, `F64`=64, `F128`=128, `F256`=256, `F512`=512,
-  `F1024`=1024, `F2048`=2048, `F4096`=4096, `F8192`=8192; `Trial`=64. The reserved/P-SKU parity given is
-  `F64`=P1, `F128`=P2, `F256`=P3, `F512`=P4, `F1024`=P5 — parity stops at P5, and P SKUs are being retired
-  in favour of F SKUs. (Licenses, updated 2026-11-10)
+  the preview API — `properties.overage { state: Disabled|Enabled, thresholdCapacityUnitHours }`. CUs per SKU:
+  `F2`=2, `F4`=4, `F8`=8, `F16`=16, `F32`=32, `F64`=64, `F128`=128, `F256`=256, `F512`=512, `F1024`=1024,
+  `F2048`=2048, `F4096`=4096, `F8192`=8192; `Trial`=64. Reserved/P-SKU parity is `F64`=P1, `F128`=P2,
+  `F256`=P3, `F512`=P4, `F1024`=P5 — it stops at P5, and P SKUs are being retired in favour of F SKUs.
+  (same; Licenses, updated 2026-11-10)
 - Creation paths: portal, Bicep/ARM, `azapi_resource`, `az fabric capacity create` (extension
   `microsoft-fabric`, CLI 2.61.0+), or `azurerm_fabric_capacity`. Prerequisites: an Azure subscription
   **associated with the Entra tenant where you want to provision the capacity**, the `Microsoft.Fabric`
   resource provider registered, a region that supports the intended workloads, and enough CU quota in that
   subscription *and region* (an F64 needs 64 CUs). (Buy capacity, 2026-08-27)
 - Placement: a capacity "resides in a tenant", and "you can assign any workspace — including *My workspaces* —
-  to any capacity in the tenant". Cross-tenant use is therefore impossible: the capacity's subscription must be
-  in the tenant that owns the workspaces. (Licenses; Buy capacity)
-- Region is fixed at creation — "Capacities can't be moved to different regions after they're created", and
-  "any workspaces created under it will have their content stored in that region". (Real-Time hub events,
-  2026-08-18; Multi-Geo, 2026-08-13)
-- So a workspace in another region is served by *assigning it to a capacity in that region* — a workspace
-  migration, not a capacity move — and that migration is unsupported while either capacity is paused; non-Power
-  BI items must be deleted first. (Multi-Geo)
+  to any capacity in the tenant". Cross-tenant use is therefore impossible: the subscription must be in the
+  tenant that owns the workspaces. Region is fixed at creation — "Capacities can't be moved to different
+  regions after they're created" — and "any workspaces created under it will have their content stored in that
+  region". Serving a workspace in another region therefore means *assigning it to a capacity in that region* — a
+  workspace migration, not a capacity move — and that migration is unsupported while either capacity is paused;
+  non-Power BI items must be deleted first. (Licenses; Buy capacity; Real-Time hub events, 2026-08-18; Multi-Geo)
 
 ### 2. Pause and resume
 
@@ -47,35 +45,32 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
   `Trial` SKU, so pause is out of scope there. (Pause and resume, updated 2026-08-14; Licenses)
 - Mechanism is an ARM **action**, not a settable property:
   `POST .../Microsoft.Fabric/capacities/{capacityName}/suspend?api-version=2023-11-01`, matching `resume`,
-  returning 202 + `Azure-AsyncOperation`. CLI `az fabric capacity suspend|resume`; SDK
-  `FabricCapacityResource.SuspendAsync`. (REST — Suspend, 2026-10-23)
-- State is read-only: `properties.state` ∈ `Active`, `Provisioning`, `Failed`, `Updating`, `Deleting`,
-  `Suspending`, `Suspended`, `Pausing`, `Paused`, `Resuming`, `Scaling`, `Preparing`. There is no writable
-  paused flag. (REST — Get, 2026-10-23)
-- RBAC: `Microsoft.Fabric/capacities/read`, `/write`, `/suspend/action`, `/resume/action` — docs recommend a
-  custom role on exactly these four rather than Owner/Contributor. (Pause and resume; Buy capacity)
+  returning 202 + `Azure-AsyncOperation`; CLI `az fabric capacity suspend|resume`; SDK
+  `FabricCapacityResource.SuspendAsync`. State is read-only: `properties.state` ∈ `Active`, `Provisioning`,
+  `Failed`, `Updating`, `Deleting`, `Suspending`, `Suspended`, `Pausing`, `Paused`, `Resuming`, `Scaling`,
+  `Preparing`. There is no writable paused flag. RBAC is `Microsoft.Fabric/capacities/read`, `/write`,
+  `/suspend/action`, `/resume/action`, with the docs recommending a custom role on exactly those four rather
+  than Owner/Contributor. (REST — Suspend and Get, 2026-10-23; Pause and resume; Buy capacity)
 - Billing: "When you pause your capacity, the remaining cumulative overages and smoothed operations on your
   capacity are summed, and added to your Azure bill"; resuming "also resumes billing". Pausing is also the
   documented way to end throttling immediately, since a starting capacity "has zero future capacity usage".
-  (Pause and resume; Throttling)
-- Content: pausing "can prevent Microsoft Fabric content from being available", and it "becomes available once
-  the capacity is resumed"; a paused capacity emits no Summary events. (Pause and resume; Real-Time hub events)
+  Content-wise, pausing "can prevent Microsoft Fabric content from being available" until resumed, and a
+  paused capacity emits no Summary events. (Pause and resume; Throttling; Real-Time hub events)
 
 ### 3. Sizing, smoothing and cost control
 
 - The unit is the capacity unit (CU); an F2 is "2 CUs, or 48 CU hours per day". **Bursting** lets an operation
   temporarily exceed provisioned compute; **smoothing** spreads its CU over future *timepoints* of 30 seconds,
   2,880 per 24 hours. Interactive operations smooth "over a minimum of five minutes, and up to 64 minutes";
-  background operations smooth over **24 hours**. (Throttling, 2026-08-14)
-- Throttle stages: ≤10 min = overage protection (10 minutes of future capacity free); 10–60 min = interactive
-  delay of 20 seconds at submission; 60 min–24 h = interactive rejection; >24 h = background rejection.
+  background operations smooth over **24 hours**. Throttle stages: ≤10 min = overage protection (10 minutes of
+  future capacity free); 10–60 min = interactive delay of 20 seconds at submission; 60 min–24 h = interactive
+  rejection; >24 h = background rejection. (Throttling, 2026-08-14)
 - **Interactive vs background**: interactive work smooths over minutes and is delayed/rejected first; background
   (pipelines, Spark, and *all* Warehouse operations) smooths over 24 hours, so it fills the 24-hour limit, not
   the 10-minute one. Real-Time Intelligence skips the 20-second delay stage. In-flight operations are never
-  throttled. Overages become *carryforward* CUs, paid down by unused timepoints (*burndown*). (Throttling)
-- Read utilisation in the Fabric Capacity Metrics app (Compute: Utilization, Throttling, System events,
-  Overages; Health: at-risk views), on 30-second windows with roughly 10–15 minutes latency. (Throttling;
-  Metrics app scenarios, 2026-08-28)
+  throttled. Overages become *carryforward* CUs, paid down by unused timepoints (*burndown*). Read utilisation
+  in the Capacity Metrics app (Compute: Utilization, Throttling, System events, Overages; Health: at-risk views),
+  on 30-second windows with roughly 10–15 minutes latency. (Throttling; Metrics app scenarios, 2026-08-28)
 - Azure Monitor: **could not establish a metric or metric alert for an F capacity.** The supported-metrics index
   (2026-11-03) has no `Microsoft.Fabric` entry — only `Microsoft.PowerBIDedicated/capacities` (A/EM). Documented
   alerting is email capacity notifications, Real-Time hub events (`Microsoft.Fabric.Capacity.Summary` every 30 s,
@@ -83,12 +78,11 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
 - **Capacity overage** is the real cost lever and it is on by default: "When you create a new Fabric capacity,
   capacity overage is enabled by default", default threshold "25%", billed "at three times the pay-as-you-go
   rate" via a separate meter ("Capacity Overage Capacity Usage CU"). It is "not a hard spending cap"; keep the
-  threshold "below one-third of your daily CU hours", where overage costs as much as scaling up. (Enable
-  capacity overage, 2026-09-11; Overage overview, 2026-08-26)
-- **Surge protection** is the complementary brake — it rejects new *background* operations at a configured
-  `Rejection threshold` / `Recovery threshold` on the 24-hour background percentage, before deep throttling,
-  never stopping in-progress jobs. "To fully protect critical solutions, isolate them in a designated capacity."
-  (Surge protection, 2026-09-23)
+  threshold "below one-third of your daily CU hours", where overage costs as much as scaling up. **Surge
+  protection** is the complementary brake: it rejects new *background* operations at a configured `Rejection
+  threshold` / `Recovery threshold` on the 24-hour background percentage, before deep throttling, never stopping
+  in-progress jobs — and "To fully protect critical solutions, isolate them in a designated capacity." (Enable
+  capacity overage, 2026-09-11; Overage overview, 2026-08-26; Surge protection, 2026-09-23)
 
 ### 4. Administration boundaries
 
@@ -115,11 +109,10 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
   throttling". (Capacity planning, 2025-09-04)
 - Blast radius is capacity-scoped by design: "Fabric applies throttling at the capacity level. While one
   capacity, or set of workspaces, might experience reduced performance from being overloaded, other capacities
-  might continue running normally." (Throttling)
-- On a shared dev+test+prod capacity, a dev notebook consumes smoothed CUs against prod's 10-minute, 60-minute
-  and 24-hour limits, and prod users take the delays — dev is not throttled "instead of" prod. A shared capacity
-  also cannot be sized correctly, since prod should be sized from its own pilot data so peak usage sits
-  "comfortably under 100 percent".
+  might continue running normally." On a shared dev+test+prod capacity, a dev notebook consumes smoothed CUs
+  against prod's 10-minute, 60-minute and 24-hour limits and prod users take the delays — dev is not throttled
+  "instead of" prod; a shared capacity also cannot be sized correctly, since prod should be sized from its own
+  pilot data so peak usage sits "comfortably under 100 percent". (Throttling; Capacity planning)
 
 ### 6. Terraform specifics
 
@@ -127,8 +120,9 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
   `resource_group_name`, `sku { name, tier }`, `administration_members`, `tags`, timeouts, and supports import.
   `name`, `location` and `resource_group_name` force replacement. (AzureRM provider docs, checked 2026-11-11)
 - Its documented `sku.name` values stop at **`F2`…`F2048`** — no `F4096`/`F8192`, despite the licensing page
-  listing them. It is pinned to API **`2023-11-01`**, so no `overage` block, and it exposes no suspend/resume:
-  pausing must be a pipeline step (`az fabric capacity suspend` or a raw ARM POST) outside Terraform state.
+  listing them. It is pinned to API **`2023-11-01`**, so there is no `overage` block, and it exposes no
+  suspend/resume: pausing must be a pipeline step (`az fabric capacity suspend` or a raw ARM POST) outside
+  Terraform state.
 - `microsoft/fabric` (v1.15.1) explicitly cannot create a capacity: "Microsoft Fabric trial capacity is not
   supported. Only self-provisioned Fabric Capacity on Azure is supported." It consumes one — `data
   "fabric_capacity"` plus `fabric_workspace.capacity_id` — and exposes `capacity_region` read-only plus
@@ -137,19 +131,23 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
 
 ## What this settles
 
-- **Topology: one capacity per environment, with dev+test allowed to share one non-prod capacity.** Prod gets
-  its own F SKU sized from the Capacity Metrics app so peak smoothed usage sits under 100%; dev and test get a
-  second small F SKU (F2/F4) in the same region, with separate workspaces per environment. Split dev from test
-  into a third capacity only when test needs protection from dev load or independent sizing.
-- **Pause policy: scheduled pause for the non-prod capacity only** — outside working hours and at weekends, with
-  resume as the *first* step of any deployment pipeline. Never pause prod except as the documented throttling
-  brake. Never pause either side of a workspace migration, and never apply Fabric Terraform against a paused
-  capacity.
+- **Recommendation on the evidence: one capacity per environment.** Prod gets its own F SKU sized so peak
+  smoothed usage sits under 100%; dev and test share a second small F SKU (F2/F4) in the same region, with
+  separate workspaces per environment. Split them only when test needs protection from dev load or independent
+  sizing. **ADR [0004](../adr/0004-one-shared-capacity.md) instead accepts one shared capacity**; its costs are
+  shared throttling, a three-environment outage from one capacity incident, and sizing to the largest
+  environment's peak.
+- **Pause policy follows from that decision.** With one shared capacity there is no safe scheduled pause: the
+  only pause windows are ones where production may be down, and the saving is therefore smaller than the
+  per-second pricing suggests. If capacity is split (prod separate), pause the non-prod capacity outside working
+  hours, resume as the *first* step of any deployment pipeline, never pause either side of a workspace
+  migration, and never apply Fabric Terraform against a paused capacity.
 - **Cost control is three settings, one of them in Terraform:** SKU size (Terraform), capacity overage threshold
-  (portal/API, default 25% at 3× rate — cap at ≤ one-third of daily CU hours), surge protection (portal).
-- **Trade-off stated:** separate prod/non-prod capacities roughly double SKU spend to contain a dev runaway to
-  the non-prod capacity; pausing that capacity recovers most of the spend but converts "cheap" into
-  "unavailable" — refreshes stop, Fabric applies fail, and each pause bills the accrued smoothed backlog once.
+  (portal/API, default 25% at 3× rate — cap at ≤ one-third of daily CU hours), surge protection (portal). None
+  of the last two show up in `terraform plan`.
+- **Trade-off stated:** a second capacity roughly doubles SKU spend to contain a dev runaway and permit pause;
+  a single capacity is cheapest and simplest but makes every environment share one throttling budget and one
+  outage domain, and gives up the scheduled saving entirely.
 
 ## What this does not establish
 
@@ -157,8 +155,8 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
   index has no such entry as of 2026-11-03, and I could not tell "undocumented" from "does not exist".
 - Whether an ARM/Terraform-created capacity starts with capacity overage enabled, and at what threshold — the
   "enabled by default" wording describes the creation workflow, and AzureRM cannot express the setting.
-- Whether a service principal can hold capacity **contributor**, or whether an SP reached through a security
-  group that is a contributor works in practice.
+- Whether a service principal can hold capacity **Contributor** (ADR 0004 assumes it can), or whether an SP
+  reached through a security group that is a contributor works in practice.
 - What a *scheduled refresh* does when its capacity is paused (fail, queue or skip), and whether an in-flight
   pause is deferred.
 - Whether a prepaid "yearly capacity reservation" keeps billing or is forfeited while the capacity is paused.
@@ -168,7 +166,7 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
 
 | Source | What it was used for | Dated |
 | --- | --- | --- |
-| [Microsoft.Fabric/capacities — ARM/Bicep reference](https://learn.microsoft.com/en-us/azure/templates/microsoft.fabric/capacities) | Resource type, scopes, API versions, `administration.members`, `overage` | 2026-10-20 |
+| [Microsoft.Fabric/capacities — ARM/Bicep reference](https://learn.microsoft.com/en-us/azure/templates/microsoft.fabric/capacities) | Resource type, scope, API versions, `administration.members`, `overage` | 2026-10-20 |
 | [Fabric Capacities — Suspend](https://learn.microsoft.com/en-us/rest/api/microsoftfabric/fabric-capacities/suspend) and [Get](https://learn.microsoft.com/en-us/rest/api/microsoftfabric/fabric-capacities/get) | Suspend/resume action and URL; `properties.state` enum | 2026-10-23 |
 | [Pause and resume your Fabric capacity](https://learn.microsoft.com/en-us/fabric/enterprise/pause-resume) | F-SKU prerequisite, RBAC actions, billing on pause/resume | 2026-08-14 |
 | [Understand capacity throttling and smoothing](https://learn.microsoft.com/en-us/fabric/enterprise/throttling) | Bursting, smoothing windows, four throttle stages, interactive vs background, carryforward/burndown | 2026-08-14 |
@@ -181,8 +179,7 @@ that a paused capacity breaks scheduled refreshes and Fabric Terraform applies u
 | [Monitoring scenarios in the Capacity Metrics app](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-monitor-capacity-throttling) | Utilisation/at-risk views, 30-second windows, 10–15 min latency | 2026-08-28 |
 | [Azure Monitor supported metrics index](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/metrics-index) | Checked for a `Microsoft.Fabric` entry — none present | 2026-11-03 |
 | [Explore Fabric capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-overview-events) | Summary/State events, 30-second cadence, immutable `capacityRegion` | 2026-08-18 |
-| [Multi-Geo support for Fabric](https://learn.microsoft.com/en-us/fabric/admin/service-admin-premium-multi-geo) | Content stored in capacity region; migration blocked while paused | 2026-08-13 |
-| [Fabric region availability](https://learn.microsoft.com/en-us/fabric/admin/region-availability) | Region must support the workloads; some regions are Power BI only | 2026-11-03 |
+| [Multi-Geo support for Fabric](https://learn.microsoft.com/en-us/fabric/admin/service-admin-premium-multi-geo) and [region availability](https://learn.microsoft.com/en-us/fabric/admin/region-availability) | Content stored in capacity region; migration blocked while paused; region support | 2026-08-13 / 2026-11-03 |
 | [Understand Fabric admin roles](https://learn.microsoft.com/en-us/fabric/admin/roles) | Capacity administrator task list | 2026-04-21 |
 | [Plan your first Fabric deployment](https://learn.microsoft.com/en-us/fabric/enterprise/capacity-planning-plan-deployment) | Non-production capacity, isolation, scale-out pros/cons | 2025-09-04 |
 | [az fabric capacity](https://learn.microsoft.com/en-us/cli/azure/fabric/capacity) | Suspend/resume/create CLI surface, extension version | 2026-09-01 |

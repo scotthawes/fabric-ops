@@ -46,6 +46,15 @@ and the item-definition APIs all operate on.
 A tenant-level grouping of workspaces used for governance, so administration can be
 delegated by business area rather than workspace by workspace.
 
+**Capacity overage**
+A billing allowance that lets a capacity exceed its provisioned units and charges the excess at
+three times the pay-as-you-go rate. Enabled by default at a 25% threshold, and not configurable
+through AzureRM.
+
+**Surge protection**
+A capacity setting that rejects new *background* operations once sustained usage crosses a
+threshold, before deep throttling starts. It never stops operations already running.
+
 ## Deployment
 
 **Deployment pipeline**
