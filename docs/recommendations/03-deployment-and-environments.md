@@ -72,5 +72,11 @@ disqualifies them as the promotion mechanism for a Git-first repo. They remain u
 - **First-run ordering.** Capacity creation is subscription-scope Azure, the rest is Fabric-scope.
   Different provider, different identity path; do it once by hand or in its own pipeline rather
   than interleaving with content deployment.
-- **Network path.** If the estate turns out to be isolated beyond the data plane, the agents'
-  route to `api.fabric.microsoft.com` changes the whole design. Confirm before building.
+- **Network path.** Unresolved, and it is the one open item that can change this design. If the
+  tenant's inbound setting **Block Public Internet Access** is off, a public agent pool works
+  and private links only serve private clients. If it is on, the agent must egress through the
+  VNet holding the private endpoint, resolve the tenant FQDN privately, and still reach
+  `login.microsoftonline.com` publicly for a token — and **workspace-level** private link
+  additionally forbids deployment pipelines and semantic models, and requires Git features to
+  be used from inside the approved VNet. Confirm before building; see
+  [the network note](../research/network-private-endpoints-and-deployment-path.md).

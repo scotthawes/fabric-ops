@@ -30,6 +30,10 @@ support the provider under Fabric support policies.
 - Two lifecycle models to keep coherent: Terraform state for containers, a redeploy-every-run
   model for content. The workspace must exist before items land, so pipeline ordering is a real
   dependency, not a detail.
+- If the work tenant uses **workspace-level** private link, this decision does not survive: those
+  workspaces cannot hold deployment pipelines or semantic models, and Git APIs are reachable
+  only from inside the approved VNet. Tenant-level private link, by contrast, leaves deployment
+  pipelines usable.
 - `fabric-cicd` deploys everything on every run and does not diff commits, so a portal edit to
   a deployed item is silently overwritten rather than surfaced as drift. Content edits belong
   in the dev workspace, committed through a pull request (ADR 0005).

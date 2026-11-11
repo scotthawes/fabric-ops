@@ -87,10 +87,10 @@ makes scheduled pause impractical, and the trade-off is stated below.
 ### 4. Administration boundaries
 
 - **Capacity administrator** — "Assign workspaces to the capacity", "Manage user permission to the capacity",
-  "Manage workloads to configure memory usage". (Admin roles, 2026-04-21)
-- **Capacity contributor** — "Set up the ability to add workspaces to the capacity", scoped to "The entire
-  organization" or "Specific users or security groups"; "A **contributor** on a capacity can assign workspaces
-  to that capacity but can't modify capacity settings or delete the capacity." (Manage your capacity, 2026-03-06)
+  "Manage workloads to configure memory usage". (Admin roles, 2026-04-21) **Capacity contributor** — "Set up the
+  ability to add workspaces to the capacity", scoped to "The entire organization" or "Specific users or security
+  groups"; "A **contributor** on a capacity can assign workspaces to that capacity but can't modify capacity
+  settings or delete the capacity." (Manage your capacity, 2026-03-06)
 - Assigning a workspace needs **either**: the same page says "you need to have a capacity **contributor** role,
   and a workspace admin role", while the Admin permissions row lists "Add or remove workspaces from the
   capacity". Both hold; Contributor is the narrower grant.
@@ -157,9 +157,8 @@ makes scheduled pause impractical, and the trade-off is stated below.
   "enabled by default" wording describes the creation workflow, and AzureRM cannot express the setting.
 - Whether a service principal can hold capacity **Contributor** (ADR 0004 assumes it can), or whether an SP
   reached through a security group that is a contributor works in practice.
-- What a *scheduled refresh* does when its capacity is paused (fail, queue or skip), and whether an in-flight
-  pause is deferred.
-- Whether a prepaid "yearly capacity reservation" keeps billing or is forfeited while the capacity is paused.
+- What a *scheduled refresh* does when its capacity is paused (fail, queue or skip), whether an in-flight pause
+  is deferred, and whether a prepaid "yearly capacity reservation" keeps billing or is forfeited while paused.
 - Whether `administration_members` updates apply in place without replacing the capacity (implied, untested).
 
 ## Sources
@@ -168,14 +167,14 @@ makes scheduled pause impractical, and the trade-off is stated below.
 | --- | --- | --- |
 | [Microsoft.Fabric/capacities — ARM/Bicep reference](https://learn.microsoft.com/en-us/azure/templates/microsoft.fabric/capacities) | Resource type, scope, API versions, `administration.members`, `overage` | 2026-10-20 |
 | [Fabric Capacities — Suspend](https://learn.microsoft.com/en-us/rest/api/microsoftfabric/fabric-capacities/suspend) and [Get](https://learn.microsoft.com/en-us/rest/api/microsoftfabric/fabric-capacities/get) | Suspend/resume action and URL; `properties.state` enum | 2026-10-23 |
-| [Pause and resume your Fabric capacity](https://learn.microsoft.com/en-us/fabric/enterprise/pause-resume) | F-SKU prerequisite, RBAC actions, billing on pause/resume | 2026-08-14 |
+| [Pause and resume your Fabric capacity](https://learn.microsoft.com/en-us/fabric/enterprise/pause-resume) and [monitor a paused capacity](https://learn.microsoft.com/en-us/fabric/enterprise/monitor-paused-capacity) | F-SKU prerequisite, RBAC actions, billing on pause/resume, Suspended vs Active | 2026-08-14 / 2025-06-19 |
 | [Understand capacity throttling and smoothing](https://learn.microsoft.com/en-us/fabric/enterprise/throttling) | Bursting, smoothing windows, four throttle stages, interactive vs background, carryforward/burndown | 2026-08-14 |
 | [Understand Fabric licenses and capacity](https://learn.microsoft.com/en-us/fabric/enterprise/licenses) | F2–F8192 and Trial CU table, P-SKU equivalence, tenant scoping | 2026-11-10 |
-| [Manage your Fabric capacity](https://learn.microsoft.com/en-us/fabric/admin/capacity-settings) | Admin vs Contributor permissions, "only users" wording | 2026-09-29 |
+| [Manage your Fabric capacity](https://learn.microsoft.com/en-us/fabric/admin/capacity-settings) and [Fabric admin roles](https://learn.microsoft.com/en-us/fabric/admin/roles) | Admin vs Contributor permissions, "only users" wording, capacity administrator tasks | 2026-09-29 / 2026-04-21 |
 | [Buy Fabric capacity in Azure](https://learn.microsoft.com/en-us/fabric/enterprise/buy-capacity) | Subscription must be in the tenant, resource provider, CU quota, B2B exclusion | 2026-08-27 |
 | [Enable capacity overage](https://learn.microsoft.com/en-us/fabric/enterprise/enable-capacity-overage) and [overage overview](https://learn.microsoft.com/en-us/fabric/enterprise/capacity-overage-overview) | Default-on, 25% default, 3× rate, separate meter, one-third guidance | 2026-09-11 / 2026-08-26 |
 | [Manage surge protection](https://learn.microsoft.com/en-us/fabric/enterprise/surge-protection) | Rejection/recovery thresholds, isolate critical workloads | 2026-09-23 |
-| [Monitor a paused capacity](https://learn.microsoft.com/en-us/fabric/enterprise/monitor-paused-capacity) | Pause bills accrued smoothed usage; Suspended vs Active | 2025-06-19 |
+| [Monitor a paused capacity](https://learn.microsoft.com/en-us/fabric/enterprise/monitor-paused-capacity) | Pause bills accrued smoothed usage | 2025-06-19 |
 | [Monitoring scenarios in the Capacity Metrics app](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-monitor-capacity-throttling) | Utilisation/at-risk views, 30-second windows, 10–15 min latency | 2026-08-28 |
 | [Azure Monitor supported metrics index](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/metrics-index) | Checked for a `Microsoft.Fabric` entry — none present | 2026-11-03 |
 | [Explore Fabric capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-overview-events) | Summary/State events, 30-second cadence, immutable `capacityRegion` | 2026-08-18 |

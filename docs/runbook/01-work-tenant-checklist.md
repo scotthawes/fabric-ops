@@ -9,14 +9,26 @@ that outlives the person who made it is the main risk this pack carries.
 
 ## 1. Network isolation — do this first
 
-- **Check:** ask the platform team which private-networking features are in use: Fabric private
-  links (inbound), managed private endpoints, managed virtual network, trusted workspace access.
-- **Why:** it decides whether the deployment call to `api.fabric.microsoft.com` travels over
-  public HTTPS or must originate inside a VNet. Everything downstream assumes the former.
-- **Expected:** data plane private, control plane public.
-- **If different:** stop and re-plan the agent topology before writing any YAML. The pipeline
-  design in [recommendation 03](../recommendations/03-deployment-and-environments.md) assumes
-  agents reach the public API.
+- **Check, in this order:**
+  1. Is the tenant setting **Block Public Internet Access** on?
+  2. If yes, is it **tenant-level Private Link** or **workspace-level private link** (tenant
+     setting *Configure workspace-level inbound network rules*)?
+  3. Which private DNS zones are linked to the agent VNet, and does the tenant FQDN resolve
+     from the agent?
+  4. What sits between the agent and Fabric — proxy, Zscaler, forced tunnelling?
+- **Why:** the REST API endpoint is not made private. Fabric keeps `api.fabric.microsoft.com`
+  public and *checks where the call came from*: with public access restricted, a caller outside
+  the private-link network is refused. So the deploy path is public only while the switch is
+  off.
+- **Expected:** switch off, or tenant-level private link with agents inside the VNet.
+- **If workspace-level private link is in use:** deployment pipelines and semantic models cannot
+  live in those workspaces at all, connection strings need the `z{xy}` FQDN, and Git features
+  must be used from inside the VNet with branching blocked. That changes the design in
+  [recommendation 03](../recommendations/03-deployment-and-environments.md) rather than tuning it.
+- **Also confirm:** the agent can reach `login.microsoftonline.com:443` publicly. Entra is not
+  behind private link, and without it no federated credential can obtain a token.
+- **Timing trap:** a newly created capacity has no private-link path for up to 24 hours, so a
+  pipeline that creates a capacity cannot assume private connectivity in the same run.
 
 ## 2. Tenant settings
 
