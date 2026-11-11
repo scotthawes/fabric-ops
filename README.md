@@ -24,10 +24,22 @@ so an undated claim is a liability.
 
 | Path | Purpose |
 | --- | --- |
+| `docs/recommendations/` | Four decision-ready one-pagers, in reading order. Start here. |
 | `docs/research/` | Cited research notes, one per question. Index in `docs/research/README.md`. |
 | `docs/adr/` | Decisions taken here, with the reasoning that outlived the conversation. |
+| `docs/runbook/` | Ordered checks to run in the work tenant, since nothing here is verifiable. |
+| `docs/reference/` | Illustrative artefacts for the work repo to adapt — YAML, Terraform, naming, layout. |
 | `GLOSSARY.md` | Project vocabulary — Fabric terms plus ours (work tenant, work repo). |
 | `AGENTS.md` | Conventions for anyone, human or agent, working in this repo. |
+
+## Reading order
+
+1. `docs/recommendations/01-…` then `02-…`, `03-…`, `04-…` — the design, in the order it
+   depends on itself.
+2. `docs/adr/` — why each choice was made, and what it costs.
+3. `docs/runbook/01-…` — what a human must confirm in the work tenant before any of it is
+   trusted.
+4. `docs/research/` — only when you want the citation behind a claim.
 
 ## How findings travel
 

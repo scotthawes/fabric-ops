@@ -1,0 +1,177 @@
+# Illustrative Azure DevOps pipeline — fabric-ops, 2026-11-11. Not runnable from this repo.
+#
+# Assumptions (all must be true in the work repo before this works):
+#   - Azure Repos, in the same ADO organisation as the dev workspace's Git integration (ADR 0005).
+#   - Self-hosted agents: Linux, terraform >= 1.8, python 3.11 with fabric-cicd installed.
+#     Microsoft-hosted agents are not assumed, because the capacity and Fabric APIs are
+#     reached from a network the estate already trusts.
+#   - Two federated service connections, no client secret (ADR 0002):
+#       sc-fabric-admin   -> sp-fabric-admin  (capacity Contributor, workspace Admin; roles only)
+#       sc-fabric-deploy  -> sp-fabric-deploy (workspace Contributor; items only)
+#   - Approvals are configured on the ADO Environment `fabric-sales-forecast-prod`, not in this
+#     file. `dev` and `test` environments exist without checks.
+#   - Terraform state lives in Azure Storage with a per-environment key; no local state.
+
+trigger:
+  branches:
+    include: [main]
+
+pool:
+  name: fabric-self-hosted
+
+variables:
+  - name: tfDir
+    value: terraform
+  - name: pythonVersion
+    value: "3.11"
+
+stages:
+  # ---------------------------------------------------------------- validate only, no identity
+  - stage: Build
+    jobs:
+      - job: Validate
+        steps:
+          - checkout: self
+          - script: terraform -chdir=$(tfDir) fmt -check -recursive
+            displayName: terraform fmt
+          - script: |
+              terraform -chdir=$(tfDir) init -backend=false
+              terraform -chdir=$(tfDir) validate
+            displayName: terraform validate (no backend, no credentials)
+          - script: python scripts/preflight.py --check-parameter-file config/parameter.yml
+            displayName: parameter.yml is parseable and covers dev/test/prod
+            # VERIFY: fabric-cicd has no documented dry-run/validate entry point; the check above
+            # is our own YAML schema check. Confirm against the fabric-cicd docs before claiming
+            # the pipeline validates item definitions.
+          - publish: $(System.DefaultWorkingDirectory)
+            artifact: repo
+            displayName: publish commit artefact (the SHA is the deployable unit)
+
+  # ---------------------------------------------------------------- dev: automatic on main
+  - stage: DeployDev
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: Dev
+        environment: fabric-sales-forecast-dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: repo
+                # Control plane first: the workspace must exist before items land (ADR 0003).
+                - task: AzureCLI@2
+                  displayName: terraform apply - dev
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    script: |
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID=$servicePrincipalId
+                      export ARM_TENANT_ID=$tenantId
+                      export ARM_OIDC_TOKEN=$idToken
+                      terraform -chdir=$(tfDir) init \
+                        -backend-config="key=fabric-sales-forecast/dev.tfstate"
+                      terraform -chdir=$(tfDir) apply -auto-approve -var-file=env/dev.tfvars
+                - task: AzureCLI@2
+                  displayName: fabric-cicd publish items - dev
+                  inputs:
+                    azureSubscription: sc-fabric-deploy
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    script: |
+                      # scripts/deploy_items.py builds an azure-identity credential from
+                      # $servicePrincipalId / $tenantId / $idToken and passes it as
+                      # FabricWorkspace(token_credential=...). No secret is written to disk.
+                      python scripts/deploy_items.py \
+                        --environment dev \
+                        --content-dir content \
+                        --parameter-file config/parameter.yml \
+                        --workspace-name fabric-sales-forecast-dev
+                      # VERIFY: the credential type fabric-cicd accepts for token_credential, and
+                      # whether a federated assertion is supported directly — check the
+                      # fabric-cicd docs (authentication) before writing deploy_items.py.
+
+  # ---------------------------------------------------------------- test: same artefact
+  - stage: DeployTest
+    dependsOn: DeployDev
+    condition: succeeded()
+    jobs:
+      - deployment: Test
+        environment: fabric-sales-forecast-test
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: repo
+                - task: AzureCLI@2
+                  displayName: terraform apply - test
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    script: |
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID=$servicePrincipalId
+                      export ARM_TENANT_ID=$tenantId
+                      export ARM_OIDC_TOKEN=$idToken
+                      terraform -chdir=$(tfDir) init \
+                        -backend-config="key=fabric-sales-forecast/test.tfstate"
+                      terraform -chdir=$(tfDir) apply -auto-approve -var-file=env/test.tfvars
+                - task: AzureCLI@2
+                  displayName: fabric-cicd publish items - test
+                  inputs:
+                    azureSubscription: sc-fabric-deploy
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    script: |
+                      python scripts/deploy_items.py --environment test \
+                        --content-dir content --parameter-file config/parameter.yml \
+                        --workspace-name fabric-sales-forecast-test
+
+  # ---------------------------------------------------------------- prod: approval on the Environment
+  - stage: DeployProd
+    dependsOn: DeployTest
+    condition: succeeded()
+    jobs:
+      - deployment: Prod
+        environment: fabric-sales-forecast-prod   # approval check lives here, in ADO, not in YAML
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: repo
+                - task: AzureCLI@2
+                  displayName: terraform apply - prod
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    script: |
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID=$servicePrincipalId
+                      export ARM_TENANT_ID=$tenantId
+                      export ARM_OIDC_TOKEN=$idToken
+                      terraform -chdir=$(tfDir) init \
+                        -backend-config="key=fabric-sales-forecast/prod.tfstate"
+                      terraform -chdir=$(tfDir) plan -var-file=env/prod.tfvars -out=prod.tfplan
+                      terraform -chdir=$(tfDir) apply prod.tfplan
+                - task: AzureCLI@2
+                  displayName: fabric-cicd publish items - prod
+                  inputs:
+                    azureSubscription: sc-fabric-deploy
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    script: |
+                      # fabric-cicd redeploys every item on every run and does not diff commits,
+                      # so a portal edit in prod is overwritten, not surfaced (ADR 0003, 0005).
+                      python scripts/deploy_items.py --environment prod \
+                        --content-dir content --parameter-file config/parameter.yml \
+                        --workspace-name fabric-sales-forecast-prod
+                      # VERIFY: unpublishing orphaned items is a separate fabric-cicd call
+                      # (unpublish_all_orphan_items in the docs). Decide deliberately whether prod
+                      # deletes removed items, then say so in the work repo README.
