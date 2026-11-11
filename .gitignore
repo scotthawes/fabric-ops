@@ -1,0 +1,28 @@
+# Secrets and local state
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# .NET
+bin/
+obj/
+
+# Node (if the tooling ends up JS)
+node_modules/
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
