@@ -1,61 +1,46 @@
 # Work repo layout (illustrative)
 
-**Dated 2026-11-11.** The shape below is what the work repo should start from. It is a sketch,
-not a manifest — the work repo owns the real files.
+**Dated 2026-11-11.** The shape the work repo should start from — a sketch, not a manifest.
 
 ```
 work-repo/
-├── terraform/
-│   ├── main.tf              # providers, azurerm + microsoft/fabric, backend
-│   ├── capacity.tf          # shared F SKU, resource group, tags   (see terraform-capacity.tf)
+├── terraform/               # control plane: containers, IDs, role assignments
+│   ├── main.tf              # providers (azurerm + microsoft/fabric) and backend
+│   ├── capacity.tf          # shared F SKU, resource group, tags (see terraform-capacity.tf)
 │   ├── fabric.tf            # workspaces, role assignments, Git binding (see terraform-fabric.tf)
-│   ├── variables.tf
-│   ├── env/
-│   │   ├── dev.tfvars       # capacity_id, group IDs, locations — non-secret values only
-│   │   ├── test.tfvars
-│   │   └── prod.tfvars
-│   └── README.md            # how to plan locally, and what state holds what
-├── content/                 # Fabric item definitions, source-control format (see content-layout.md)
+│   └── env/{dev,test,prod}.tfvars      # non-secret values: group object IDs, region, SKU
+├── content/                 # item definitions in source-control format (see content-layout.md)
 │   └── fabric-sales-forecast/
 │       ├── Sales Forecast Ingest.Notebook/
 │       └── Sales Forecast Model.SemanticModel/
 ├── config/
 │   ├── parameter.yml        # fabric-cicd find_replace, dev/test/prod keys inside
-│   ├── dev.yaml             # per-env non-secrets: workspace name, capacity name, ADO env name
-│   ├── test.yaml
-│   └── prod.yaml
+│   └── {dev,test,prod}.yaml # per-env non-secrets: workspace name, capacity name, ADO env name
 ├── pipelines/
-│   ├── cicd.yml             # the content + control-plane pipeline (see ado-pipeline.yml)
+│   ├── cicd.yml             # content + control plane (see ado-pipeline.yml)
 │   └── admin.yml            # sp-fabric-admin only: roles, tenant settings, scheduled jobs
 └── scripts/
-    ├── deploy_items.py      # wraps fabric-cicd: FabricWorkspace(...) + publish for one env
-    └── preflight.py         # checks the workspace exists before items land; fails fast
+    ├── deploy_items.py      # wraps fabric-cicd: FabricWorkspace(...) + publish, one env per run
+    └── preflight.py         # fails fast if the workspace is missing before items land
 ```
 
 Why each top-level folder exists:
 
-- **`terraform/`** — the control plane: things with a lifecycle and an ID that must not be
-  recreated by a content deploy (workspaces, role assignments, the Git connection, the capacity
-  as an Azure resource). One root with a workspace per environment is the starting choice
-  because the three environments differ only in a handful of variables; the alternative, one
-  root per environment, buys harder isolation and three states to remember. If a second root is
-  ever added, split by *lifetime*, not by environment — see ADR 0003 on keeping Terraform small
-  enough that the REST fallback stays cheap.
-- **`content/`** — the items, in Fabric's source-control format. One folder per workspace
-  **without** the environment token, because the same definitions deploy to all three
-  environments and `parameter.yml` supplies the differences. This is also the folder the dev
-  workspace's Git integration commits into (ADR 0005), so it is the repo's hot path for authors.
-- **`config/`** — everything that differs between environments, kept out of YAML and HCL so a
-  diff between environments is a diff of values, not of logic. It holds no secrets: connection
-  IDs, group IDs and workspace IDs are references, and the credential itself lives in the
-  service connection.
-- **`pipelines/`** — Azure DevOps YAML, one file per authority level. `cicd.yml` runs on merge to
-  `main` and deploys content; `admin.yml` is a separate, gated pipeline because it holds the
-  admin principal (ADR 0002). Two files also mean two approval records.
-- **`scripts/`** — the only place with logic that is not declarative: the fabric-cicd call, and
-  the preflight that turns "workspace missing" from a confusing API error into a one-line
-  failure. Keep them thin; anything with branching belongs in Terraform or in the pipeline.
+- **`terraform/`** — things with a lifecycle and an ID that a content deploy must not recreate:
+  workspaces, role assignments, the Git connection, the capacity as an Azure resource. One root
+  with a state key and a tfvars file per environment (`terraform workspace` is the alternative,
+  and the overloaded word is why the pipeline names state keys instead). If a second root appears,
+  split by *lifetime*, not by environment, and keep it small so ADR 0003's "fall back to REST by
+  hand" stays cheap.
+- **`content/`** — the items, one folder per workspace **without** the environment token, because
+  the same definitions deploy to all three and `parameter.yml` supplies the differences. Also where
+  the dev workspace's Git integration commits (ADR 0005), so it is the authors' hot path.
+- **`config/`** — what differs between environments, out of YAML and HCL, so an environment diff is
+  a diff of values, not of logic. No secrets: these are references.
+- **`pipelines/`** — one file per authority level. `cicd.yml` runs on merge to `main`; `admin.yml`
+  holds the admin principal, so it is separate and gated (ADR 0002). Two files, two approval records.
+- **`scripts/`** — the only imperative code: the fabric-cicd call, and a preflight that turns
+  "workspace missing" into a one-line failure.
 
-Ordering that the layout cannot express: Terraform must apply before items land (`preflight.py`),
-and `content/` is committed by humans in the dev workspace while being *read* by the pipeline.
-Both are dependencies on sequence, not on folders — worth stating in the work repo's README.
+Two ordering facts the folders cannot express: Terraform applies before items land, and `content/`
+is written by humans in dev but read by the pipeline.

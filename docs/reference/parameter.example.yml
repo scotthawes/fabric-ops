@@ -1,10 +1,8 @@
-# Illustrative fabric-cicd parameter.yml — fabric-ops, 2026-11-11.
-# Deployed by scripts/deploy_items.py, one environment per invocation.
-#
-# VERIFY: the top-level key, the find_value/replace_value/is_regex spelling and whether
+# Illustrative fabric-cicd parameter.yml — fabric-ops, 2026-11-11. One environment per invocation.
+
+# VERIFY: the top-level key, the find_value/replace_value/is_regex spelling, and whether
 # $workspaces.* / $items.* are accepted inside replace_value — check the fabric-cicd
-# parameterisation docs before trusting this shape. It is drawn from the library's documented
-# concepts, not from a file in front of me.
+# parameterisation docs. This follows documented concepts, not a file I have seen.
 
 find_replace:
   # The dev workspace's ID. Definitions committed out of the dev workspace carry it verbatim.
@@ -16,8 +14,8 @@ find_replace:
     is_regex: "false"
 
   # The dev lakehouse's ID, referenced by the notebook and the semantic model.
-  # VERIFY: that $items.<Type>.<Name>.id resolves from the deploy run's own deployed items and
-  # not from a separate lookup — if the item is created in the same run, ordering matters.
+  # VERIFY: that $items.<Type>.<Name>.id resolves during the same run — if the lakehouse is
+  # created by this deploy, ordering matters.
   - find_value: "44444444-4444-4444-4444-444444444444" # PLACEHOLDER dev lakehouse ID
     replace_value:
       dev: "$items.Lakehouse.Sales Lakehouse.id"
@@ -25,14 +23,11 @@ find_replace:
       prod: "$items.Lakehouse.Sales Lakehouse.id"
     is_regex: "false"
 
-# The environment keys (dev/test/prod) must match the environment passed to
-# FabricWorkspace(environment=...) in scripts/deploy_items.py. A typo is not an error: the
-# value is left unsubstituted and the item deploys pointing at dev with no warning.
+# The keys dev/test/prod must match the environment passed to FabricWorkspace(environment=...) in
+# scripts/deploy_items.py. A typo is not an error: the value is left unsubstituted and the item
+# deploys pointing at dev, with no warning.
 
-# NEVER commit:
-#   - a client secret, PAT, storage key or personal access token — the credentials are federated
-#     service connections, and a parameter file is not a secret store;
-#   - real tenant, capacity, workspace, group or principal IDs where a placeholder will do
-#     (AGENTS.md: these are not secrets, but they should not be in the history);
-#   - a connection string or a SQL password, which a find_replace entry would copy into every
-#     environment's item definition.
+# NEVER commit: a client secret, PAT or storage key (credentials are federated service connections,
+# and a parameter file is not a secret store); real tenant, capacity, workspace, group or principal
+# IDs where a placeholder will do; a connection string or SQL password, which find_replace would
+# copy into every environment's definition.
