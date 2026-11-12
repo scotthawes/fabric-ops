@@ -33,6 +33,7 @@ docs.
 | [`powerbi-coexistence.md`](powerbi-coexistence.md) | What does adopting Fabric change for an existing Power BI tenant? | answered 2026-11-12 |
 | [`purview-and-lineage.md`](purview-and-lineage.md) | What governance metadata does Fabric emit, what is automatable, and what stays human? | answered 2026-11-12 |
 | [`entra-and-ado-operations.md`](entra-and-ado-operations.md) | Which Entra and Azure DevOps operations does this design call, and can an app-only principal run them? | answered 2026-11-12 |
+| [`pipeline-designs-what-open-source-examples-implement.md`](pipeline-designs-what-open-source-examples-implement.md) | What pipeline designs do the open-source Fabric CI/CD examples actually implement, and how do they differ on the decisions that matter? | answered 2026-11-12 |
 
 ## Adding a note
 
