@@ -22,6 +22,7 @@ docs.
 | [`schema-and-ddl-management.md`](schema-and-ddl-management.md) | How are warehouse and lakehouse schemas versioned and deployed when items ship as shells? | answered 2026-11-12 |
 | [`platform-taxonomy.md`](platform-taxonomy.md) | What are the platform's parts actually called, and which layer and engine does each sit at? | answered 2026-11-12 |
 | [`monitoring-and-alerting-surface.md`](monitoring-and-alerting-surface.md) | With no Azure Monitor metrics, what can actually be alerted on in Fabric? | answered 2026-11-12 |
+| [`workspace-identity.md`](workspace-identity.md) | What is a workspace identity, what is it for, and where does it replace a service principal? | answered 2026-11-12 |
 
 ## Adding a note
 

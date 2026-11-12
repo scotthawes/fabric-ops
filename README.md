@@ -1,5 +1,10 @@
 # fabric-ops
 
+> **A dated snapshot, checked 2026-11-12.** Microsoft Fabric changes monthly and previews
+> graduate. Every claim in this repository carries the date it was checked; treat anything more
+> than a few months old as a question rather than an answer. This is one project's research record,
+> written for its own context, not official guidance and not affiliated with Microsoft.
+
 A research pack for deploying and administering **Microsoft Fabric** in a work tenant:
 capacities and tenant settings, workspace lifecycle, item deployment, and the users and roles
 that see the content.

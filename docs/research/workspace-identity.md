@@ -94,15 +94,15 @@ Two independent layers; both are needed.
   the service principal that runs it on a schedule or through the API." A deploy SP *can* drive such a pipeline, but only while it holds a workspace role, and "Granting
   the workspace identity permissions on the target data source isn't sufficient on its own."
 - **Trusted workspace access wants a workspace role too:** "Ensure that the workspace identity has Contributor access to the workspace."
-- **Recreate duplicates names:** during retention the tenant can hold "more than one app registration with that name" — resolve by object ID, never name. A workload-
-  identities **Conditional Access** policy covering all service principals breaks the identity unless it is excluded.
+- **Recreate duplicates names:** during retention the tenant can hold "more than one app registration with that name" — resolve by object ID, never name. A
+  **Conditional Access** policy for workload identities that covers all service principals breaks the identity unless
+  it is excluded.
 - **Capacity and connection state:** moving to non-F or trial leaves the identity alive but "Fabric items that rely on trusted workspace access stop working" ("after an
   hour"); such connections read *Offline* in **Manage connections and gateways**, and "Checking the status of a connection that has workspace identity as the
   authentication method isn't supported."
 - **The two pages disagree:** trusted-access says "workspace identity is the only supported authentication method. Test connection fails if organizational account or
   service principal authentication methods are used", then three bullets later that all three methods are usable in shortcuts and pipelines. Read the first as scoped to
   **Manage connections and gateways**.
-- **Licence:** could not establish; the only statement is capacity-shaped — usable "regardless of the capacity SKU".
 
 ### 7. What a deployment design must do about it
 

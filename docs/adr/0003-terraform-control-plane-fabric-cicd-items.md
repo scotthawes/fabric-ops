@@ -50,6 +50,12 @@ support the provider under Fabric support policies.
   a human — see [`gateway-and-connectivity.md`](../research/gateway-and-connectivity.md). This is
   the largest hole in the "everything deploys unattended" assumption and should be stated to
   report authors before the first test deploy.
+- **Workspace identity has a lifecycle trap.** Fabric creates it with the workspace and deletes it
+  permanently with the workspace; restoring from soft delete does not bring it back, so every Azure
+  RBAC grant and resource instance rule is orphaned and must be recreated against new object IDs.
+  Terraform can own the identity (`identity = SystemAssigned`), and `fabric_connection` accepts
+  `WorkspaceIdentity` as a credential type — but the storage-side resource instance rule is
+  ARM/PowerShell only, so that step stays manual.
 - The `microsoft/fabric` provider is explicitly outside Microsoft support. When it breaks, the
   fallback is the Core REST API by hand — keep the Terraform small enough that this is cheap.
 - Tenant settings in Terraform are tenant-wide. A pipeline that can set them is a

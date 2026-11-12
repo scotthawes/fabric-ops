@@ -60,7 +60,7 @@ Ordered by how much they would change what the team does.
 10. **Real-Time Intelligence.** Eventhouse retention, KQL database sizing, and what deployment can
     and cannot carry.
 11. **Workspace identity.** What it is used for, how it is created, and where it replaces a service
-    principal.
+    principal. _(done 2026-11-12)_
 12. **Azure DevOps mechanics.** Service connection types, Environment approvals, self-hosted agent
     hardening and secret-free handling.
 13. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant.
