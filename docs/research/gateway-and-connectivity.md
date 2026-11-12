@@ -162,6 +162,19 @@ PowerPlatform provider and delegate the subnet; rotate secrets; update the gatew
 - Any throughput or refresh-concurrency figure beyond payload size and the 1,000-source limit, or the work
   tenant's sources and gateways.
 
+## Correction — 2026-11-12
+
+This note's "What this settles" table says a human must bind each item per stage. That is wrong for
+semantic models, and it was wrong because the survey only read the Core API. The SemanticModel
+workload API has `POST /v1/workspaces/{workspaceId}/semanticModels/{semanticModelId}/bindConnection`,
+taking a `connectivityType` of `OnPremisesGateway`, `VirtualNetworkGateway`, `ShareableCloud` or
+`None`, and supporting a service principal or managed identity. The caller must **own** the model.
+
+What stays manual: gateway install and clustering, datasource creation (REST only for on-premises
+gateways), datasource credentials, managed private endpoint approval, the storage resource instance
+rule, and gateway membership (PowerShell, though it accepts a service principal). See
+[`powerbi-rest-api-for-fabric-items.md`](powerbi-rest-api-for-fabric-items.md).
+
 ## Sources
 
 [pbi-gw]: https://learn.microsoft.com/en-us/power-bi/connect-data/service-gateway-onprem — three-type taxonomy, outbound-only, date 2026-09-18

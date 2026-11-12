@@ -33,7 +33,10 @@ The rule of thumb:
 | Warehouse / lakehouse **schema** | | ✅ | | Second stage, state-based; shells alone are empty (ADR 0008) |
 | Connections (gateway, workspace identity) | ⚠️ | | ⚠️ | `fabric_connection` exists, but the binding to an item does not |
 | Gateway install, cluster, recovery key | | | ✅ | Infrastructure outside Fabric |
-| Per-item, per-stage connection binding | | | ✅ | Nothing copies it; the big hole in "unattended" |
+| Add a principal to a gateway | PowerShell | `Add-DataGatewayClusterUser` accepts a service principal; there is no REST operation |
+| Bind a semantic model to a gateway or cloud connection | Auto | `bindConnection` on the SemanticModel workload API — the caller must own the model |
+| Per-item, per-stage binding of other item types | | | ✅ | Only semantic models have a documented bind operation |
+| Set or rotate datasource credentials | | | ✅ | Credential-shaped; never in the repo |
 | Storage-side resource instance rule | | | ✅ | ARM/PowerShell only |
 | Workspace identity RBAC grants | | | ✅ | Azure-side permission |
 | Sensitivity labels | | | ✅ | Create-only in the API, never in Git |
@@ -84,7 +87,8 @@ before items land, and a capacity must exist before a workspace can be assigned.
 10. Promote to test, then prod behind an approval.
 
 **Phase 3 — the things that make it usable (manual)**
-11. Connections, gateway install if needed, per-stage bindings.
+11. Connections and gateway install if needed; bind each semantic model per stage (API), and set the
+    datasource credentials by hand.
 12. Labels, then item sharing and any app.
 13. Build the five alerts.
 
@@ -104,8 +108,9 @@ we cannot make for the tenant.
 
 1. **A green deploy can leave an empty warehouse.** Item deployment ships shells; schema is a
    separate stage (ADR 0008).
-2. **A deployed model cannot refresh until a human binds it.** The item is healthy, the connection
-   is not, and the error appears at refresh, not at deploy.
+2. **A deployed model cannot refresh until something binds it.** `bindConnection` exists, so the
+   pipeline should do it — but if nobody writes that step, the item is healthy, the connection is not,
+   and the error appears at refresh rather than at deploy.
 3. **A pipeline-created item is unlabelled and nothing fails.** Default labelling does not apply to
    service principals.
 

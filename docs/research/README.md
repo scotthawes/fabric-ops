@@ -27,6 +27,7 @@ docs.
 | [`ado-pipeline-mechanics.md`](ado-pipeline-mechanics.md) | What does Azure DevOps provide for this pipeline, and where are its sharp edges? | answered 2026-11-12 |
 | [`workspace-and-item-lifecycle.md`](workspace-and-item-lifecycle.md) | What is safe to automate, what needs an approval, and what is irreversible? | answered 2026-11-12 |
 | [`fabric-api-inventory.md`](fabric-api-inventory.md) | What is the actual REST API surface, and which part of it is deployment-relevant? | answered 2026-11-12 |
+| [`powerbi-rest-api-for-fabric-items.md`](powerbi-rest-api-for-fabric-items.md) | What can the legacy Power BI API still automate for Fabric items — binding, RLS, labels? | answered 2026-11-12 |
 
 ## Adding a note
 

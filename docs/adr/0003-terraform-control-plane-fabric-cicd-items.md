@@ -44,12 +44,13 @@ support the provider under Fabric support policies.
   promising an item type ships with the pipeline.
 - For Warehouse, SQL database and Lakehouse, this deploys the **item shell only** — DDL, tables
   and schemas need a separate step, so a green pipeline can leave an empty warehouse behind.
-- **Connectivity is not deployable.** A deployed semantic model or pipeline that reads a gated
-  source arrives with no gateway binding and no credentials: the item exists and the report opens,
-  but refresh fails with a connection error. Binding is per stage and per item, and must be done by
-  a human — see [`gateway-and-connectivity.md`](../research/gateway-and-connectivity.md). This is
-  the largest hole in the "everything deploys unattended" assumption and should be stated to
-  report authors before the first test deploy.
+- **Connectivity is only half deployable.** Binding a semantic model to a gateway or cloud connection
+  **is** an API operation (`POST …/semanticModels/{id}/bindConnection` with a `connectivityType`), so
+  the pipeline can do it per item, per stage — the caller must own the model. What stays manual is
+  everything around it: gateway registration and clustering, creating the datasource, setting or
+  rotating its credentials, approving managed private endpoints, and the storage-side resource
+  instance rule. A deployed item with no binding is healthy and fails at refresh, so binding is a
+  pipeline step to write, not a relationship to accept.
 - **Workspace identity has a lifecycle trap.** Fabric creates it with the workspace and deletes it
   permanently with the workspace; restoring from soft delete does not bring it back, so every Azure
   RBAC grant and resource instance rule is orphaned and must be recreated against new object IDs.

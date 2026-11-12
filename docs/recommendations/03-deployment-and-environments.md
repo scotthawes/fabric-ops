@@ -64,24 +64,24 @@ disqualifies them as the promotion mechanism for a Git-first repo. They remain u
 
 ## What the pipeline cannot do
 
-Connectivity is the part people assume is automated and is not. A deployed semantic model or data
-pipeline that reads a gated source arrives with **no gateway binding and no credentials**: the item
-exists, the report opens, and refresh fails with `CreateGatewayConnectionFailed`,
-`InvalidConnectionDetails` or `AccessUnauthorized`.
+Connectivity is the part people assume is automated and is not — with one important exception now
+established:
 
-| Step | Why it stays manual |
+| Step | Verdict |
 | --- | --- |
-| Install, register and cluster a gateway; hold its recovery key | Infrastructure outside Fabric, with its own owner |
-| Grant gateway and connection roles | Permission on the gateway, not the workspace |
-| Create the connection | Credentials are never committed |
-| Bind each item, per stage, and set credentials | The binding is per item and per workspace; nothing copies it |
-| Approve managed private endpoints | Requires the target owner's approval |
-| Create the resource instance rule and workspace identity | Azure-side permission on the storage account |
-| Rotate secrets and update the gateway monthly | Ongoing operational duty |
+| Bind a semantic model to a gateway or cloud connection | **Automatable** — `bindConnection` with a `connectivityType`; caller must own the model |
+| Create the gateway datasource | Partial — REST for on-premises gateways only, gateway-admin permission |
+| Set and rotate datasource credentials | Manual |
+| Add a principal to a gateway | PowerShell only (`Add-DataGatewayClusterUser`), accepts a service principal |
+| Install, register and cluster a gateway | Manual — installer, recovery key |
+| Approve a managed private endpoint | Manual — target owner's decision |
+| Create the resource instance rule and workspace identity grant | Manual — ARM/PowerShell and Azure RBAC |
+| Semantic-model RLS roles | Partial — XMLA read-write plus TMSL; a service principal can create roles but cannot be a role member |
 
-`fabric-cicd` deploys the definition; it cannot deploy the relationship to the data. Budget for one
-binding pass per environment per gated source, and put it in the run-book rather than discovering it
-at first refresh.
+Two consequences. A deployed model with no binding is healthy and fails at refresh, so binding is a
+pipeline step to write rather than a relationship to tolerate. And the legacy Power BI API uses a
+different token audience — so the pipeline needs a second credential path for the operations that
+still live there.
 
 Which route a given source needs — on-premises gateway, VNet gateway, managed private endpoint,
 trusted workspace access, or a plain connection — is decided in

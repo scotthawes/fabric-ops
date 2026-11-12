@@ -71,7 +71,7 @@ Ordered by how much they would change what the team does.
     _(done 2026-11-12)_
 16. **Legacy Power BI REST as an automation surface.** Whether gateway binding, semantic-model RLS
     and label setting are automatable after all, via `api.powerbi.com`.
-    _(in progress 2026-11-12)_
+    _(done 2026-11-12 — found `bindConnection`; the "binding is manual" claim was wrong)_
 17. **Workspace and item lifecycle.** Rename, move, delete, recover — which are safe to automate and
     which are irreversible. _(done 2026-11-12)_
 18. **Runtime operations.** Job types, run/cancel, scheduling, refresh and mirroring control —

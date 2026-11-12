@@ -29,7 +29,7 @@ Three columns of judgement:
 | Set a tenant setting | Gated | `fabric_tenant_setting` | No `import`; `delete_behaviour` defaults to `NoChange` |
 | Create a domain | Gated | `fabric_domain` | Requires Fabric administrator; app must have no admin-consented Fabric permission |
 | Assign workspaces to a domain | Auto | `fabric_domain_workspace_assignments` (preview) | Preview-gated, provider-wide flag |
-| Apply a sensitivity label | Manual | Portal (or `Create Item` only) | No call labels an existing item; defaults do not apply to SPs |
+| Apply a sensitivity label | Partial | `setLabels` (Power BI artifacts only) | Covers dashboards, reports, datasets, dataflows; no Fabric-native items; no API for an existing Fabric item |
 | Endorse an item (promoted/certified) | Manual | Portal | No documented API |
 
 ## Workspaces and access
@@ -63,12 +63,18 @@ Three columns of judgement:
 | Action | Verdict | Mechanism | Blocker or caveat |
 | --- | --- | --- | --- |
 | Create a connection | Auto | `fabric_connection` | Creating it does not bind it |
-| Bind a connection to an item | Manual | Portal / per-item settings | No API; per stage, per item |
-| Install a gateway | Manual | Installer on a host | Outside Fabric; recovery key is a secret |
+| Bind a semantic model to a gateway or cloud connection | Auto | `POST …/semanticModels/{id}/bindConnection` | Caller must **own** the model; per item, per stage |
+| Create a gateway datasource | Partial | REST `Create Datasource` | On-premises gateways only; gateway-admin permission; no OAuth2 |
+| Set or rotate datasource credentials | Manual | Portal / PowerShell | Credential-shaped |
+| Add a principal to a gateway | Partial | PowerShell `Add-DataGatewayClusterUser` | Accepts a service principal; no REST |
+| Install, register and cluster a gateway | Manual | Installer on a host | Outside Fabric; recovery key is a secret |
 | Create managed private endpoint | Auto | `fabric_workspace_managed_private_endpoint` | Approval by the target owner may still be needed |
 | Approve a managed private endpoint | Manual | Target-side approval | Human decision |
 | Create storage resource instance rule | Manual | ARM / PowerShell | No `azurerm` support |
 | Grant workspace identity on storage | Manual | Azure RBAC | Azure-side permission |
+| Semantic-model RLS roles | Partial | XMLA read-write + TMSL | No REST operation; an SP can create roles but not be a role member |
+| Rebinding a report / dataset takeover | Auto | Power BI `Rebind Report`, `TakeOver` | Legacy audience; Write + Build on the target |
+| Publish a workspace app | Manual | Portal only | The `Apps` group is eight reads |
 | Create OneLake security roles | Gated | `fabric_onelake_data_access_security` (preview) | `role_name` is ForceNew — rename is destroy/create |
 
 ## The API surface underneath
@@ -100,7 +106,7 @@ Be honest about the boundaries — this is a derived audit, not an endpoint cens
 
 | Gap | Why it matters | Status |
 | --- | --- | --- |
-| **The legacy Power BI REST API** (`api.powerbi.com`) | Likely to move gateway binding, semantic-model RLS and label setting from Manual to Auto. Our conclusions were reached from the Core API alone | being verified |
+| Any step relying on the legacy `api.powerbi.com` surface | Needs a second token audience; "groups" means workspaces; separate service-principal switches; no Fabric support statement | cost of the legacy route |
 | Endpoint-level confirmation | The Auto column now rests on a measured inventory: **835 operations**, 434 deployment-relevant | done — see [API inventory](../research/fabric-api-inventory.md) |
 | Workspace apps and audiences | `fabric_org_app` exists for org apps; the workspace *app* may have no route | not assessed |
 | Gateway registration and members | `fabric_gateway` exists, but installation and clustering are separate | not assessed |
