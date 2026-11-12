@@ -2,6 +2,20 @@
 
 Conventions for working in this repo. Read `README.md` first, then `GLOSSARY.md`.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`scotthawes/fabric-ops`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles, label strings equal to their names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
 ## No code in this repo
 
 - This repo is a research artefact (`docs/adr/0001-research-artefact-not-deployment-tool.md`).
