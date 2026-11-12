@@ -24,6 +24,7 @@ so an undated claim is a liability.
 
 | Path | Purpose |
 | --- | --- |
+| `docs/specs/` | Buildable specs synthesised from this pack, for the work repo to implement. |
 | `docs/stakeholder-summary.md` | One page for a manager or architect: the shape, the cost, the four decisions needed from them. |
 | `docs/recommendations/` | Four decision-ready one-pagers, in reading order. Start here. |
 | `docs/research/` | Cited research notes, one per question. Index in `docs/research/README.md`. |
