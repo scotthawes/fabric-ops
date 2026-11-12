@@ -29,7 +29,7 @@ so an undated claim is a liability.
 
 | Path | Purpose |
 | --- | --- |
-| `docs/guides/` | The launch decision sheet: what Terraform does, what the pipeline does, what stays manual. |
+| `docs/guides/` | The launch decision sheet, plus the automation coverage matrix: what can run unattended, what needs approval, what is manual. |
 | `docs/maps/` | The platform drawn once: layers, containment, and where our automation touches each layer. |
 | `docs/specs/` | Synthesis documents: what the research concluded, for whoever builds the work repo. Not a plan for this repo. |
 | `docs/stakeholder-summary.md` | One page for a manager or architect: the shape, the cost, the four decisions needed from them. |
