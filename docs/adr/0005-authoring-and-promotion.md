@@ -56,6 +56,11 @@ and data do not round-trip).
 - A pull request touches JSON, so review is a diff of serialised definitions — reviewable for
   structure and names, weak for behaviour. Behaviour still needs a human in the dev workspace
   before approval.
+- **A review cannot verify the value that actually deploys.** Substitution runs at deploy time, so a
+  reviewer sees the dev identifier and approves a definition that will carry the prod one. That is
+  why the parameterisation contract test matters more than review diligence; see
+  [`item-definition-formats.md`](../research/item-definition-formats.md) for the five things a
+  definition review *can* check.
 - **Connecting the dev workspace to Git is not a passive binding.** Creating the connection runs a
   connect plus an initialise, and with `PreferRemote` it can overwrite items already in the
   workspace. Connect before authors start, or initialise with the workspace as the source of truth,

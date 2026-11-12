@@ -49,7 +49,7 @@ Ordered by how much they would change what the team does.
 5. **Sensitivity labels lifecycle.** Creation, inheritance, behaviour on export and on deployment.
    _(done 2026-11-12)_
 6. **Item definition formats.** What each deployable item's definition actually contains, so a
-   review of serialised JSON is meaningful rather than structural. _(in progress 2026-11-12)_
+   review of serialised JSON is meaningful rather than structural. _(done 2026-11-12)_
 7. **Schema and DDL management.** How warehouse and lakehouse schemas are versioned and migrated
    when item deployment only ships shells. _(done 2026-11-12 — ADR 0008)_
 8. **Monitoring surface.** Capacity Metrics app measures, Real-Time hub event schemas, and which

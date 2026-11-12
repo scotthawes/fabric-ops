@@ -20,13 +20,12 @@ structure, names, queries and parameters, and for very little else.
 `ItemDefinition` has two documented fields: `format` ("The format of the item definition.") and
 `parts` ("A list of definition parts."). Each `ItemDefinitionPart` is `path` ("The item part path."),
 `payload` ("The item part payload.") and `payloadType`. `PayloadType` has one value, `InlineBase64`
-("Inline Base 64."), noting "Additional payload types may be added over time" — there is no
-plain-text option, so a reviewer always decodes first.
+("Inline Base 64."), noting "Additional payload types may be added over time".
 
 `format` is optional and per item type: semantic model `TMDL` or `TMSL` ("but not both at the same
 time"); report `PBIR` or `PBIR-Legacy`; notebook `FabricGitSource` (default) or `ipynb`; warehouse
 `dacpac` or `sqlproj`; lakehouse `LakehouseDefinitionV1`. Get and update are `…/getDefinition` and
-`…/updateDefinition`, both LROs needing read-write on the item.
+`…/updateDefinition`, both long-running operations.
 
 **Size limits are documented for Git, not the API:** "Maximum file size is 25 MB", full path 250
 characters, 25 MB per Azure DevOps commit with a service principal but 125 MB with a user principal,
@@ -48,16 +47,15 @@ case-sensitive. Don't change the way it's automatically generated or it might fa
 **What `logicalId` promises:** it "preserves the link even if the name or directory change"; "a
 single workspace can't have two items with the same logicalId"; it "is created when the workspace is
 connected to a Git branch or a new item is synced"; "it's essential not to change it in any way."
-`Item.logicalId` "is null when no logical ID has been assigned", so `.platform` is also how a
+`Item.logicalId` is "null when no logical ID has been assigned", so `.platform` is also how a
 deployed item acquires an identity.
 
 ⚠ **The two Learn pages disagree on the shape.** The Git page shows top-level `"version": "2.0"` and
 `"$schema": https://developer.microsoft.com/json-schemas/fabric/platform/platformProperties.json`
-(unquoted, i.e. invalid JSON as printed). The decoded `fabricGitSource` payload on the notebook
-definition page shows `"$schema":
-"https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json"`
-with `"config": { "version": "2.0", "logicalId": "…" }`. Same fields, different placement: quote
-both, hand-write neither.
+(unquoted, i.e. invalid JSON as printed). The decoded `fabricGitSource` payload on the notebook page
+shows `"$schema": "…/fabric/gitIntegration/platformProperties/2.0.0/schema.json"` with
+`"config": { "version": "2.0", "logicalId": "…" }`. Same fields, different placement: quote both,
+hand-write neither.
 
 ### 3. A definition versus what Git integration writes
 
@@ -65,7 +63,7 @@ Git writes one folder per item, `{display name}.{public facing type}`, falling b
 GUID. Version 2 folders hold `.platform`; version 1 holds `item.metadata.json` and
 `item.config.json`; "You can't have all three files." The API returns the same files base64-encoded:
 notebook `notebook-content.py`; semantic model `definition.pbism` plus `definition/*.tmdl`; report
-`definition.pbir` plus the `definition/` folder. Same bytes in the ordinary case, with four
+`definition.pbir` plus the `definition/` folder — the same bytes in the ordinary case, with four
 documented divergences:
 
 1. **PBIP-only files are not definition parts** — `.pbi/localSettings.json`, `editorSettings.json`,
