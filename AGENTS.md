@@ -27,6 +27,29 @@ Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents
 - Read `docs/adr/` before questioning a decision; one that looks odd is usually recorded there.
 - Never add credentials, service connections or tenant-specific identifiers.
 
+## Claims and their surface
+
+- A "no API" or "not possible" conclusion must name the **surface searched** and check at least one
+  item-type group. Fabric groups operations per item type, so reading only the Core group
+  systematically misses item workloads — that reasoning produced three wrong verdicts here
+  (gateway binding, OneLake role visibility, labels), each corrected by a later note.
+- Every capability claim carries the date it was checked, and a dated correction block rather than a
+  silent rewrite when a later note overturns it.
+
+## Tracking work
+
+- This tracker holds **verification questions** (`needs-info`) — facts that need a tenant. Build work
+  stays in the work repo (`ADR 0001`). Twelve `ready-to-build` tickets were created here once and all
+  had to be closed.
+
+## Committing
+
+- Run `bash scripts/check.sh` before pushing: links, index coverage, ADR numbering, census integrity.
+- Push with `bash scripts/push.sh`, which pushes and then asserts `origin` matches `HEAD`. A quiet
+  `git push` exited 0 while nothing moved, four commits in a row.
+- Stage **explicit paths** while a subagent is writing. `git add -A` once swept a half-written note
+  into an unrelated commit.
+
 ## Research notes
 
 - One question per file in `docs/research/`, named `<topic>-<question>.md`
