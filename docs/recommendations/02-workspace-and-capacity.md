@@ -71,13 +71,32 @@ capacity causes drift and lost state.
 
 ## Monitoring, because there are no Azure Monitor metrics
 
-The Azure Monitor supported-metrics index has no `Microsoft.Fabric` entry as of 2026-11-03. Use:
+The Azure Monitor supported-metrics index has no `Microsoft.Fabric` entry as of 2026-11-03, and the
+**Capacity Metrics app does not support alerts or notifications at all** — not a threshold, not a
+subscription. Alerting has to be built on Real-Time hub events, and every one of these five is work:
 
-- **Capacity Metrics app** — Compute: Utilization, Throttling, Overages; Health: at-risk views.
-  30-second windows, 10–15 minutes latency.
-- **Real-Time hub events** — `Microsoft.Fabric.Capacity.Summary` every 30 seconds and
-  `…Capacity.State` on change, including paused/resumed. These are what an alert can actually
-  hang off.
+| Alert | Source | Condition |
+| --- | --- | --- |
+| Capacity overloaded | `Microsoft.Fabric.Capacity.State` | state changes to `Overloaded` |
+| Interactive delays | `Capacity.Summary` | `interactiveDelayThresholdPercentage` > 80 |
+| Background rejections | `Capacity.Summary` | `backgroundRejectionThresholdPercentage` > 80 |
+| Unexpected pause | `Capacity.State` | state changes to `Suspended` (or back to `Active`) |
+| Job or refresh failure | `ItemJobEventLogs`, or the free schedule-failure emails | a run reports `Failed` |
+
+Three traps sit under that table:
+
+- **Silence is not health.** If the event listener's owner loses subscribe permission, the listener
+  enters a paused state and holds events for 24 hours — alerting stops while everything looks calm.
+  Give the listener an owner and monitor the listener.
+- **A failing scheduler disables itself** after roughly ten consecutive failures, and schedules expire
+  after 90 days without a login. Neither raises anything beyond the per-run email, so a schedule can
+  simply stop being a schedule.
+- **Deployment failures emit no Fabric event.** Only `DeployAlmPipeline` appears in the audit log, so
+  that alert belongs in Azure DevOps, not in Fabric.
+
+The Capacity Metrics app remains the place to *look* — Compute: Utilization, Throttling, Overages;
+Health: at-risk views; 30-second windows with 10–15 minutes latency. It is a diagnostic surface, not
+an alerting one.
 
 ## When to split the capacity
 This is a cheap, reversible decision: create a second SKU and reassign a workspace. Split when

@@ -54,7 +54,7 @@ Ordered by how much they would change what the team does.
    when item deployment only ships shells. _(done 2026-11-12 — ADR 0008)_
 8. **Monitoring surface.** Capacity Metrics app measures, Real-Time hub event schemas, and which
    alert is actually possible — given there are no Azure Monitor metrics.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12)_
 9. **Mirroring.** Supported sources, latency, cost and limits, since it changes whether ingestion
    is a pipeline concern at all.
 10. **Real-Time Intelligence.** Eventhouse retention, KQL database sizing, and what deployment can

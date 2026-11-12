@@ -36,7 +36,10 @@ service principal holds capacity **Contributor** so it can assign workspaces.
   rate. AzureRM is pinned to API `2023-11-01` and cannot express the setting, so a default that
   silently triples the marginal cost of a runaway workload is a portal task on the run-book.
 - There are no Azure Monitor metrics for `Microsoft.Fabric/capacities`, so alerting has to hang
-  off the Capacity Metrics app and Real-Time hub events rather than a metric alert.
+  off the Capacity Metrics app and Real-Time hub events rather than a metric alert. The metrics app
+  itself supports no alerts, so every alert is something to build, not configure — and an event
+  listener whose owner loses permission pauses and holds events for 24 hours, which looks identical
+  to a quiet estate.
 - Sizing is driven by the peak of the *largest* environment, so dev and test ride free but
   cannot be tuned or throttled independently.
 - Throttling is shared: sustained dev load degrades interactive queries and refresh in
