@@ -1,0 +1,28 @@
+{
+  "mcp": {
+    "servers": {
+      "fabric-powerbi": {
+        "type": "remote",
+        "url": "https://api.fabric.microsoft.com/v1/mcp/powerbi/authoring",
+        "headers": {
+          "Authorization": "Bearer {file:~/.secrets/fabric-token}"
+        }
+      },
+      "fabric-sql": {
+        "type": "remote",
+        "url": "https://api.fabric.microsoft.com/v1/mcp/dataPlane/sqlEndpoint",
+        "headers": {
+          "Authorization": "Bearer {file:~/.secrets/fabric-token}"
+        }
+      },
+      "fabric-iq": {
+        "type": "remote",
+        "url": "https://fabriciq.svc.cloud.microsoft/v1/mcp/fabriciq",
+        "headers": {
+          "Authorization": "Bearer {file:~/.secrets/fabric-token}",
+          "X-VARIANTS": "Fabric.Routing.FabricIQ.V1"
+        }
+      }
+    }
+  }
+}
