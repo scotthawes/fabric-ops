@@ -6,267 +6,230 @@
 
 ## Short answer
 
-Two machine-readable paths exist and neither is Azure Monitor. The **Capacity Metrics app** shows
-utilisation, throttling and overage but is read-only: it "doesn't support alerts or notifications". The
-**Real-Time hub capacity events** (`Microsoft.Fabric.Capacity.Summary` every 30 s,
-`Microsoft.Fabric.Capacity.State` on change) feed Eventstream for history and Activator for alerting.
-Everything else — Monitor hub, refresh history, job scheduler, audit log — is a UI, a per-item email, or
-an API you poll. An operator reads the app to diagnose and builds rules on the events to alert; nothing
-fires on throttling out of the box.
+Two machine-readable paths exist and neither is Azure Monitor. The **Capacity Metrics app** shows utilisation,
+throttling and overage but is read-only: it "doesn't support alerts or notifications". The **Real-Time hub capacity
+events** (`Microsoft.Fabric.Capacity.Summary` every 30 s, `Microsoft.Fabric.Capacity.State` on change) feed
+Eventstream for history and Activator for alerting. Everything else — Monitor hub, refresh history, job scheduler,
+audit log — is a UI, a per-item email or an API you poll. An operator reads the app to diagnose and builds rules on
+the events to alert; nothing fires on throttling out of the box.
 
 ## Detail
 
 ### 1. The Capacity Metrics app
 
-Version 3.0 installs two reports: the **default report** (GA, opens by default) and the **Fabric
-Capacity Metrics app preview report** (preview). Default pages: **Health**, **Compute**, **Storage**,
-**Timepoint**, **Timepoint summary**, **Timepoint item detail**, **On-demand Compute for Spark**,
-**On-demand Compute for Spark detail**, **Plan capacity**, **Monitor paused capacity**, **Calculations**.
-Preview report: **Health**, **Compute**, **Workspace Detail**, **Storage**, **On-demand Compute for
-Spark**, **Help**. (metrics app, 2026-11-03)
+Version 3.0 installs a **default report** (GA, opens by default) and a **Fabric Capacity Metrics app preview report**
+(preview). Default pages: **Health**, **Compute**, **Storage**, **Timepoint**, **Timepoint summary**, **Timepoint item
+detail**, **On-demand Compute for Spark**, **Plan capacity**, **Monitor paused capacity**, **Calculations**; the
+preview adds **Workspace Detail**. (metrics app, 2026-11-03)
 
-Measures, exactly as named. Health cards: `# Capacities`, `Avg. utilization %`, `# Throttled capacities`,
-`# Interactive rejected capacities`, `# Background rejected capacities`. Health states: `Healthy`,
-`Suspended`, `At Risk of Throttling`, `At Risk of Overage Billing`, `Overage Billing Active`,
-`Throttling`, `At Risk of Interactive Rejection`, `Interactive Rejection`, `At Risk of Background
-Rejection`, `Background Rejection` — "at risk" means one 30-second window above **90%**, the rest above
-**100%**. Health columns: `Cumulative debt`, `Throttling (s)`, `P95 interactive delay`, `P95 interactive
-rejection`, `P95 background rejection`, `Usage variance`, `Blocked workspaces`. (health page, 2026-10-12)
+Measures, exactly as named. Health cards: `# Capacities`, `Avg. utilization %`, `# Throttled capacities`, `#
+Interactive rejected capacities`, `# Background rejected capacities`. Health states: `Healthy`, `Suspended`, `At Risk
+of Throttling`, `At Risk of Overage Billing`, `Overage Billing Active`, `Throttling`, `At Risk of Interactive
+Rejection`, `Interactive Rejection`, `At Risk of Background Rejection`, `Background Rejection` — "at risk" means one
+30-second window above **90%**, the rest above **100%**. Health columns: `Cumulative debt`, `Throttling (s)`, `P95
+interactive delay`, `P95 interactive rejection`, `P95 background rejection`, `Usage variance`, `Blocked workspaces`.
+(health page, 2026-10-12)
 
-Compute cards: `SKU`, `Average utilization %`, `Peak utilization %`; ribbon `CU`, `Duration`,
-`Operations`, `Users`; utilisation series `Background %`, `Interactive %`, `Background nonbillable %`,
-`Interactive nonbillable %`, `Autoscale CU % Limit`, `CU % Limit`. Overages view `Overage
-(Carryforward)` uses `Add %`, `Burndown %`, `Cumulative %`; `Overage (Billed)` uses `Rolling cumulative
-24 hour billed overage CU (hr)`, `Overage billing limit CU (hr)`, `Overage (Billed) CUs (s)` and is
-populated only when overage is enabled. Item matrix: `CU (s)`, `Duration (s)`, `Users`, `Billing type`,
-plus optional `Rejected count`, `Failed count`, `Invalid count`, `InProgress count`, `Successful count`,
-`Overloaded minutes`, `Performance delta`, `Item Size (GB)`. System events: `Time`, `State`, `State
-Change Reason`, where the reason is one of `Created`, `ManuallyResumed`, `NotOverloaded`, `Deleted`,
-`AllRejected`, `InteractiveDelay`, `InteractiveDelayAndSurgeProtectionActive`, `InteractiveRejected`,
-`InteractiveRejectedAndSurgeProtectionActive`, `SurgeProtectionActive`, `ManuallyPaused`. (compute page,
-2026-10-12)
+Compute cards: `SKU`, `Average utilization %`, `Peak utilization %`; ribbon `CU`, `Duration`, `Operations`, `Users`;
+utilisation series `Background %`, `Interactive %`, `Background nonbillable %`, `Interactive nonbillable %`,
+`Autoscale CU % Limit`, `CU % Limit`. `Overage (Carryforward)` uses `Add %`, `Burndown %`, `Cumulative %`; `Overage
+(Billed)` uses `Rolling cumulative 24 hour billed overage CU (hr)`, `Overage billing limit CU (hr)`, `Overage (Billed)
+CUs (s)` and is populated only when overage is enabled. Item matrix: `CU (s)`, `Duration (s)`, `Users`, `Billing
+type`. System events: `Time`, `State`, `State Change Reason`, the reason being one of `Created`, `ManuallyResumed`,
+`NotOverloaded`, `Deleted`, `AllRejected`, `InteractiveDelay`, `InteractiveDelayAndSurgeProtectionActive`,
+`InteractiveRejected`, `InteractiveRejectedAndSurgeProtectionActive`, `SurgeProtectionActive`, `ManuallyPaused`.
+(compute page, 2026-10-12)
 
-Cadence and latency: usage "becomes available within 10 to 15 minutes"; the `capacities`, `workspaces`
-and `items` dimensions refresh at "a scheduled semantic model refresh at midnight (local time)", so a
-new capacity, workspace or item is invisible until then unless someone refreshes the model manually.
+Cadence: usage "becomes available within 10 to 15 minutes"; the `capacities`, `workspaces` and `items` dimensions
+refresh at "a scheduled semantic model refresh at midnight (local time)", so a new capacity or item is invisible until
+then. Retention: compute is a **14-day** view, storage **30 days**; anything longer is **not documented — could not
+establish**, and the semantic model "is only supported for use by the reports provided in the app", so it is not a
+data source to build on.
 
-Retention: compute is a **14-day** view, storage **30 days**. Anything longer is **not documented —
-could not establish**, and the app's semantic model "is only supported for use by the reports provided
-in the app", so it is not a data source to build on.
-
-Who can see it: installing needs **capacity admin** and "a Power BI license (Pro, Premium Per User, or a
-Power BI individual trial)"; Health shows "only the capacities for which you have admin access";
-sharing needs capacity admin; without an explicit share even an invited B2B guest sees nothing. User
-emails are hidden by the tenant setting `Show user data in the Fabric Capacity Metrics app and reports`.
-(install, 2026-10-12)
+Access: installing needs **capacity admin** and "a Power BI license (Pro, Premium Per User, or a Power BI individual
+trial)"; Health shows "only the capacities for which you have admin access"; sharing needs capacity admin, and without
+an explicit share even an invited B2B guest sees nothing. Emails are hidden by the tenant setting `Show user data in
+the Fabric Capacity Metrics app and reports`. (install, 2026-10-12)
 
 ### 2. Real-Time hub capacity events — the only machine-readable source
 
 | Event type | Cadence |
 | --- | --- |
-| `Microsoft.Fabric.Capacity.Summary` | "every 30 seconds"; one line per 30-second window per active capacity, suppressed when all values are 0, and not emitted while paused |
+| `Microsoft.Fabric.Capacity.Summary` | "every 30 seconds"; one line per 30-second window per active capacity, suppressed when all values are 0, not emitted while paused |
 | `Microsoft.Fabric.Capacity.State` | on change only — created, overloaded, paused, resumed, deleted; scaling and renaming are not state changes |
 | `Microsoft.Fabric.CapacityOperationEvents.Operation` | one row per operation that consumes CU, not aggregated |
 
 (overview events, 2026-09-29; operation events, 2026-10-14)
 
-Envelope: `source`, `subject` (`/capacities/<capacity-id>`, or `/capacities/<id>/workspaces/<ws>/items/<item>`),
-`type`, `time`, `id`, `specversion` `1.0`, `dataschemaversion` `1.0` (`1.1` for operation events).
+`Summary` fields a threshold rule reads: `capacityId`, `capacityName`, `capacitySku`, `windowStartTime`,
+`windowEndTime`, `baseCapacityUnits`, `capacityUnitMs`, `interactiveDelayThresholdPercentage`,
+`interactiveRejectionThresholdPercentage`, `backgroundRejectionThresholdPercentage`, `overageTotalCapacityUnitMs`,
+`overageAddCapacityUnitMs`, `overageBurndownCapacityUnitMs`, `utilizationBackground`, `utilizationInteractive`, plus
+attribution fields including `capacityUnitUtilizationBreakdown`, `tenantId` and `capacityRegion`. The three
+`…ThresholdPercentage` fields are the smoothed percentages of the next 10 minutes, 1 hour and 24 hours — the alertable
+form of "am I about to be throttled". `State` fields: `capacityId`, `capacityName`, `capacitySku`, `transitionTime`,
+`capacityState`, `stateChangeReason`, `activationId`.
 
-`Summary` fields a threshold rule reads: `capacityId`, `capacityName`, `capacitySku`,
-`windowStartTime`, `windowEndTime`, `baseCapacityUnits`, `capacityUnitMs`,
-`interactiveDelayThresholdPercentage`, `interactiveRejectionThresholdPercentage`,
-`backgroundRejectionThresholdPercentage`, `overageTotalCapacityUnitMs`, `overageAddCapacityUnitMs`,
-`overageBurndownCapacityUnitMs`, `utilizationBackground`, `utilizationInteractive`,
-`utilizationBackgroundPreview`, `utilizationInteractivePreview`, `capacityUnitUtilizationBreakdown`,
-`tenantId`, `capacityRegion`, `processedOverageCapacityUnitsMs`, `overageBillingLimitCapacityUnitsMs`.
-The three `…ThresholdPercentage` fields are the smoothed percentages of the next 10 minutes, 1 hour and
-24 hours — the alertable form of "am I about to be throttled". `State` fields: `capacityId`,
-`capacityName`, `capacitySku`, `transitionTime`, `capacityState`, `stateChangeReason`, `activationId`.
-
-Semantics trap: "ManuallyResumed is treated as NotOverloaded", and a blank state table for an active
-capacity means `NotOverloaded`. Absence of events is therefore not evidence of health.
-
-Delivery is **best effort, no backfill**: "events can either fail to send, or duplicates might be
-received". Dedupe with `summarize take_any(*) by windowStartTime, windowEndTime, capacityId`; handle
-drops by sampling a maximum over five minutes. Consuming means **Create eventstream** (to an eventhouse,
-or onward) or **Set alert** (straight to Activator). Overview events are exempt from the same-region
-rule applied to operation and job events. REST subscription needs **capacity administrator** on the
+Semantics trap: "ManuallyResumed is treated as NotOverloaded", and a blank state table for an active capacity means
+`NotOverloaded`. Absence of events is not evidence of health. Delivery is **best effort, no backfill**: "events can
+either fail to send, or duplicates might be received"; dedupe with `summarize take_any(*) by windowStartTime,
+windowEndTime, capacityId`, and handle drops by sampling a maximum over five minutes. Consuming means **Create
+eventstream** (to an eventhouse, or onward) or **Set alert** (straight to Activator). Overview events are exempt from
+the same-region rule applied to operation and job events. REST subscription needs **capacity administrator** on the
 source capacity; the consumer needs Contributor on its workspace.
 
 ### 3. Activator as the alerting mechanism
 
-**Set capacity alert** offers three templates: **Alert when capacity usage % exceeds a threshold**
-(tracks `interactiveDelayThresholdPercentage`, default `80`), **Alert when a capacity metric exceeds a
-threshold** (any numeric field), and **Alert when a capacity changes state** (`Any state change`,
-`Overloaded`, `Active`, `Suspended`, `Deleted`). Each pre-fills a **numeric change condition grouped by
-`capacityId`**, so you "get a single alert when the measure crosses the threshold, instead of a
-continuous stream of alerts". (templates, 2026-09-10)
+**Set capacity alert** offers three templates: **Alert when capacity usage % exceeds a threshold** (tracks
+`interactiveDelayThresholdPercentage`, default `80`), **Alert when a capacity metric exceeds a threshold** (any
+numeric field), and **Alert when a capacity changes state** (`Any state change`, `Overloaded`, `Active`, `Suspended`,
+`Deleted`). Each pre-fills a **numeric change condition grouped by `capacityId`**, so you "get a single alert when the
+measure crosses the threshold, instead of a continuous stream of alerts". (templates, 2026-09-10)
 
-Beyond thresholds, conditions include `BECOMES`, `INCREASES`, `DECREASES`, `EXIT RANGE` and absence of
-events (heartbeat), with state tracked per object and firing on entry into a state. (introduction,
-2026-10-13) Actions: **Send email**, **Teams → Message to individuals / Group chat message / Channel
-post**, run a Fabric item, or **Create custom action**, which is a Power Automate flow. (rule actions,
-2026-05-12) There is no native webhook action: webhooks and ticket systems go through Power Automate, or
-out of Fabric through an Eventstream **Custom endpoint** (Event Hubs, Kafka, AMQP).
+Conditions also include `BECOMES`, `INCREASES`, `DECREASES`, `EXIT RANGE` and absence of events (heartbeat), state
+tracked per object and firing on entry into a state. (introduction, 2026-10-13) Actions: **Send email**, **Teams →
+Message to individuals / Group chat message / Channel post**, run a Fabric item, or **Create custom action**, which is
+a Power Automate flow. (rule actions, 2026-05-12) There is no native webhook action: webhooks go through Power
+Automate, or out of Fabric via an Eventstream **Custom endpoint** (Event Hubs, Kafka, AMQP).
 
-Limits that change design: 10,000 events per second per rule and the rule **stops** above it; 500 rules
-per Activator item; email 500 messages per activator per hour and 30 per rule per recipient per hour;
-Teams 100 per recipient per hour and 50 per tenant per second; recipients must be internal — "Activator
-doesn't allow email notifications to be sent to either external email addresses or guest email
-addresses"; and "Creating alerts from the Fabric or Power BI Capacity Metrics app isn't supported".
-(limitations, 2026-10-13)
+Limits that change design: 10,000 events per second per rule and the rule **stops** above it; 500 rules per Activator
+item; email 500 per activator per hour and 30 per rule per recipient per hour; recipients must be internal —
+"Activator doesn't allow email notifications to be sent to either external email addresses or guest email addresses";
+and "Creating alerts from the Fabric or Power BI Capacity Metrics app isn't supported". (limitations, 2026-10-13)
 
-**Unresolved conflict:** the limitations page says "Teams channels aren't currently supported", while
-the actions page documents **Channel post**. I could not establish which is current; do not promise
-channel delivery without testing.
+**Unresolved conflict:** the limitations page says "Teams channels aren't currently supported", while the actions page
+documents **Channel post**. I could not establish which is current; do not promise channel delivery without testing.
 
-Is it a metric-alert replacement? For signal, yes — it is the only threshold engine on capacity data.
-It is not equivalent where a metric alert gives you history and an alert-status page (Activator keeps
-none you can query), alerting that survives an unhealthy capacity ("Power BI reports and Activator
-alerts that use the monitoring database respect the capacity state and can be throttled"), or free
-evaluation: each event bills as an event operation at `0.000011111 CU Hour` per 64-KB chunk plus an
-**event listener** at `0.0222 CU Hour` per hour while a consumer exists. (consumption, 2026-05-21)
+It is the only threshold engine on capacity data, but it is not a metric alert: no queryable alert history or
+alert-status page, alerting does not survive an unhealthy capacity ("Power BI reports and Activator alerts that use
+the monitoring database respect the capacity state and can be throttled"), and evaluation is billed — `0.000011111 CU
+Hour` per event operation per 64-KB chunk plus an **event listener** at `0.0222 CU Hour` per hour while a consumer
+exists. (consumption, 2026-05-21)
 
 ### 4. Item-level monitoring
 
-- **Monitor hub** — preview, five pages: Job runs, Applications, Capacity and cost, Agents, Alerts. "Any
-  Fabric user can open the Monitor hub, but you only see activities for Fabric items you have permission
-  to view." Job runs covers Copy Job, Dataflow Gen2, Datamart, dbt Job, Experiment, Graph model,
-  Lakehouse, Map, Notebook, Pipeline, Semantic model, Spark job definition, User data function and
-  others, summarising "the last five runs for each item". List retention is **not documented — could not
-  establish**. (monitor hub, 2026-09-29; job runs, 2026-10-06)
-- **Job scheduler** — failure notifications are email only, set per item under **Failure notifications**,
-  applying to all of that item's schedules and to scheduled runs only. Recipients must be Entra users or
-  groups including B2B guests; "Direct external email addresses aren't supported." Two behaviours
-  matter: a repeatedly failing scheduler is **auto-disabled** ("typically set to 10 consecutive failed
-  runs") and must be restarted by hand, and schedules **expire if a user doesn't log in to Fabric for 90
-  consecutive days**. Schedule ownership is separate from item ownership, so taking over an item does not
-  transfer its schedules. (job scheduler, 2026-10-30)
-- **Refresh history** — per semantic model, with automatic retries as separate attempts, Scheduled and
-  OneDrive tabs, and a **Semantic Model Refresh Detail** page reachable from the Monitor hub with
-  execution metrics. Failures email the owner by default plus **Email these contacts when the refresh
-  fails**; on-demand and programmatic refreshes send nothing. API: **Get Refresh History** and **Get
-  Refresh Execution Details**, which do not return warnings even though the UI shows them. (refresh data,
+- **Monitor hub** — preview, five pages: Job runs, Applications, Capacity and cost, Agents, Alerts. "Any Fabric user
+  can open the Monitor hub, but you only see activities for Fabric items you have permission to view." Job runs covers
+  Notebook, Pipeline, Semantic model, Dataflow Gen2, Spark job definition, Copy Job, Lakehouse and others, summarising
+  "the last five runs for each item". List retention is **not documented — could not establish**. (monitor hub,
+  2026-09-29; job runs, 2026-10-06)
+- **Job scheduler** — failure notifications are email only, set per item under **Failure notifications**, applying to
+  all of that item's schedules and to scheduled runs only; recipients must be Entra users or groups including B2B
+  guests, and "Direct external email addresses aren't supported." Two behaviours matter: a repeatedly failing
+  scheduler is **auto-disabled** ("typically set to 10 consecutive failed runs") and must be restarted by hand, and
+  schedules **expire if a user doesn't log in to Fabric for 90 consecutive days**. Schedule ownership is separate from
+  item ownership, so taking over an item does not transfer its schedules. (job scheduler, 2026-10-30)
+- **Refresh history** — per semantic model, automatic retries as separate attempts, Scheduled and OneDrive tabs, and a
+  **Semantic Model Refresh Detail** page from the Monitor hub with execution metrics. Failures email the owner plus
+  **Email these contacts when the refresh fails**; on-demand and programmatic refreshes send nothing. API: **Get
+  Refresh History** and **Get Refresh Execution Details**, which omit warnings the UI shows. (refresh data,
   2026-10-01)
-- **Audit log** — now in Microsoft Purview; access needs the **Audit Logs** role in Exchange Online, not
-  Fabric administrator. The Power BI **ActivityEvents** API returns at most one day per request, in
-  batches of roughly 5,000–10,000 with a continuation token, lagging 30–60 minutes. Relevant operations:
-  `DeployAlmPipeline` ("Deployed to a pipeline stage"), `CreateAlmPipeline`, `ChangeCapacityState`,
-  `RefreshDataset`, `RequestDataflowRefresh`. (track user activities, 2026-07-01; auditing, 2026-02-17;
-  operation list, 2026-11-10)
-- **Admin and item APIs** — `GET https://api.fabric.microsoft.com/v1/admin/items` returns `capacityId`,
-  `workspaceId` and `creatorPrincipal` per item, but is **Preview**, needs Fabric administrator or a
-  service principal with `Tenant.Read.All`, and is capped at 10 requests per minute and 200 per hour per
-  tenant. Job runs are readable per instance (`get-item-job-instance`, `cancel-item-job-instance`) beside
-  `list-item-schedules`; there is **no documented endpoint that enumerates all runs**, so "a report
-  instead of a UI click" means per-instance polling or the workspace-monitoring logs. (admin items,
-  2026-11-11)
+- **Audit log** — now in Microsoft Purview; access needs the **Audit Logs** role in Exchange Online, not Fabric
+  administrator. The Power BI **ActivityEvents** API returns at most one day per request, in batches of roughly
+  5,000–10,000 with a continuation token, lagging 30–60 minutes. Relevant operations: `DeployAlmPipeline` ("Deployed
+  to a pipeline stage"), `CreateAlmPipeline`, `ChangeCapacityState`, `RefreshDataset`. (track user activities,
+  2026-07-01; auditing, 2026-02-17; operation list, 2026-11-10)
+- **Admin and item APIs** — `GET https://api.fabric.microsoft.com/v1/admin/items` returns `capacityId`, `workspaceId`
+  and `creatorPrincipal` per item but is **Preview**, needs Fabric administrator or a service principal with
+  `Tenant.Read.All`, and is capped at 10 requests per minute and 200 per hour per tenant. Job runs are readable per
+  instance (`get-item-job-instance`, `cancel-item-job-instance`) beside `list-item-schedules`; there is **no
+  documented endpoint that enumerates all runs**, so "a report instead of a UI click" means per-instance polling or
+  the workspace-monitoring logs. (admin items, 2026-11-11)
 
 ### 5. Workspace monitoring
 
-Each workspace gets one **Monitoring Item** holding an Eventhouse with a read-only KQL database, an
-Eventstream, an Activator and optionally an Operations Agent. Data goes to that Eventhouse or another
-Monitoring Item's — same region, and "You can't change the destination after you configure workspace
-monitoring". Collection is off until enabled and "doesn't backfill earlier activity". (overview,
-2026-11-10; configure, 2026-09-29)
+Each workspace gets one **Monitoring Item** holding an Eventhouse with a read-only KQL database, an Eventstream, an
+Activator and optionally an Operations Agent. Data goes to that Eventhouse or another Monitoring Item's — same region,
+and "You can't change the destination after you configure workspace monitoring". Collection is off until enabled and
+"doesn't backfill earlier activity". (overview, 2026-11-10; configure, 2026-09-29)
 
-Captured: pipeline activity run logs, Copy job details, Dataflow Gen2 logs, Warehouse query execution
-logs, mirrored database execution logs, semantic model operation logs, Eventhouse query/command/
-ingestion/capacity-throttling logs, Eventstream node status and error metrics, Activator rule
-notifications, GraphQL and SQL database metrics, and **job events** in `ItemJobEventLogs` — `JobStatus`,
-`JobType`, `JobInvokeType`, `DurationMs`, `ExecutingPrincipalId`, `JobStartTime`, `JobEndTime` — the
-table that makes a job-failure rule possible. (job event logs, 2026-11-10)
+Captured: pipeline activity run logs, Copy job and Dataflow Gen2 logs, Warehouse query execution logs, mirrored
+database execution logs, semantic model operation logs, Eventhouse query/ingestion/capacity-throttling logs,
+Eventstream node status and error metrics, Activator rule notifications, GraphQL and SQL database metrics, and **job
+events** in `ItemJobEventLogs` — `JobStatus`, `JobType`, `JobInvokeType`, `DurationMs`, `JobStartTime`, `JobEndTime` —
+the table that makes a job-failure rule possible. (job event logs, 2026-11-10)
 
-Prerequisites: workspace on Fabric or Premium capacity; tenant settings **Workspace admins can turn on
-monitoring for their workspaces** and **Users can create Fabric items**; workspace admin. Default
-retention **30 days**, changeable under `Manage > Data policies`; the caching period must not exceed
-retention; the database is read-only and Contributors and above can query it. Cost is capacity
-consumption for Eventhouse, Eventstream and queries — hence the recommendation to host a central
-monitoring Eventhouse "on its own Capacity" so monitoring survives throttling. (configure)
+Prerequisites: workspace on Fabric or Premium capacity; tenant settings **Workspace admins can turn on monitoring for
+their workspaces** and **Users can create Fabric items**; workspace admin. Default retention **30 days**, changeable
+under `Manage > Data policies`; caching cannot exceed retention; the database is read-only and Contributors and above
+can query it. Cost is capacity consumption for Eventhouse, Eventstream and queries — hence the recommendation to host
+a central monitoring Eventhouse "on its own Capacity" so monitoring survives throttling. (configure)
 
-GA versus preview: the Monitoring Item experience carries no preview label as of 2026-11-10, with the
-**legacy** Eventhouse path kept alongside it; the Eventstream **custom endpoint** to Event Hubs, Kafka or
-AMQP is preview ("Through the preview period, this setting can only be enabled at creation time"). There
-is **no Log Analytics or storage sink** for workspace logs: storage means Eventhouse plus OneLake
-availability or shortcuts, and external systems mean that preview endpoint. A Log Analytics destination
-could not be established.
+GA versus preview: the Monitoring Item experience carries no preview label as of 2026-11-10, with the **legacy**
+Eventhouse path kept alongside it; the Eventstream **custom endpoint** to Event Hubs, Kafka or AMQP is preview
+("Through the preview period, this setting can only be enabled at creation time"). There is **no Log Analytics or
+storage sink** for workspace logs: storage means Eventhouse plus OneLake availability or shortcuts, and external
+systems mean that preview endpoint. A Log Analytics destination could not be established.
 
 ### 6. What cannot be alerted on
 
-- **No Azure Monitor metric or metric alert.** The supported-metrics index has no `Microsoft.Fabric`
-  entry (2026-11-03), so no metric alert, no action group, no Azure Monitor auto-scale hook.
+- **No Azure Monitor metric or metric alert.** The supported-metrics index has no `Microsoft.Fabric` entry
+  (2026-11-03), so no metric alert, no action group, no auto-scale hook.
 - **Nothing fires when a capacity is throttled** unless you build it. The app "doesn't support alerts or
   notifications"; the State event exists, but no rule is created for you.
-- **No central failed-refresh alert.** The default is an email to the semantic model owner plus whatever
-  addresses someone typed into that model — and none at all for on-demand or API-triggered refreshes.
-- **No alert when a scheduler auto-disables itself.** One email per failed run, then silence.
-- **Nothing for deployment failures.** A failed deployment-pipeline step appears as `DeployAlmPipeline`
-  in the audit log and as a failure in the Azure DevOps pipeline that called it; Fabric emits no event.
-- **No alert on unexpected pause or resize** beyond the State event you must subscribe to; no alert on
-  storage growth at all.
-- **Silent consumer failure.** If the listener's owner loses subscribe permission the listener "enters a
-  paused state", holding events for "up to 24 hours" — an alerting gap that looks like calm. Workspace
-  outbound access protection and workspace-level private links also block cross-workspace consumption by
-  default.
+- **No central failed-refresh alert.** Default is an email to the semantic model owner plus whatever addresses someone
+  typed into that model — and none at all for on-demand or API-triggered refreshes.
+- **No alert when a scheduler auto-disables itself**, and no alert on unexpected pause, resize or storage growth.
+- **Nothing for deployment failures.** A failed deployment-pipeline step appears as `DeployAlmPipeline` in the audit
+  log and as a failure in the Azure DevOps pipeline that called it; Fabric emits no event.
+- **Silent consumer failure.** If the listener's owner loses subscribe permission the listener "enters a paused
+  state", holding events for "up to 24 hours" — an alerting gap that looks like calm. Workspace outbound access
+  protection and workspace-level private links also block cross-workspace consumption.
 
 ### 7. A practical minimal alert set
 
 | # | Alert | Source | Condition | What a false positive looks like |
 | --- | --- | --- | --- | --- |
-| 1 | Capacity overloaded | `Microsoft.Fabric.Capacity.State` | state changes to `Overloaded` (template **Alert when a capacity changes state**) | one 30-second window over 100% that no user noticed; a pause pushing all smoothed usage into one window (spikes "up to 288,000% of normal") |
+| 1 | Capacity overloaded | `Microsoft.Fabric.Capacity.State` | state changes to `Overloaded` (template **Alert when a capacity changes state**) | one 30-second window over 100% nobody noticed; a pause pushing all smoothed usage into one window ("up to 288,000% of normal") |
 | 2 | Interactive delay approaching | `Microsoft.Fabric.Capacity.Summary` | `interactiveDelayThresholdPercentage` > `80` | one heavy interactive query; with overage enabled the capacity is billed, not throttled |
 | 3 | Background rejection approaching | `Microsoft.Fabric.Capacity.Summary` | `backgroundRejectionThresholdPercentage` > `80` | an overnight batch that burns down by morning; the 24-hour window decays slowly, so the alert outlives the incident |
 | 4 | Capacity paused or resumed | `Microsoft.Fabric.Capacity.State` | `capacityState` → `Suspended` or `Active`, or `stateChangeReason` = `ManuallyPaused` | your own scheduled pause; the resume re-firing the rule |
 | 5 | Scheduled job or refresh failed | job events / `ItemJobEventLogs`, or free **Schedule failure emails** | status `Failed` for a named pipeline or notebook | a retry that succeeded seconds later; a job expected to fail in dev; the same job repeating after auto-disable |
 
 If cost matters more than latency, swap #3 for `overageTotalCapacityUnitMs` rising without matching
-`overageBurndownCapacityUnitMs` — carryforward that is not paying down is what becomes a 3× rate bill.
+`overageBurndownCapacityUnitMs` — carryforward that is not paying down becomes a 3× rate bill.
 
 ## What this settles
 
-- **Architecture.** Capacity: the metrics app to diagnose, Real-Time hub events for signal — Eventstream
-  into an eventhouse for history, Activator for alerting. Items: workspace monitoring
-  (`ItemJobEventLogs` and workload logs) for queryable detail, Monitor hub and job scheduler for
-  presence, audit log for who changed what. Azure Monitor is in neither path.
-- **Build, not configure:** one Actitator rule set per capacity (none ship enabled); an eventhouse sink
-  with the dedupe query, because there is no backfill; a pause/heartbeat rule treating a missing
-  `Summary` as ambiguous; a carryforward/overage rule; deployment-failure alerting from the Azure DevOps
-  pipeline; a report over the eventhouse for any window past the app's 14 days; a rule catching
-  scheduler auto-disable; and a separate capacity for the monitoring Eventhouse if alerting must survive
-  throttling.
-- **Monitoring bills against the thing it monitors**, via event operations, event listeners, Eventhouse
-  and Eventstream.
+- **Architecture.** Capacity: the metrics app to diagnose, Real-Time hub events for signal — Eventstream into an
+  eventhouse for history, Activator for alerting. Items: workspace monitoring (`ItemJobEventLogs` and workload logs)
+  for queryable detail, Monitor hub and job scheduler for presence, audit log for who changed what. Azure Monitor is
+  in neither path.
+- **Build, not configure:** one Activator rule set per capacity (none ship enabled); an eventhouse sink with the
+  dedupe query, because there is no backfill; a pause/heartbeat rule treating a missing `Summary` as ambiguous; a
+  carryforward rule; deployment-failure alerting from the Azure DevOps pipeline; a report over the eventhouse for any
+  window past the app's 14 days; a rule catching scheduler auto-disable; and a separate capacity for the monitoring
+  Eventhouse if alerting must survive throttling.
+- **Monitoring bills against the thing it monitors**, through event operations, event listeners, Eventhouse and
+  Eventstream.
 
 ## What this does not establish
 
-- Metrics app retention beyond the 14-day compute and 30-day storage windows, or whether history
-  survives an upgrade (the upgrade path deletes and recreates the workspace).
+- Metrics app retention beyond the 14-day compute and 30-day storage windows, or whether history survives an upgrade
+  (the upgrade path deletes and recreates the workspace).
 - Whether **Channel post** works despite the limitations page saying Teams channels are unsupported.
 - Monitor hub job-run retention and refresh-history retention.
-- Whether `administration_members`-only identities receive `Summary` events, or how a
-  Terraform-created capacity differs here — untested.
+- Whether `administration_members`-only identities receive `Summary` events, or how a Terraform-created capacity
+  differs here — untested.
 - Whether any Log Analytics or Azure Storage sink exists for Fabric capacity or workspace logs.
 - End-to-end latency from event to email; the docs give sub-second rule evaluation, not delivery.
-- How the `80` defaults behave against a real workload; the tutorial calls `80` an example.
+- How the `80` defaults behave on a real workload; the tutorial calls `80` an example.
 
 ## Sources
 
 | Source | What it was used for | Dated |
 | --- | --- | --- |
-| [Capacity Metrics app](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app), [health](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-health-page), [compute](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-compute-page), [install](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-install), [calculations](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-calculations) | Pages, measure names, 10–15 min latency, 14/30 day views, permissions, no alerts | 2026-11-03 / 10-12 / 10-12 / 10-12 / 08-14 |
-| [Explore capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-overview-events) | Event types, 30 s cadence, Summary/State schemas, duplicates, drops, no backfill | 2026-09-29 |
-| [Explore capacity operation events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-operation-events) | `…CapacityOperationEvents.Operation` schema, same-region rule | 2026-10-14 |
+| [Capacity Metrics app](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app), [health](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-health-page), [compute](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-compute-page), [install](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-install) | Pages, measure names, 10–15 min latency, 14/30 day views, permissions, no alerts | 2026-11-03 / 10-12 |
+| [Explore capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-overview-events) and [operation events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-operation-events) | Event types, 30 s cadence, schemas, duplicates, drops, no backfill, same-region rule | 2026-09-29 / 10-14 |
 | [Create streams for capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/create-streams-fabric-capacity-overview-events) | Eventstream path, capacity admin prerequisite | 2026-08-20 |
-| [Set alerts on capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/set-alerts-fabric-capacity-overview-events) and [tutorial](https://learn.microsoft.com/en-us/fabric/real-time-hub/tutorial-monitor-capacity-threshold) | Three templates, `80` default, grouped-by-`capacityId` condition, `backgroundRejectionThresholdPercentage` example | 2026-09-10 |
-| [Subscribe permission for Azure and Fabric events](https://learn.microsoft.com/en-us/fabric/real-time-hub/fabric-events-subscribe-permission) and [events overview](https://learn.microsoft.com/en-us/fabric/real-time-hub/fabric-events-overview) | Capacity administrator for REST subscriptions; paused listeners, 24 h retention; event groups and regions | 2026-10-06 / 10-14 |
+| [Set alerts on capacity overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/set-alerts-fabric-capacity-overview-events) and [tutorial](https://learn.microsoft.com/en-us/fabric/real-time-hub/tutorial-monitor-capacity-threshold) | Three templates, `80` default, grouped-by-`capacityId` condition | 2026-09-10 |
+| [Subscribe permission for events](https://learn.microsoft.com/en-us/fabric/real-time-hub/fabric-events-subscribe-permission) and [events overview](https://learn.microsoft.com/en-us/fabric/real-time-hub/fabric-events-overview) | Capacity administrator for REST subscriptions; paused listeners, 24 h retention; event groups and regions | 2026-10-06 / 10-14 |
 | [Events capacity consumption](https://learn.microsoft.com/en-us/fabric/real-time-hub/fabric-events-capacity-consumption) | Event operation and event listener rates | 2026-05-21 |
-| [Activator introduction](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/activator-introduction), [limitations](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/activator-limitations), [rule actions](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/rule-actions) | Condition vocabulary, actions, rate limits, internal-only email, no alerts from the metrics app, channels conflict | 2026-10-13 / 10-13 / 05-12 |
-| [Workspace monitoring overview](https://learn.microsoft.com/en-us/fabric/fundamentals/workspace-monitoring-overview) and [configure](https://learn.microsoft.com/en-us/fabric/fundamentals/enable-workspace-monitoring) | Monitoring Item, telemetry table, 30-day default, prerequisites, preview custom endpoint | 2026-11-10 / 09-29 |
+| [Activator introduction](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/activator-introduction), [limitations](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/activator-limitations), [rule actions](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/rule-actions) | Condition vocabulary, actions, rate limits, internal-only email, no alerts from the metrics app, channels conflict | 2026-10-13 / 05-12 |
+| [Workspace monitoring](https://learn.microsoft.com/en-us/fabric/fundamentals/workspace-monitoring-overview) and [configure](https://learn.microsoft.com/en-us/fabric/fundamentals/enable-workspace-monitoring) | Monitoring Item, telemetry, 30-day default, prerequisites, preview endpoint | 2026-11-10 / 09-29 |
 | [Item job event logs](https://learn.microsoft.com/en-us/fabric/fundamentals/item-job-event-logs) | `ItemJobEventLogs` schema and job types | 2026-11-10 |
 | [Monitor hub](https://learn.microsoft.com/en-us/fabric/admin/monitoring-hub), [job runs](https://learn.microsoft.com/en-us/fabric/admin/monitoring-hub-jobs), [job alerts](https://learn.microsoft.com/en-us/fabric/admin/monitoring-hub-alerts) | Preview status, pages, supported items, free failure emails vs Activator | 2026-09-29 / 10-06 / 10-01 |
-| [Job Scheduler](https://learn.microsoft.com/en-us/fabric/fundamentals/job-scheduler) | Failure notifications, auto-disable ~10 failures, 90-day expiry, schedule ownership | 2026-10-30 |
-| [Data refresh in Power BI](https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-data) | Refresh history, retries, failure emails, refresh APIs | 2026-10-01 |
+| [Job Scheduler](https://learn.microsoft.com/en-us/fabric/fundamentals/job-scheduler) and [refresh data](https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-data) | Failure notifications, auto-disable ~10 failures, 90-day expiry, refresh history and APIs | 2026-10-30 / 10-01 |
 | [Track user activities](https://learn.microsoft.com/en-us/fabric/admin/track-user-activities), [Power BI activity log](https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-admin-auditing), [operation list](https://learn.microsoft.com/en-us/fabric/admin/operation-list) | Purview audit, Exchange Audit Logs role, `ActivityEvents` limits, `DeployAlmPipeline` | 2026-07-01 / 02-17 / 11-10 |
-| [Items — List Items (Admin)](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-items) | Preview admin API, permissions, 10/min and 200/hour limits | 2026-11-11 |
-| [Azure Monitor supported metrics index](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/metrics-index) | No `Microsoft.Fabric` entry — no metric alert | 2026-11-03 |
+| [Items — List Items (Admin)](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-items) and [Azure Monitor supported metrics index](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/metrics-index) | Preview admin API and rate limits; no `Microsoft.Fabric` metric | 2026-11-11 / 11-03 |
+

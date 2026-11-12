@@ -67,7 +67,7 @@ Ordered by how much they would change what the team does.
 14. **Purview and lineage.** What governance metadata Fabric emits, and what has to be maintained
     by hand.
 15. **Platform taxonomy.** The official component names and workload grouping, so the system map
-    uses Microsoft's vocabulary rather than invented layers. _(in progress 2026-11-12)_
+    uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 
 ## C. How an item gets done
 

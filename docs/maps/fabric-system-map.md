@@ -74,10 +74,36 @@ flowchart TB
 | Capacity | The purchased compute pool (an Azure resource) | Nothing, structurally — workspaces are assigned to it | It *is* the capacity |
 | Workspace | Collaboration and security boundary; the unit people get access to | Items | No |
 | Item | Anything you create: lakehouse, notebook, report, pipeline | Definitions, not data | Depends on engine |
-| OneLake | The storage substrate under everything | Tables, files, shortcuts | No — storage is free, compute costs |
+| OneLake | The storage substrate under everything | Tables, files, shortcuts | Not as compute — storage is billed separately; capacity units measure compute |
 
 `ARM` on the diagram is deliberate: the capacity is created in Azure and *used* in Fabric. Nothing
 else in the map is an Azure resource.
+
+### What each workload contributes
+
+Nine workloads in Microsoft's own list. The map's "item" layer is really this table.
+
+| Workload | Items it contributes | Engine behind them |
+| --- | --- | --- |
+| Data Engineering | lakehouse, notebook, Spark job definition, environment | Spark |
+| Data Factory | data pipeline, copy job, dataflow Gen2, mounted data factory | Power Query + orchestration |
+| Data Warehouse | warehouse, (implicit) SQL analytics endpoint | T-SQL |
+| Databases | SQL database, mirrored database | T-SQL |
+| Real-Time Intelligence | eventstream, eventhouse, KQL database, KQL queryset, real-time dashboard, activator | KQL / Kusto |
+| Data Science | ML model, ML experiment | Spark |
+| Power BI | semantic model, report, paginated report, dashboard, scorecard | Analysis Services |
+| Fabric IQ *(preview)* | ontology, data agent, GraphQL API | not established in the taxonomy note |
+| Industry Solutions | vertical templates | varies |
+
+### Vocabulary traps that change the design
+
+| Says | Means | Why it matters |
+| --- | --- | --- |
+| "Pipeline" | A `Pipeline` item (Data Factory) | It is **not** a Fabric *deployment pipeline*. Two different products, one word. |
+| "Capacity" vs "SKU" | The provisioned resource vs its size (F64…) | Resizing changes the SKU, not the identity; the capacity keeps its ID. |
+| "Semantic model" vs "dataset" | The same object | The new name replaces the old one, but the UI and APIs still show both. |
+| "Item" vs "artifact" | The same thing | Older docs say artifact; the REST surface says `ItemType`. |
+| "Monitoring hub" vs "Monitor" | Different surfaces, different retention | Neither is Azure Monitor. |
 
 ## 2. Containment versus reference
 
@@ -105,6 +131,19 @@ does not refresh it, and deploying a pipeline does not run it.
 **A grant.** Operator or pipeline → role assignment (workspace, item or OneLake) → Entra group
 membership → visible at the member's next Fabric sign-in. Item sharing, apps, publish-to-web, OneLake
 roles and SQL grants sit outside workspace roles, and most of them are invisible to the admin APIs.
+
+The path a call takes depends on which plane it belongs to:
+
+| Plane | Endpoint | Used for |
+| --- | --- | --- |
+| Control | `api.fabric.microsoft.com/v1/` and the admin APIs | Creating, updating and listing items; role assignments; tenant settings |
+| Data — files | `<workspace>.dfs.fabric.microsoft.com` | OneLake paths, shortcuts, direct file access |
+| Data — SQL | `*.datawarehouse.fabric.microsoft.com:1433` | T-SQL against warehouse and SQL analytics endpoint |
+| Data — KQL | `*.z<n>.kusto.fabric.microsoft.com` | Queries against eventhouse and KQL databases |
+| Data — semantic | `powerbi://api.powerbi.com/v1.0/…` | XMLA against semantic models |
+
+Our deployments use the first row almost exclusively. That is why a successful deployment says
+nothing about whether any data can be read.
 
 ## 4. The map, annotated with what we automate
 

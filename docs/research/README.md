@@ -20,6 +20,7 @@ docs.
 | [`sensitivity-labels-lifecycle.md`](sensitivity-labels-lifecycle.md) | What is the lifecycle of a sensitivity label, and what can a pipeline never do about it? | answered 2026-11-12 |
 | [`onelake-security-model.md`](onelake-security-model.md) | What is the OneLake data security model, and what can a pipeline do about it? | answered 2026-11-12 |
 | [`schema-and-ddl-management.md`](schema-and-ddl-management.md) | How are warehouse and lakehouse schemas versioned and deployed when items ship as shells? | answered 2026-11-12 |
+| [`platform-taxonomy.md`](platform-taxonomy.md) | What are the platform's parts actually called, and which layer and engine does each sit at? | answered 2026-11-12 |
 
 ## Adding a note
 
