@@ -19,7 +19,7 @@ Anything answered since the note was written is struck through with a pointer.
 | Does the Fabric audit log expand a group to member UPNs? | governance | tenant | open |
 | What does Fabric display for an assignment whose Entra group was purged? | governance | tenant | open |
 | What does a scheduled refresh do when its capacity is paused? | capacity | tenant | open |
-| Does a prepaid yearly reservation keep billing while paused? | capacity | billing question | open |
+| Does a prepaid yearly reservation keep billing while paused? | capacity | billing — **pages read 2026-11-12: the reservations page never mentions pause, the pause page never mentions reservations** | open |
 | Are deployment pipelines supported under **tenant-level** private link? | network | tenant — **documentation exhausted 2026-11-12: restriction is documented at workspace scope only; tenant pages never mention deployment pipelines** | open |
 | Does an ARM/Terraform-created capacity default overage to on, at 25%? | capacity | tenant | open |
 | Do Terraform item resources round-trip every definition, or only create? | deployment | probe per type | open — resource *existence* confirmed, round-trip not |
@@ -64,8 +64,8 @@ Ordered by how much they would change what the team does.
 9. **Mirroring.** Supported sources, latency, cost and limits, since it changes whether ingestion
    is a pipeline concern at all.
    _(partly done 2026-11-12 — the lifecycle verbs, status enums and the fact that a failing mirror
-   emits no job instance are in `jobs-schedules-and-mirroring.md` §5. Still open, and a different
-   question: supported sources, replication latency, and cost per mirrored item.)_
+   emits no job instance are in `jobs-schedules-and-mirroring.md` §5. That note left a different
+   question — supported sources, replication latency, and cost per mirrored item.)_
    _(done 2026-11-12 — completed by `mirroring-which-sources-latency-and-cost.md`: 12 GA sources and 6
    preview-only, replication free and zero-CU with 1 TB of free storage per CU, "as fast as every 15
    seconds" but no SLO, and no pause — stop disables and start reseeds every table. Ingestion is removed
