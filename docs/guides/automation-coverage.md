@@ -71,6 +71,25 @@ Three columns of judgement:
 | Grant workspace identity on storage | Manual | Azure RBAC | Azure-side permission |
 | Create OneLake security roles | Gated | `fabric_onelake_data_access_security` (preview) | `role_name` is ForceNew — rename is destroy/create |
 
+## What this audit does not yet cover
+
+Be honest about the boundaries — this is a derived audit, not an endpoint census.
+
+| Gap | Why it matters | Status |
+| --- | --- | --- |
+| **The legacy Power BI REST API** (`api.powerbi.com`) | Likely to move gateway binding, semantic-model RLS and label setting from Manual to Auto. Our conclusions were reached from the Core API alone | being verified |
+| Endpoint-level confirmation | The Auto column rests on earlier notes, not on a full operation list | API inventory in progress |
+| Workspace apps and audiences | `fabric_org_app` exists for org apps; the workspace *app* may have no route | not assessed |
+| Gateway registration and members | `fabric_gateway` exists, but installation and clustering are separate | not assessed |
+| Mirroring start/stop | Changes whether ingestion is a pipeline concern at all | not assessed |
+| Report rebinding, dataset takeover | Needed when a model is replaced rather than updated | not assessed |
+| Tags, folders, encryption (CMK), external data shares | All have Terraform resources, all preview or newer | not assessed |
+| Data agent and ontology configuration | New, preview, likely portal-first | not assessed |
+| Job run and cancel | Running a notebook or pipeline on demand versus on schedule | not assessed |
+
+Anything marked "not assessed" is a *maybe*, not a *no*. Do not quote this page as the final answer
+on what is automatable until those rows are filled.
+
 ## The shape of the answer
 
 Of roughly 40 actions: **half are fully automatic**, a quarter are automatable but deserve an

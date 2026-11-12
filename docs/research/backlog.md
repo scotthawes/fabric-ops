@@ -69,7 +69,12 @@ Ordered by how much they would change what the team does.
 15. **REST API inventory.** The full endpoint surface from `microsoft/fabric-rest-api-specs`, the
     deployment-relevant subset, and the operations that exist but are unusable headlessly.
     _(in progress 2026-11-12)_
-16. **Platform taxonomy.** The official component names and workload grouping, so the system map
+16. **Legacy Power BI REST as an automation surface.** Whether gateway binding, semantic-model RLS
+    and label setting are automatable after all, via `api.powerbi.com`.
+    _(in progress 2026-11-12)_
+17. **Workspace and item lifecycle.** Rename, move, delete, recover — which are safe to automate and
+    which are irreversible. _(in progress 2026-11-12)_
+18. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 
 ## C. How an item gets done
