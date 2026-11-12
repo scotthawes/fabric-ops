@@ -24,6 +24,7 @@ so an undated claim is a liability.
 
 | Path | Purpose |
 | --- | --- |
+| `docs/maps/` | The platform drawn once: layers, containment, and where our automation touches each layer. |
 | `docs/specs/` | Synthesis documents: what the research concluded, for whoever builds the work repo. Not a plan for this repo. |
 | `docs/stakeholder-summary.md` | One page for a manager or architect: the shape, the cost, the four decisions needed from them. |
 | `docs/recommendations/` | Four decision-ready one-pagers, in reading order. Start here. |
@@ -37,7 +38,9 @@ so an undated claim is a liability.
 
 ## Reading order
 
-1. `docs/recommendations/01-…` then `02-…`, `03-…`, `04-…` — the design, in the order it
+1. [`docs/maps/fabric-system-map.md`](docs/maps/fabric-system-map.md) — the platform in one page,
+   with every layer annotated for what we automate and what stays human.
+2. `docs/recommendations/01-…` then `02-…`, `03-…`, `04-…` — the design, in the order it
    depends on itself.
 2. `docs/adr/` — why each choice was made, and what it costs.
 3. `docs/runbook/01-…` — what a human must confirm in the work tenant before any of it is
