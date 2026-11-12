@@ -53,4 +53,7 @@ support the provider under Fabric support policies.
 - The `microsoft/fabric` provider is explicitly outside Microsoft support. When it breaks, the
   fallback is the Core REST API by hand — keep the Terraform small enough that this is cheap.
 - Tenant settings in Terraform are tenant-wide. A pipeline that can set them is a
-  tenant-administration tool wearing a deployment hat; gate it accordingly.
+  tenant-administration tool wearing a deployment hat; gate it accordingly. Note also that
+  `fabric_tenant_setting` has no import and defaults `delete_behaviour` to `NoChange`, so it is
+  the riskiest resource in the provider: prefer portal changes for anything one-off, and keep
+  Terraform to settings you intend to assert forever.

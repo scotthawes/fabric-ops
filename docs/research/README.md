@@ -16,6 +16,7 @@ docs.
 | [`tenant-settings-catalogue.md`](tenant-settings-catalogue.md) | Which tenant settings are not harmless — the ones that block automation or let access escape a workspace? | answered 2026-11-12 |
 | [`gateway-and-connectivity.md`](gateway-and-connectivity.md) | When does a source need a gateway, which kind, and what can the pipeline not do about it? | answered 2026-11-12 |
 | [`terraform-operating-model.md`](terraform-operating-model.md) | How do you operate Terraform against Fabric over time — layout, ordering, import, drift, deletion, upgrades? | answered 2026-11-12 |
+| [`terraform-provider-surface.md`](terraform-provider-surface.md) | What does the Terraform provider surface actually contain, how does it authenticate, and what does each call require? | answered 2026-11-12 |
 
 ## Adding a note
 

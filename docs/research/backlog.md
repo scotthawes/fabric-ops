@@ -29,17 +29,17 @@ Ordered by how much they would change what the team does.
 1. **Tenant settings catalogue.** Every setting that touches deployment, service principals,
    sharing, export and external access, with its exact name, default and portal page. The four
    in the identity note are the ones that block us; the rest are the ones that will surprise us.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12)_
 2. **Terraform, in depth.** Two notes: the provider *surface* (resource inventory, authentication,
    per-resource permissions, state semantics) and the *operating model* (layout, ordering, import,
    drift, deletion, upgrades, and the boundary with the content deployer). ADR 0003 leans on
    Terraform for the whole control plane, so this is the load-bearing research.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12)_
 2. **Capacity economics.** F-SKU sizing against real workloads, reservation versus pay-as-you-go,
    how smoothing and overage interact in a month's bill, and what a chargeback model would need.
 3. **Gateway and connectivity.** When an on-premises or VNet data gateway is required, how it
    authenticates for unattended refresh, and how that interacts with the deployment identity.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12)_
 4. **OneLake security model.** Data access roles, RLS/CLS, shortcut authorisation, and what
    "Viewer can't read OneLake but can read T-SQL" means in practice.
 5. **Sensitivity labels lifecycle.** Creation, inheritance to downstream items, behaviour on

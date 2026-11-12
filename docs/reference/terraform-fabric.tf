@@ -14,10 +14,24 @@ terraform {
 }
 
 provider "fabric" {
-  # VERIFY: attribute names per the provider's docs/index.md; federated auth is not established here.
-  tenant_id = var.tenant_id       # PLACEHOLDER
-  client_id = var.admin_client_id # sp-fabric-admin — not the deploy principal
-  use_oidc  = true
+  # Verified 2026-11-12: federated auth is supported. use_oidc takes the token from the environment;
+  # from an Azure DevOps pipeline, azure_devops_service_connection_id (a GUID) is the documented path.
+  # Audience api://AzureADTokenExchange, scope https://api.fabric.microsoft.com/.default.
+  tenant_id                         = var.tenant_id       # PLACEHOLDER: the work tenant
+  client_id                         = var.admin_client_id # sp-fabric-admin — not the deploy principal
+  use_oidc                          = true
+  azure_devops_service_connection_id = var.ado_service_connection_id # PLACEHOLDER
+}
+
+# capacity_id is a Fabric GUID, not the ARM ID of the azurerm_fabric_capacity resource. Resolve it
+# here and assert the capacity is running, so a paused capacity fails loudly instead of drifting.
+data "fabric_capacity" "shared" {
+  display_name = "fabric-sales-forecast-shared" # PLACEHOLDER: matches naming.md
+
+  postcondition {
+    condition     = self.state == "Active"
+    error_message = "Shared capacity is ${self.state}; resume it before applying (ADR 0004)."
+  }
 }
 
 locals {
@@ -42,8 +56,7 @@ resource "fabric_workspace" "this" {
   for_each     = local.workspaces
   display_name = each.value
   description  = "Sales forecast, ${each.key}. Container from Terraform; items from fabric-cicd."
-  capacity_id  = azurerm_fabric_capacity.shared.id # same root as terraform-capacity.tf
-  # VERIFY: Azure resource ID or Fabric capacity object ID? See the fabric_workspace docs.
+  capacity_id  = data.fabric_capacity.shared.id # a Fabric GUID, never the ARM resource ID
 }
 
 resource "fabric_workspace_role_assignment" "contributors" {

@@ -31,6 +31,9 @@ from a pipeline stage with an approval gate.
 
 - A compromised deploy pipeline can change content but cannot grant anyone access, and cannot
   read tenant configuration. That is the point of the split.
+- Confirmed 2026-11-12: the Fabric Terraform provider supports federated credentials (`use_oidc`,
+  and `azure_devops_service_connection_id` for ADO), so the whole control plane can run without a
+  secret — the identity design does not need a client secret anywhere.
 - The boundary is narrower, not absolute: `sp-fabric-admin` still needs workspace Admin, so it
   can deploy too. Accept it, and keep it off the merge path.
 - Day-to-day friction: any pipeline that does both jobs needs two service connections, and a

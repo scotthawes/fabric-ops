@@ -8,8 +8,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0" # VERIFY: first azurerm release shipping azurerm_fabric_capacity —
-                         # check the registry changelog, not an example's pinned version.
+      version = "~> 5.13" # 5.13.0 is the release that ships azurerm_fabric_capacity (checked 2026-11-12)
     }
   }
 }
@@ -25,8 +24,9 @@ resource "azurerm_resource_group" "fabric" {
   tags     = local.tags
 }
 
-# VERIFY: attribute names are from memory, not the azurerm registry docs. Check
-# azurerm_fabric_capacity (sku block, administration_members) before applying.
+# Attribute names confirmed against the azurerm registry docs and the provider's own capacity
+# example (2026-11-12). The resource is pinned to API 2023-11-01, so it cannot express capacity
+# overage or suspend/resume, and its SKU range stops at F2048 — see the capacity research note.
 resource "azurerm_fabric_capacity" "shared" {
   name                = "fabric-sales-forecast-shared" # PLACEHOLDER: domain/project not settled
   resource_group_name = azurerm_resource_group.fabric.name
@@ -52,7 +52,7 @@ variable "capacity_sku" { default = "F2" }             # PLACEHOLDER: smallest S
 variable "capacity_admin_upns" { type = list(string) } # named humans
 
 # TODO (workspace assignment): deliberately absent. Assigning a workspace is a property of the
-# workspace resource in the microsoft/fabric provider (terraform-fabric.tf, `capacity_id`), because
-# azurerm owns the Azure resource and fabric owns the workspace side; `fabric_capacity` is a data
-# source only (ADR 0003). VERIFY: Azure resource ID or Fabric object ID — the docs name the property,
-# not the ID form.
+# workspace resource in the microsoft/fabric provider (terraform-fabric.tf, `capacity_id`).
+# `capacity_id` is a **Fabric GUID**, not this resource's ARM ID — pass the ARM ID and the provider
+# rejects it. Resolve it in the workspaces root with `data "fabric_capacity"`; `fabric_capacity` is
+# a data source only, never a resource (ADR 0003).
