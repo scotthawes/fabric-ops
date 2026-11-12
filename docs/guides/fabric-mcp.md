@@ -46,6 +46,26 @@ received "https://login.microsoftonline.com/{tenantid}/v2.0"
 
 Read that as **"no usable token"**, not "the server is broken". Fix the token, not the config.
 
+## Two traps found while setting this up
+
+**A missing token file hides the servers entirely.** If `~/.secrets/fabric-token` does not exist, the
+`{file:…}` reference fails to resolve and opencode reports **"No MCP servers configured"** — not a
+failure, an absence. The servers are still in `opencode.json`; they simply never load. If the file
+exists but is empty or stale, you get the issuer-mismatch error above instead, which is the honest
+signal. Keep the file present (an empty file is enough to load the block).
+
+**There is a device-code alternative to `az login`.** `az login --scope
+https://api.fabric.microsoft.com/.default --use-device-code --allow-no-subscriptions` prints a code
+and a URL, so a human can complete sign-in where a browser is not available on the same machine. It
+still requires a tenant that has Fabric access.
+
+## This was not authenticated here, by choice
+
+The setup on this machine is configuration only: no sign-in was completed and no token was issued.
+The servers will report as failed in `opencode mcp list` until someone with the work tenant runs the
+two commands above. That is the intended state for a research repository — the connection belongs on
+the machine that has the tenant.
+
 ## What this repository can and cannot verify
 
 The machine this pack was written on is signed into a personal tenant with no Fabric capacity, and
