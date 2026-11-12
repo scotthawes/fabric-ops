@@ -49,7 +49,7 @@ Ordered by how much they would change what the team does.
 5. **Sensitivity labels lifecycle.** Creation, inheritance, behaviour on export and on deployment.
    _(done 2026-11-12)_
 6. **Item definition formats.** What each deployable item's definition actually contains, so a
-   review of serialised JSON is meaningful rather than structural.
+   review of serialised JSON is meaningful rather than structural. _(in progress 2026-11-12)_
 7. **Schema and DDL management.** How warehouse and lakehouse schemas are versioned and migrated
    when item deployment only ships shells. _(done 2026-11-12 — ADR 0008)_
 8. **Monitoring surface.** Capacity Metrics app measures, Real-Time hub event schemas, and which
@@ -62,7 +62,7 @@ Ordered by how much they would change what the team does.
 11. **Workspace identity.** What it is used for, how it is created, and where it replaces a service
     principal. _(done 2026-11-12)_
 12. **Azure DevOps mechanics.** Service connection types, Environment approvals, self-hosted agent
-    hardening and secret-free handling.
+    hardening and secret-free handling. _(in progress 2026-11-12)_
 13. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant.
 14. **Purview and lineage.** What governance metadata Fabric emits, and what has to be maintained
     by hand.
