@@ -111,7 +111,8 @@ that outlives the person who made it is the main risk this pack carries.
   `…/{workspaceId}/users` — and compare it with the repo's role assignments. Note the rate limit
   (roughly 200 requests/hour) and that the per-workspace access endpoints are Preview.
 - **Why:** item sharing, OneLake security roles and SQL grants grant access the pipeline never
-  created, and the last two are invisible to every admin API. The drift you cannot see is the
+  created, and SQL grants are invisible to every admin API. OneLake roles are visible only from the
+  item's own endpoint. The drift you cannot see is the
   drift that matters.
 - **Expected:** every entry traces to a group in the repo, or is a recorded break-glass exception.
 - **Also check:** for workspaces in state **Orphaned** (no admin). The admin API still reports

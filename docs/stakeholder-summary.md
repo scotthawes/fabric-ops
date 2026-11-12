@@ -31,9 +31,9 @@ builds it.
   cost saving — switching capacity off overnight — is unavailable while production lives on it.
 - **Two service principals and a nightly access scan** are ongoing maintenance, not one-off work.
 - **Roughly three Entra groups per workspace** to create and keep owned.
-- **Some things stay manual:** sensitivity labels are not deployed by the pipeline, and some
-  Fabric item types cannot be deployed by any automated route. Both are documented rather than
-  hidden.
+- **Some things stay manual:** sensitivity labels are not applied to Fabric items by the pipeline
+  (Power BI artifacts are the exception, via `setLabels`), and some Fabric item types cannot be
+  deployed by any automated route. Both are documented rather than hidden.
 
 ## What needs a decision from someone senior
 
