@@ -66,7 +66,10 @@ Ordered by how much they would change what the team does.
 13. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant.
 14. **Purview and lineage.** What governance metadata Fabric emits, and what has to be maintained
     by hand.
-15. **Platform taxonomy.** The official component names and workload grouping, so the system map
+15. **REST API inventory.** The full endpoint surface from `microsoft/fabric-rest-api-specs`, the
+    deployment-relevant subset, and the operations that exist but are unusable headlessly.
+    _(in progress 2026-11-12)_
+16. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 
 ## C. How an item gets done

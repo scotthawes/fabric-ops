@@ -44,6 +44,24 @@ The rule of thumb:
 
 `✅` = this mechanism. `⚠️` = possible but not the first choice.
 
+### Why "there is an endpoint" is not the test
+
+An API operation is necessary for automation and never sufficient. Four separate things can block a
+call that exists:
+
+| Blocker | What it looks like |
+| --- | --- |
+| The verb is missing | The item supports `List` only — SQL analytics endpoint, Dashboard, Scorecard, Datamart, MirroredWarehouse, ML model/experiment |
+| The verb exists but takes no definition | Org app (`Create` unsupported, definition-only); ML experiment creates only a shell |
+| Your principal is refused | `MirroredDatabase` and `Reflex` mark service-principal support unsupported; admin APIs need an allow-listed group |
+| It is not an object, it is a relationship | Gateway binding, connection credentials, resource instance rules, sensitivity labels, schedules |
+
+And one that surprises people: **capacity suspend/resume and overage are ARM operations**, not Fabric
+API calls, so a Fabric-scoped principal cannot perform them at all.
+
+The practical test before promising automation: *does a write operation exist, does it accept a
+definition, will it accept a service principal, and is it out of preview?* All four, or it is manual.
+
 ## 2. The order to launch in
 
 Sequence matters more than any single row, because of two hard dependencies: a workspace must exist
