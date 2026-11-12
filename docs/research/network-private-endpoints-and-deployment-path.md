@@ -247,6 +247,42 @@ semantic models, so the workspace-level confound cannot apply:
    a clean deploy creates a workspace on the capacity ([dp-process]) and say nothing about its network
    posture.
 
+## Answered 2026-11-12 — do the Terraform provider and `fabric-cicd` honour `HTTP_PROXY`?
+
+**Yes, both — by inheritance rather than by contract.** Neither documents proxy support; both end up
+on a client whose default reads the standard environment variables. That distinction matters: it works
+today and nothing upstream promises it will keep working.
+
+### `fabric-cicd` — yes, via `requests`
+
+`FabricEndpoint` is handed the `requests` module and calls it directly: `self.requests = requests_module`
+(`src/fabric_cicd/_common/_fabric_endpoint.py:64`), then `self.requests.request(method=…, url=…, headers=…,
+json=…, files=…)` (`:118`). `trust_env` is not set anywhere in `src/` — checked, no occurrences — so
+`requests` keeps its default `trust_env=True`, which resolves `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`
+from the environment per call. Token acquisition goes through `azure-identity`, which uses the same
+stack, so there is no second, proxy-blind path. Read at v1.4.0, commit `59a0fe86`.
+
+### Terraform provider — yes, via azcore's default transport
+
+The provider constructs its client as `fabric.NewClient(credential, endpoint, &clientOptions)`
+(`internal/provider/client/fabric.go:37`) and never sets `ClientOptions.Transport` — no `Transport:` field
+appears in non-test provider or SDK code. azcore's pipeline falls back to `transport.DefaultHTTPClient`
+when `Transport` is nil (`sdk/azcore/runtime/pipeline.go:92-96` at `azcore v1.24.0`, the version the SDK
+pins), and that client's transport is built with `Proxy: http.ProxyFromEnvironment`
+(`sdk/internal/transport/transport.go:20`). So `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` are honoured by
+the provider process. Read at provider commit `d0a6a91`.
+
+### What this does not establish
+
+- **Not a contract.** Neither Microsoft page nor either repository's documentation states proxy support.
+  An upstream change that supplies its own `Transport`, or sets `trust_env=False`, breaks it silently.
+  Treat it as an environmental fact to re-check, not a feature to rely on.
+- **Terraform's own traffic is separate.** Provider installation and registry calls are Terraform core's,
+  governed by the same variables but in a different process; a provider that proxies says nothing about
+  whether `terraform init` did.
+- **`NO_PROXY` still has to be right for the private-link path.** A proxy honoured is also a proxy that
+  intercepts; the bypass list in this note's allowlist section is what keeps VNet traffic off it.
+
 ## Sources
 
 | Source | What it was used for | Page date |

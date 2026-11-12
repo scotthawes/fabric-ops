@@ -68,7 +68,10 @@ Pausing is an ARM action (`POST …/capacities/{name}/suspend`), exposed as
 usage already accrued, and makes the content unavailable until resumed.
 
 With one shared capacity, **there is no safe scheduled pause**: the only pause windows are ones
-where production may be down. Resume is therefore the first step of any deployment that might
+where production may be down. **Updated 2026-11-12:** a second, small capacity now exists for the
+monitoring store ([ADR 0009](../adr/0009-observability-is-event-sourced.md), proposed). It can be
+paused with the estate because it watches rather than serves, so it does not create a pause window
+here — the reasoning above is about the SKU that holds production. Resume is therefore the first step of any deployment that might
 follow a maintenance window, and Fabric Terraform must never run against a paused capacity —
 `fabric_workspace` has a `skip_capacity_state_validation` flag precisely because a paused
 capacity causes drift and lost state.

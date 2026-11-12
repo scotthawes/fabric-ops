@@ -79,6 +79,12 @@ flowchart TB
 `ARM` on the diagram is deliberate: the capacity is created in Azure and *used* in Fabric. Nothing
 else in the map is an Azure resource.
 
+**Two capacity resources, not one (2026-11-12).** The diagram draws one; in the design there are two.
+The shared dev/test/prod SKU is [ADR 0004](../adr/0004-one-shared-capacity.md). A second, small SKU
+hosts the monitoring Eventhouse so that alerting cannot be throttled by the capacity it watches —
+[ADR 0009](../adr/0009-observability-is-event-sourced.md), still proposed. Both are the same layer;
+neither contains the other.
+
 ### What each workload contributes
 
 Nine workloads in Microsoft's own list. The map's "item" layer is really this table.

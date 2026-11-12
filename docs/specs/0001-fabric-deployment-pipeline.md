@@ -168,7 +168,9 @@ portal.
 **Contract: environment**
 
 - Three environments, dev/test/prod, one workspace set each, all on one capacity today. The
-  capacity is a variable, not a constant, so splitting it later is configuration.
+  capacity is a variable, not a constant, so splitting it later is configuration. (A separate,
+  *monitoring* capacity exists in [ADR 0009](../adr/0009-observability-is-event-sourced.md); it
+  holds no environment workspace, so it does not change this contract.)
 
 **Constraints accepted from the research**
 
