@@ -16,7 +16,7 @@ The map of this pack. Everything here is research, decision or synthesis — not
 | Artefacts to adapt for the work repo | [`reference/`](reference/) — pipeline YAML, Terraform, naming, layout, API census |
 | Which API surfaces we have actually collected | [`reference/api-surface-coverage.md`](reference/api-surface-coverage.md) |
 | Which platforms we depend on, and what is unverified | [`reference/platform-operations-register.md`](reference/platform-operations-register.md) |
-| The evidence behind a claim | [`research/`](research/) — 20 notes, each dated and cited |
+| The evidence behind a claim | [`research/`](research/) — one note per question, each dated and cited; the [index](research/README.md) is the list |
 | Something for a manager | [`stakeholder-summary.md`](stakeholder-summary.md) |
 | How to connect an AI agent to Fabric | [`guides/fabric-mcp.md`](guides/fabric-mcp.md) |
 
@@ -37,7 +37,7 @@ The map of this pack. Everything here is research, decision or synthesis — not
 relationships), the identity model, the promotion model, the capacity decision, the access model, and
 the automation verdicts for roughly 50 action families and all 825 API operations.
 
-**Not settled, and not settleable by reading:** 23 questions in
+**Not settled, and not settleable by reading:** the open questions in
 [`research/backlog.md`](research/backlog.md) — whether a service principal needs a licence, whether an
 SP can hold capacity Contributor, whether a group of only SPs satisfies the admin API allow-lists,
 what the tenant's network posture actually is, and similar. Each needs a tenant, a billing answer, or
