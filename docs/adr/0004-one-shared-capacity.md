@@ -33,8 +33,10 @@ service principal holds capacity **Contributor** so it can assign workspaces.
   first step of any deployment after a maintenance window, and Fabric Terraform must never run
   against a paused capacity (`fabric_workspace` will report drift).
 - Capacity overage is enabled by default at a 25% threshold and billed at 3× the pay-as-you-go
-  rate. AzureRM is pinned to API `2023-11-01` and cannot express the setting, so a default that
-  silently triples the marginal cost of a runaway workload is a portal task on the run-book.
+  rate. AzureRM is pinned to API `2023-11-01` and cannot express the setting — but the ARM spec at
+  `2026-09-01-preview` models it as `CapacityOverageProperties`, so it is automatable through
+  `azapi_resource` even though it is not in `terraform plan`. See
+  [`arm-fabric-operations.md`](../reference/arm-fabric-operations.md).
 - There are no Azure Monitor metrics for `Microsoft.Fabric/capacities`, so alerting has to hang
   off the Capacity Metrics app and Real-Time hub events rather than a metric alert. The metrics app
   itself supports no alerts, so every alert is something to build, not configure — and an event

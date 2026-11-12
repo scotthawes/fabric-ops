@@ -1,0 +1,14 @@
+method	path	operationId	summary
+DELETE	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}	FabricCapacities_Delete	
+GET	/providers/Microsoft.Fabric/operations	Operations_List	
+GET	/subscriptions/{subscriptionId}/providers/Microsoft.Fabric/capacities	FabricCapacities_ListBySubscription	
+GET	/subscriptions/{subscriptionId}/providers/Microsoft.Fabric/locations/{location}/usages	FabricCapacities_ListUsages	
+GET	/subscriptions/{subscriptionId}/providers/Microsoft.Fabric/skus	FabricCapacities_ListSkus	
+GET	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities	FabricCapacities_ListByResourceGroup	
+GET	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}	FabricCapacities_Get	
+GET	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}/skus	FabricCapacities_ListSkusForCapacity	
+PATCH	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}	FabricCapacities_Update	
+POST	/subscriptions/{subscriptionId}/providers/Microsoft.Fabric/locations/{location}/checkNameAvailability	FabricCapacities_CheckNameAvailability	
+POST	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}/resume	FabricCapacities_Resume	
+POST	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}/suspend	FabricCapacities_Suspend	
+PUT	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Fabric/capacities/{capacityName}	FabricCapacities_CreateOrUpdate	

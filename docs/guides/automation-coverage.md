@@ -17,7 +17,7 @@ Three columns of judgement:
 | Create capacity | Auto | Terraform `azurerm_fabric_capacity` | Subscription-scope Azure; separate root (ADR 0007) |
 | Resize capacity (SKU) | Gated | ARM / `azurerm` | ForceNew-ish in practice; costs money immediately |
 | Assign capacity admins | Auto | `administration_members` | Update-in-place unverified |
-| Set overage threshold / surge protection | Manual | Portal/API | AzureRM is pinned to API `2023-11-01`; no field exists |
+| Set overage threshold | Gated | ARM `2026-09-01-preview` via `azapi_resource` | `CapacityOverageProperties` exists in ARM; AzureRM's pinned `2023-11-01` cannot express it |
 | Pause / resume | Gated | ARM action `suspend`/`resume` | Out of Terraform state; bills accrued backlog at pause |
 | Read utilisation / throttling | Auto | Capacity Metrics app has **no API**; RTI events | No Azure Monitor metrics at all |
 | Alert on capacity state | Auto (build) | Eventstream + Activator | Five alerts to build, none to configure |

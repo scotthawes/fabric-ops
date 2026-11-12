@@ -14,9 +14,9 @@ has no public machine-readable spec at all.
 | **T-SQL** | `*.datawarehouse.fabric.microsoft.com:1433` — warehouse and SQL analytics endpoint | Not censused. Commands are T-SQL DDL/DML, not operations | SQL reference; TDS protocol |
 | **KQL** | `*.z<n>.kusto.fabric.microsoft.com` — eventhouse, KQL databases | Not censused. Management commands plus query commands | Kusto management-commands reference |
 | **XMLA / TMSL** | `powerbi://api.powerbi.com/v1.0/…` — semantic models | Not censused; used in one place (RLS roles) | TMSL and TOM reference |
-| **ARM — `Microsoft.Fabric`** | Capacity create, suspend, resume, overage | **Partially covered**: the suspend/resume action and API version are in the capacity note, but there is no operation census | Azure REST reference for `Microsoft.Fabric/capacities` |
+| **ARM — `Microsoft.Fabric`** | Capacity create, suspend, resume, update, quota, SKUs | **Censused: 13 operations** ([detail](arm-fabric-operations.md)) — and it carries the `overage` property that AzureRM lacks | Spec at `2026-09-01-preview` |
 | **Legacy Power BI REST** | `api.powerbi.com` — refresh, RLS, labels, rebind, takeover, apps | Partially covered ([note](../research/powerbi-rest-api-for-fabric-items.md)); **no public OpenAPI repo found**, so there is no census to generate | Learn Power BI REST reference |
-| **Fabric CLI (`fab`)** | `microsoft/fabric-cli` | Not enumerated. **11 documentation groups** — `acls`, `api`, `auth`, `config`, `desc`, `find`, `fs`, `jobs`, `labels`, `tables` — and `fab api` is a raw REST passthrough | The repo's `docs/commands/` tree |
+| **Fabric CLI (`fab`)** | `microsoft/fabric-cli` | **Enumerated**: nine groups plus twenty `fs` subcommands ([detail](fab-cli-commands.md)). `fab api` is a raw passthrough, so it adds convenience, not capability | The repo's `docs/commands/` tree |
 | **Azure CLI `az fabric`** | Capacity create/suspend/resume as CLI verbs | Not enumerated; not installed here | `az fabric capacity --help` once the extension is installed |
 | **PowerShell** | Gateway membership (`Add-DataGatewayClusterUser`), community `FabricTools` | Not enumerated | Module command listings |
 | **MCP servers** | Three remote Fabric MCPs | Configured ([guide](../guides/fabric-mcp.md)) | Each server's tool list at connect time |

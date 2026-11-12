@@ -129,6 +129,15 @@ makes scheduled pause impractical, and the trade-off is stated below.
   `skip_capacity_state_validation`, which warns that drift and lost state can follow if the capacity is
   inactive. (microsoft/terraform-provider-fabric docs, checked 2026-11-11)
 
+## Correction — 2026-11-12
+
+This note says overage is not configurable through AzureRM, which is true, and implies it is therefore
+a portal task. That second part is wrong. The ARM spec at `2026-09-01-preview` models
+`FabricCapacityProperties.overage` and `FabricCapacityUpdateProperties.overage` as
+`CapacityOverageProperties`, so overage **is** settable through ARM — just not through the stable
+`2023-11-01` API version that AzureRM pins. `azapi_resource` is the escape hatch. See
+[`arm-fabric-operations.md`](../reference/arm-fabric-operations.md).
+
 ## What this settles
 
 - **Recommendation on the evidence: one capacity per environment.** Prod gets its own F SKU sized so peak
