@@ -73,3 +73,9 @@ and smaller SKU, not a second estate.
 The revisit trigger above gains a sibling: production throttled by non-production traffic twice, **or**
 an incident in which monitoring data or alerts lagged the capacity event behind it.
 
+**Added 2026-11-12 — if a source is mirrored, pausing costs money.** Mirroring's replication compute is
+free and its storage is free up to one terabyte per capacity unit, but OneLake bills that storage *while
+the capacity is paused*, and nothing replicates until it resumes. So the cost-control lever in this ADR
+turns into a charge the moment mirroring is in use, and a paused capacity is also a stale replica. See
+[`mirroring-which-sources-latency-and-cost.md`](../research/mirroring-which-sources-latency-and-cost.md).
+

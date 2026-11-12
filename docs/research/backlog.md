@@ -21,7 +21,6 @@ Anything answered since the note was written is struck through with a pointer.
 | What does a scheduled refresh do when its capacity is paused? | capacity | tenant | open |
 | Does a prepaid yearly reservation keep billing while paused? | capacity | billing question | open |
 | Are deployment pipelines supported under **tenant-level** private link? | network | tenant — **documentation exhausted 2026-11-12: restriction is documented at workspace scope only; tenant pages never mention deployment pipelines** | open |
-| Do the Terraform provider and `fabric-cicd` honour `HTTP_PROXY`? | network | vendor docs or test | open |
 | Does an ARM/Terraform-created capacity default overage to on, at 25%? | capacity | tenant | open |
 | Do Terraform item resources round-trip every definition, or only create? | deployment | probe per type | open — resource *existence* confirmed, round-trip not |
 | Is `SqlPackage` `Publish` transactional against a Fabric warehouse, and does the DDL really apply? | schema | tenant | open |
@@ -67,6 +66,10 @@ Ordered by how much they would change what the team does.
    _(partly done 2026-11-12 — the lifecycle verbs, status enums and the fact that a failing mirror
    emits no job instance are in `jobs-schedules-and-mirroring.md` §5. Still open, and a different
    question: supported sources, replication latency, and cost per mirrored item.)_
+   _(done 2026-11-12 — completed by `mirroring-which-sources-latency-and-cost.md`: 12 GA sources and 6
+   preview-only, replication free and zero-CU with 1 TB of free storage per CU, "as fast as every 15
+   seconds" but no SLO, and no pause — stop disables and start reseeds every table. Ingestion is removed
+   for GA sources but transformation, security, starting the mirror and watching it stay in the pipeline.)_
 10. **Real-Time Intelligence.** Eventhouse retention, KQL database sizing, and what deployment can
     and cannot carry. _(done 2026-11-12 — `real-time-intelligence-what-can-be-retained-and-deployed.md`; it also corrected two claims in ADR 0009)_
 11. **Workspace identity.** What it is used for, how it is created, and where it replaces a service
