@@ -33,7 +33,10 @@ result is good.
 - **Good looks like:** zero differences on the morning after a deploy.
 - **Interpretation:** one or two items is a portal edit that will be overwritten by the next deploy.
   More than five, or a whole folder, means someone is working outside the pipeline — that is a
-  conversation, not a cleanup.
+  conversation, not a cleanup. **Corrected 2026-11-12:** an item that exists in the workspace but not in
+  the repo is not overwritten, it is *deleted* by the standard `unpublish_all_orphan_items` call (into the
+  recycle bin) on the next merge. Only items the repo defines are overwritten in place — see the
+  [survey of the field](../research/operating-model-what-prior-art-supports-spec-0002.md).
 - **Known noise:** item IDs, ordering and generated fields differ harmlessly; the report should
   normalise them before claiming a difference.
 - **Escalate if:** a diff survives a redeploy. That means the deployer is not writing what the repo

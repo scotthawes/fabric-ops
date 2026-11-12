@@ -170,3 +170,27 @@ is genuinely in the loop. Recommended: 1 and 2 as gates, 3 as the human path.
 **What this spec deliberately does not decide:** how many people are needed, which team owns the
 capacity budget, and whether the security review is internal or delegated. Those are organisational
 facts the pack cannot supply, and inventing them would make the plan look more finished than it is.
+
+## Correction 2026-11-12 — contact with the open-source field
+
+Fifteen open-source Fabric CI/CD repositories were read as code
+([the survey](../research/pipeline-designs-what-open-source-examples-implement.md)) and this spec was
+checked against them ([what they support](../research/operating-model-what-prior-art-supports-spec-0002.md)).
+Four corrections and one refinement, kept here rather than rewritten into the sections above:
+
+- **The deploy deletes orphans.** `unpublish_all_orphan_items` is part of the standard call and its
+  exclude regex defaults to `^$`, so an item in the workspace that the repo does not define is deleted
+  into the recycle bin on the next merge (hard delete would need workspace Admin, which ADR 0002
+  withholds). The steady-state table should not read as if the pipeline only adds and updates.
+- **The drift report is a record, not a control.** Because every deployment converges the workspace to
+  the repo, drift survives only between a change and the next merge. Its cadence is therefore set by
+  merge frequency, not by "nightly", and it cannot prevent the overwrite it reports.
+- **Drift is a third tool.** `fabric-cicd` does not compare definitions, so operation 2 is bespoke code
+  plus a full export per item per run — not a library feature. The spec's structure assumes two tools.
+- **The capacity review has no named data source.** There is no Azure Monitor namespace for
+  `Microsoft.Fabric` and the Capacity Metrics app cannot alert; the machine-readable route is Real-Time
+  hub events. "Weekly, scheduled" implies an event pipeline that does not exist in this pack's design;
+  otherwise the operation is a human reading a portal page.
+- **One refinement worth taking:** put the prod *plan* in the last job of the test stage, because ADO
+  evaluates an environment's approval checks when the stage begins, not when the job does.
+
