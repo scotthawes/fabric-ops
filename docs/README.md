@@ -14,6 +14,7 @@ The map of this pack. Everything here is research, decision or synthesis — not
 | What a human must verify in the tenant | [`runbook/01-work-tenant-checklist.md`](runbook/01-work-tenant-checklist.md) |
 | Artefacts to adapt for the work repo | [`reference/`](reference/) — pipeline YAML, Terraform, naming, layout, API census |
 | Which API surfaces we have actually collected | [`reference/api-surface-coverage.md`](reference/api-surface-coverage.md) |
+| Which platforms we depend on, and what is unverified | [`reference/platform-operations-register.md`](reference/platform-operations-register.md) |
 | The evidence behind a claim | [`research/`](research/) — 20 notes, each dated and cited |
 | Something for a manager | [`stakeholder-summary.md`](stakeholder-summary.md) |
 | How to connect an AI agent to Fabric | [`guides/fabric-mcp.md`](guides/fabric-mcp.md) |
