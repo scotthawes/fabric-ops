@@ -53,7 +53,11 @@ Three columns of judgement:
 | Deploy schema (warehouse) | Auto | `SqlPackage` publish | Preview DacFx; partial atomicity |
 | Deploy lakehouse tables | Auto | `dbt-fabricspark` | Keys `NOT ENFORCED` |
 | Create a shortcut | Auto | `fabric_shortcut` | Needs the target item's `item_id`; ordering after items |
-| Set a schedule | Auto | `fabric_item_job_scheduler` | Schedules are not in definitions; auto-disable after ~10 failures |
+| Set a schedule | Auto | `fabric_item_job_scheduler` | Four shapes (Cron/Daily/Weekly/Monthly), UTC bounds; auto-disables after ~10 failures; runs as its owner |
+| Run a job on demand | Auto | `POST …/jobs/{jobType}/instances` | Returns `202` and is **not** an LRO — poll the instance, never `/v1/operations` |
+| Cancel a job | Gated | `POST …/instances/{id}/cancel` | A request, not a guarantee; only documented refusal is `JobAlreadyCompleted` |
+| Refresh a semantic model | Auto | Legacy `api.powerbi.com/…/refreshes` | Not on the Fabric jobs API; cancel only for enhanced refresh |
+| Start / stop mirroring | Gated | `startMirroring` / `stopMirroring` | Reports `Paused`/`Stopped` with an `error` field; metadata mirroring has neither |
 | Refresh a semantic model | Auto | REST refresh | Refresh can fail long after a green deploy |
 | Move an item between workspaces | Manual | — | There is no cross-workspace move. `Move Item` is folder-only, so a "move" is create + delete with a **new item ID** |
 | Delete an item | Gated | REST | Soft delete; `hardDelete=true` makes it unrecoverable and needs only item write |
@@ -81,7 +85,8 @@ Three columns of judgement:
 
 Measured at `microsoft/fabric-rest-api-specs` commit `3f8600f`, 2026-11-10:
 
-- **835 operations across 61 groups**, grouped by *item type* rather than by workload — there is no
+- **835 operations across 61 groups** (825 de-duplicated — see the
+  [census](../reference/api-operations.md)), grouped by *item type* rather than by workload — there is no
   "Data Engineering" or "Power BI" group. The two cross-cutting groups are `platform` (187 ops,
   published on Learn as **Core**) and `admin` (60 ops).
 - **434 are deployment-relevant** (286 write, 148 read) across thirteen families.

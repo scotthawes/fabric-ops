@@ -37,7 +37,7 @@ so an undated claim is a liability.
 | `docs/research/` | Cited research notes, one per question. Index in `docs/research/README.md`. |
 | `docs/adr/` | Decisions taken here, with the reasoning that outlived the conversation. |
 | `docs/runbook/` | Ordered checks to run in the work tenant, since nothing here is verifiable. |
-| `docs/reference/` | Illustrative artefacts for the work repo to adapt — YAML, Terraform, naming, layout. |
+| `docs/reference/` | Illustrative artefacts for the work repo to adapt — YAML, Terraform, naming, layout — plus the generated API census. |
 | `docs/ecosystem/` | What exists on GitHub: a curated index plus the full machine-readable sweep. |
 | `GLOSSARY.md` | Project vocabulary — Fabric terms plus ours (work tenant, work repo). |
 | `AGENTS.md` | Conventions for anyone, human or agent, working in this repo. |
