@@ -47,3 +47,8 @@ and data do not round-trip).
 - A pull request touches JSON, so review is a diff of serialised definitions — reviewable for
   structure and names, weak for behaviour. Behaviour still needs a human in the dev workspace
   before approval.
+- **Connecting the dev workspace to Git is not a passive binding.** Creating the connection runs a
+  connect plus an initialise, and with `PreferRemote` it can overwrite items already in the
+  workspace. Connect before authors start, or initialise with the workspace as the source of truth,
+  and do not re-apply the connection casually. The resource also has no import path, so it must be
+  created from a clean state rather than adopted.

@@ -36,3 +36,4 @@ What becomes easy, what becomes hard, and what we are now committed to maintaini
 | [0004](0004-one-shared-capacity.md) | One Fabric capacity shared by dev, test and prod | accepted |
 | [0005](0005-authoring-and-promotion.md) | Authoring in a bound dev workspace, promotion by pinned commit | accepted |
 | [0006](0006-access-through-entra-groups.md) | Access through one Entra security group per workspace | accepted |
+| [0007](0007-terraform-layout-and-pinning.md) | Two Terraform roots, and the provider pinned exactly | accepted |

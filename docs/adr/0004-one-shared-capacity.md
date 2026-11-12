@@ -26,6 +26,9 @@ service principal holds capacity **Contributor** so it can assign workspaces.
   including production. The cost control that motivated owning the pause/resume path only
   applies in windows where production may be down — so in practice the saving is smaller than
   the plan assumed, and it must not be automated on a timer that ignores production.
+- **Applying Terraform against a paused capacity is not merely untidy.** The provider warns that
+  it can remove workspace items from Terraform state, so "never apply while paused" is mechanical:
+  resume first, and make the data source assert `Active` before anything else runs.
 - Pause is an ARM action, not a Terraform property, so it sits outside state. Resume must be the
   first step of any deployment after a maintenance window, and Fabric Terraform must never run
   against a paused capacity (`fabric_workspace` will report drift).

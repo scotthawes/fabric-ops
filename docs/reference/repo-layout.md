@@ -4,11 +4,13 @@
 
 ```
 work-repo/
-├── terraform/               # control plane: containers, IDs, role assignments
-│   ├── main.tf              # providers (azurerm + microsoft/fabric) and backend
-│   ├── capacity.tf          # shared F SKU, resource group, tags (see terraform-capacity.tf)
-│   ├── fabric.tf            # workspaces, role assignments, Git binding (see terraform-fabric.tf)
-│   └── env/{dev,test,prod}.tfvars      # non-secret values: group object IDs, region, SKU
+├── terraform/               # control plane, two roots (ADR 0007)
+│   ├── capacity/            # its own state: resource group, tags, shared F SKU
+│   │   └── main.tf          # see terraform-capacity.tf
+│   └── workspaces/          # one root, state key + tfvars per environment
+│       ├── main.tf          # providers, backend, data "fabric_capacity" + postcondition
+│       ├── workspaces.tf    # workspaces, role assignments, dev Git binding
+│       └── env/{dev,test,prod}.tfvars   # non-secret values: group object IDs, names
 ├── content/                 # item definitions in source-control format (see content-layout.md)
 │   └── fabric-sales-forecast/
 │       ├── Sales Forecast Ingest.Notebook/
@@ -27,11 +29,12 @@ work-repo/
 Why each top-level folder exists:
 
 - **`terraform/`** — things with a lifecycle and an ID that a content deploy must not recreate:
-  workspaces, role assignments, the Git connection, the capacity as an Azure resource. One root
-  with a state key and a tfvars file per environment (`terraform workspace` is the alternative,
-  and the overloaded word is why the pipeline names state keys instead). If a second root appears,
-  split by *lifetime*, not by environment, and keep it small so ADR 0003's "fall back to REST by
-  hand" stays cheap.
+  workspaces, role assignments, the Git connection, the capacity as an Azure resource. Two roots,
+  split by lifetime and by authority ([ADR 0007](../adr/0007-terraform-layout-and-pinning.md)):
+  `capacity/` owns the F SKU in its own state, because it outlives every environment; `workspaces/`
+  is one root with a state key and a tfvars file per environment, reading the capacity as a data
+  source. `terraform workspace` is deliberately not used — it is ruled out when environments have
+  separate credentials, which ADR 0002 requires.
 - **`content/`** — the items, one folder per workspace **without** the environment token, because
   the same definitions deploy to all three and `parameter.yml` supplies the differences. Also where
   the dev workspace's Git integration commits (ADR 0005), so it is the authors' hot path.
