@@ -25,10 +25,11 @@ already establishes that the obvious data source is closed:
   seconds, `Capacity.State` on change — which are best-effort, duplicated, and never backfilled.
 
 So the review needs a store it does not currently have. Two facts constrain where that store lives.
-First, workspace monitoring's KQL database defaults to **30 days** retention, configurable under
-`Manage > Data policies` — less than a quarterly review cadence, so the default is wrong for this
-purpose before anything else is decided. Second, and decisively, Microsoft's own recommended
-architecture is explicit: *"Isolate a workspace on its own Capacity to host a central monitoring
+First, retention and caching are the store's main levers and both must be set explicitly: a KQL
+database accepts **1 to 36,500 days** and defaults to **3,650**, and the caching default is the same,
+which means ten years of hot cache at premium rates unless someone says otherwise — the failure here
+is cost, not lost history. Second, and decisively, Microsoft's own recommended architecture is
+explicit: *"Isolate a workspace on its own Capacity to host a central monitoring
 Eventhouse… It also shields production workloads from excessive capacity usage by monitoring
 workloads."*
 
@@ -58,8 +59,10 @@ single-capacity rule.
 - `Capacity.Summary` and `Capacity.State` feed an **Eventstream**; the Eventstream writes to an
   **Eventhouse** for history and to **Activator** for alerting. The weekly review queries the
   Eventhouse; nobody reads the metrics app on a schedule.
-- The Eventhouse lives in a **central monitoring workspace on its own F capacity**, the smallest SKU
-  that can host an Eventstream and its ingestion — not on the dev/test/prod capacity.
+- The Eventhouse lives in a **central monitoring workspace on its own F capacity — F4, not F2** — not on
+  the dev/test/prod capacity. The floor is compute, not ingestion: an Eventhouse at its 2-CU default
+  minimum plus an active Eventstream plus a listener is roughly **3 CU-hours per hour**, which is more
+  than an F2 has and most of an F4.
 
 ## Consequences
 
@@ -74,9 +77,11 @@ single-capacity rule.
 - **Terraform gains one resource in the capacity root** ([ADR 0007](0007-terraform-layout-and-pinning.md)):
   a second `azurerm_fabric_capacity`, same subscription scope, same overage handling. It is a separate
   resource in the same root, not a separate root.
-- **Retention must be set deliberately and outlive the slowest review.** The 30-day default cannot
-  serve a quarterly review; set retention to at least a quarter plus a margin and say so where the
-  review is defined, because the failure is silent — old windows simply disappear.
+- **Set retention long and caching short, deliberately.** Retention must outlive the slowest review —
+  a quarter plus margin is trivial against a 3,650-day default — but the default that actually bites is
+  **caching**, which is also 3,650 days and raises storage cost. Both travel inside the KQL database's
+  deployable definition (`oneLakeStandardStoragePeriod`, `oneLakeCachingPeriod`), so neither is a
+  portal chore; set them where the store is defined, not where the review is written.
 - **Topology is fixed at creation.** A Monitoring Item's Eventhouse destination "can't be changed after
   you configure workspace monitoring", and the sending workspace must be in the same region. Choose the
   central workspace, region and SKU before enabling collection anywhere.
@@ -88,3 +93,24 @@ single-capacity rule.
   events must be treated as unknown rather than healthy.
 - **The metrics app keeps one job:** diagnosis, by a human, during an incident. It is no longer the
   basis of any scheduled operation.
+
+## Correction 2026-11-12 — the retention rationale was wrong, and the SKU was too small
+
+Checked against [`real-time-intelligence-what-can-be-retained-and-deployed.md`](../research/real-time-intelligence-what-can-be-retained-and-deployed.md).
+The decision stands; two of its reasons did not.
+
+- **The 30-day default belongs to the Monitoring Item, not to a KQL database.** A KQL database
+  accepts **1 to 36,500 days** and defaults to **3,650**; the 30-day figure is the product-chosen
+  default for the read-only database workspace monitoring creates for itself. A quarter of retention
+  needs no rescue — it is far below the default.
+- **The silent failure runs the other way.** The draft warned that "old windows simply disappear";
+  with defaults left alone they never disappear, and the **caching** policy — also 3,650 days by
+  default — keeps ten years of data in premium hot cache. The risk is spend, not loss.
+- **"The smallest SKU that can host an Eventstream" is F4, not F2.** The Eventhouse's 2-CU default
+  minimum plus an active Eventstream plus a listener is about 3 CU-hours per hour. An F2 is entirely
+  consumed by the baseline before anything is stored.
+- **Eventhouse over a Lakehouse table, on evidence rather than preference.** Retention and caching
+  travel inside the KQL database's deployable definition, and tables and functions travel in its
+  schema; a lakehouse table has no TTL (expiry becomes a `DELETE`/`VACUUM` job to own and to watch)
+  and "schemas are not deployed" to a lakehouse. If the second SKU is refused, a Lakehouse is the
+  cheaper degradation — roughly 1,460 CU-hours a month less — but it is a worse store, not an equal one.

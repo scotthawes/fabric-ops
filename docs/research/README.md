@@ -35,6 +35,7 @@ docs.
 | [`entra-and-ado-operations.md`](entra-and-ado-operations.md) | Which Entra and Azure DevOps operations does this design call, and can an app-only principal run them? | answered 2026-11-12 |
 | [`pipeline-designs-what-open-source-examples-implement.md`](pipeline-designs-what-open-source-examples-implement.md) | What pipeline designs do the open-source Fabric CI/CD examples actually implement, and how do they differ on the decisions that matter? | answered 2026-11-12 |
 | [`operating-model-what-prior-art-supports-spec-0002.md`](operating-model-what-prior-art-supports-spec-0002.md) | What does the open-source field support in spec 0002's operating model? | answered 2026-11-12 |
+| [`real-time-intelligence-what-can-be-retained-and-deployed.md`](real-time-intelligence-what-can-be-retained-and-deployed.md) | What can be retained and deployed as code in Real-Time Intelligence, and what does a capacity-observability store actually require? | answered 2026-11-12 |
 
 ## Adding a note
 

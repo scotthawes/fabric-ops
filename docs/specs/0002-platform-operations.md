@@ -192,8 +192,11 @@ Four corrections and one refinement, kept here rather than rewritten into the se
   hub events. "Weekly, scheduled" implies an event pipeline that does not exist in this pack's design;
   otherwise the operation is a human reading a portal page.
   **Proposed 2026-11-12:** [ADR 0009](../adr/0009-observability-is-event-sourced.md) would make it an
-  Eventhouse on its own capacity, queried by the review, with retention set to outlive a quarter.
-  Until that capacity exists the operation is manual, and should be labelled so.
+  Eventhouse on its own capacity, queried by the review. Two corrections from the Real-Time Intelligence
+  research: retention is cheap to set long (default 3,650 days, so a quarter is not a stretch) and the
+  silent cost is the *caching* default, also 3,650 days of hot cache; the capacity is an **F4**, because
+  the Eventhouse floor plus an active Eventstream is about 3 CU-hours per hour. Until that capacity
+  exists the operation is manual, and should be labelled so.
 - **One refinement worth taking:** put the prod *plan* in the last job of the test stage, because ADO
   evaluates an environment's approval checks when the stage begins, not when the job does.
 

@@ -64,15 +64,19 @@ Ordered by how much they would change what the team does.
    _(done 2026-11-12)_
 9. **Mirroring.** Supported sources, latency, cost and limits, since it changes whether ingestion
    is a pipeline concern at all.
+   _(partly done 2026-11-12 — the lifecycle verbs, status enums and the fact that a failing mirror
+   emits no job instance are in `jobs-schedules-and-mirroring.md` §5. Still open, and a different
+   question: supported sources, replication latency, and cost per mirrored item.)_
 10. **Real-Time Intelligence.** Eventhouse retention, KQL database sizing, and what deployment can
-    and cannot carry.
+    and cannot carry. _(done 2026-11-12 — `real-time-intelligence-what-can-be-retained-and-deployed.md`; it also corrected two claims in ADR 0009)_
 11. **Workspace identity.** What it is used for, how it is created, and where it replaces a service
     principal. _(done 2026-11-12)_
 12. **Azure DevOps mechanics.** Service connection types, Environment approvals, self-hosted agent
     hardening and secret-free handling. _(done 2026-11-12)_
-13. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant.
-14. **Purview and lineage.** What governance metadata Fabric emits, and what has to be maintained
-    by hand.
+13. **Power BI coexistence.** ~~What a Fabric estate inherits from an existing Premium or Pro tenant.~~
+    _(duplicate of 20, which is done — struck 2026-11-12, not a second open topic)_
+14. **Purview and lineage.** ~~What governance metadata Fabric emits, and what has to be maintained
+    by hand.~~ _(duplicate of 21, which is done — struck 2026-11-12)_
 15. **REST API inventory.** The full endpoint surface from `microsoft/fabric-rest-api-specs`, the
     deployment-relevant subset, and the operations that exist but are unusable headlessly.
     _(done 2026-11-12)_
