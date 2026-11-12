@@ -31,8 +31,7 @@ so an undated claim is a liability.
 | --- | --- |
 | `docs/guides/` | The launch decision sheet, plus the automation coverage matrix: what can run unattended, what needs approval, what is manual. |
 | `docs/maps/` | The platform drawn once: layers, containment, and where our automation touches each layer. |
-| `docs/specs/` | Synthesis documents: what the research concluded, for whoever builds the work repo. Not a plan for this repo. |
-| `docs/stakeholder-summary.md` | One page for a manager or architect: the shape, the cost, the four decisions needed from them. |
+| `docs/specs/` | Synthesis documents: what the research concluded, for whoever builds the work repo. Not a plan for this repo. || `docs/stakeholder-summary.md` | One page for a manager or architect: the shape, the cost, the four decisions needed from them. |
 | `docs/recommendations/` | Four decision-ready one-pagers, in reading order. Start here. |
 | `docs/research/` | Cited research notes, one per question. Index in `docs/research/README.md`. |
 | `docs/adr/` | Decisions taken here, with the reasoning that outlived the conversation. |

@@ -7,6 +7,13 @@ set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "FAIL: working tree is dirty — commit before pushing"
+  git status --short | head -10
+  exit 1
+fi
+
 echo "pushing $branch"
 git push origin "$branch" || { echo "FAIL: git push returned non-zero"; exit 1; }
 
