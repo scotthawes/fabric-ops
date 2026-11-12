@@ -5,7 +5,10 @@ under `docs/research/`, and only some of them change a decision.
 
 ## A. Open questions carried by existing notes
 
-Each of these is a gap a note already declares. Most need a tenant or a portal, not more reading.
+Each of these is filed on the tracker as a `needs-info` issue — work them there, and move the row out
+of this table when one closes. List them with `gh issue list --label needs-info`.
+
+Each is a gap a note already declares. Most need a tenant or a portal, not more reading.
 Anything answered since the note was written is struck through with a pointer.
 
 | Question | Raised by | Needs | Status |
