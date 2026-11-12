@@ -17,6 +17,8 @@ docs.
 | [`gateway-and-connectivity.md`](gateway-and-connectivity.md) | When does a source need a gateway, which kind, and what can the pipeline not do about it? | answered 2026-11-12 |
 | [`terraform-operating-model.md`](terraform-operating-model.md) | How do you operate Terraform against Fabric over time — layout, ordering, import, drift, deletion, upgrades? | answered 2026-11-12 |
 | [`terraform-provider-surface.md`](terraform-provider-surface.md) | What does the Terraform provider surface actually contain, how does it authenticate, and what does each call require? | answered 2026-11-12 |
+| [`sensitivity-labels-lifecycle.md`](sensitivity-labels-lifecycle.md) | What is the lifecycle of a sensitivity label, and what can a pipeline never do about it? | answered 2026-11-12 |
+| [`onelake-security-model.md`](onelake-security-model.md) | What is the OneLake data security model, and what can a pipeline do about it? | answered 2026-11-12 |
 
 ## Adding a note
 

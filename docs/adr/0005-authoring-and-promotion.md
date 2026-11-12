@@ -34,9 +34,18 @@ and data do not round-trip).
 - Git integration's known losses apply to the dev workspace: sensitivity labels, item IDs and
   data do not survive the round trip, and `Update from Git` replaces the whole branch. Item
   types outside the supported list are silently ignored — check before authoring in one.
-- **Sensitivity labels are not a deployed property.** Git does not export them, and REST item
-  creation applies one only when `sensitivityLabelSettings` is passed. Apply labels in the
-  workspace and treat the pipeline as label-blind.
+- **Sensitivity labels are not a deployed property.** Git does not export them, and the only API
+  surface is `Create Item` with `labelId` plus `sensitivityLabelApplyStrategy` — creation only, so
+  an existing item cannot be labelled by any call. Default and mandatory labelling are explicitly
+  not supported for service principals and APIs, so a pipeline-created item arrives unlabelled and
+  **nothing fails**: the only detection is the catalogue's Govern report.
+- **A labels constraint with a date.** From 28 February 2027, a principal without read-write on
+  *all* items in a workspace cannot deploy to it, or assign it, when it contains items protected by
+  a label with a protection policy — Git integration included. The deploy principal's Contributor
+  role satisfies this today; any move to narrower item-level grants would not.
+- **Protection policies behave differently in CI/CD**: they "use only workspace permissions", so a
+  deploy succeeds and the service principal's refresh or query fails afterwards, up to 24 hours
+  later. A green pipeline is not evidence that the model can read its own data.
 - **The authoring model has two tenant-setting dependencies**, not one: `Users can synchronize
   workspace items with their Git repositories`, and — if auto-labelling is on —
   `Users can export workspace items with applied sensitivity labels to Git repositories`. With the

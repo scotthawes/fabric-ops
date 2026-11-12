@@ -132,6 +132,20 @@ that outlives the person who made it is the main risk this pack carries.
 - **Record:** the owner, the rotation cadence, and the error you saw when a binding was missing —
   so the next person recognises it.
 
+## 10. Labels
+
+- **Check:** whether a default or mandatory label is configured, which labels carry protection
+  policies, and which workspaces are expected to hold protected items.
+- **Why:** a pipeline-created item arrives **unlabelled and nothing fails**. Default and mandatory
+  labelling are not applied to service principals or APIs, and there is no API call to label an
+  existing item — only item creation can carry one.
+- **Expected:** a named human applies labels after deploy, or the risk is recorded. Detection is the
+  catalogue's Govern report or the label field on item listing, not a pipeline error.
+- **Watch for:** protection policies use only workspace permissions in CI/CD, so a deploy can
+  succeed and the service principal's refresh fail up to 24 hours later.
+- **Dated:** from 28 February 2027, a principal without read-write on every item cannot deploy to a
+  workspace holding protected items. Contributor satisfies it; item-level grants would not.
+
 ## Things this run-book cannot settle
 
 | Unknown | Who answers it | Why it matters |

@@ -42,10 +42,10 @@ Ordered by how much they would change what the team does.
    _(done 2026-11-12)_
 4. **OneLake security model.** Data access roles, RLS/CLS, shortcut authorisation, and what
    "Viewer can't read OneLake but can read T-SQL" means in practice.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12)_
 5. **Sensitivity labels lifecycle.** Creation, inheritance to downstream items, behaviour on
    export and on deployment, and what the pipeline genuinely cannot do.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12)_
 6. **Item definition formats.** What each deployable item's definition actually contains, so
    reviews of serialised JSON are meaningful rather than structural.
 7. **Schema and DDL management.** How warehouse and lakehouse schemas are versioned and migrated

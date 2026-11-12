@@ -32,7 +32,10 @@ and can hand out access the pipeline never sees.
   between a group assignment and a person. Review is the control.
 - "Who can see what" is no longer a Fabric query: role assignments return a bare `Group`
   principal with no members, so the answer is Fabric's admin API joined to Entra group
-  membership. Item sharing, OneLake security roles and SQL grants are outside it entirely.
+  membership. Item sharing is visible through the admin APIs; OneLake security roles are partly
+  visible — role membership is invisible there but readable from the item's own
+  `dataAccessRoles` endpoint with only item Read, which also means a Viewer can enumerate
+  co-members. SQL grants are outside it entirely.
 - A workspace whose admins have all left reports `Orphaned` and still looks `Active` to the admin
   API, and role changes only take effect at the member's next Fabric sign-in.
 - Group sprawl: three environments × N workspaces means 3N groups, each needing an owner and a

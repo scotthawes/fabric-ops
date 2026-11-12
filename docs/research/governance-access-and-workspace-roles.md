@@ -161,6 +161,16 @@ workspace identity consumers; group membership itself; and anything in a persona
   portal, and any behaviour of the work tenant's actual settings: the provider is not a Learn page,
   and nothing here is observed configuration.
 
+## Correction — 2026-11-12
+
+The short answer above says only item sharing, app audiences and publish-to-web are visible to the
+admin APIs, leaving OneLake security roles and SQL grants entirely invisible. That is half right.
+[`onelake-security-model.md`](onelake-security-model.md) establishes that OneLake data access roles
+are readable per item through the item's own `dataAccessRoles` endpoint with only item `Read` — so
+role definitions and membership are visible, just not through `/v1/admin/*`. SQL `GRANT`s remain
+outside every API. Two consequences: an access report must join a third source rather than two, and
+a Viewer with item Read can enumerate their co-members.
+
 ## Sources
 
 | Source | What it was used for |

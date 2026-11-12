@@ -20,7 +20,7 @@ Small, cheap, and each one closes a hole that reopening later is awkward:
 
 ## What sits below workspace roles
 
-These grant access the pipeline never created, and three of them are invisible to every admin
+These grant access the pipeline never created, and two of them are invisible to every admin
 API:
 
 | Path | Visible to admin APIs? | Where it is configured |
@@ -28,7 +28,7 @@ API:
 | Item sharing (`Share`) | yes (`…/items/{itemId}/users`) | item → Share |
 | Apps and app audiences | partly | workspace → app |
 | Publish to web | **no** | workspace → item |
-| OneLake security roles | **no** | lakehouse data access |
+| OneLake security roles | partly — role names yes, effective membership no | lakehouse data access |
 | SQL `GRANT` / row-level security | **no** | warehouse / SQL endpoint |
 | Shortcut credentials, workspace identity | **no** | shortcut / identity settings |
 
@@ -53,10 +53,15 @@ of any size needs paging and caching, not a loop over workspaces on every run.
   converge. Add when a Viewer genuinely needs a subset of data, not before.
 - **Domains** — they buy catalogue filtering and delegated settings, not access control. Domain
   assignment does not affect item visibility; do not sell it internally as an access boundary.
-- **Sensitivity labels in the deployment path.** Git integration does not export labels, and
-  REST item creation only applies one when `sensitivityLabelSettings` is passed explicitly. A
-  label is therefore **not** a deployed property. Apply labels in the workspace, and treat the
-  pipeline as label-blind.
+- **Sensitivity labels in the deployment path.** Git integration does not export labels, and the
+  only API surface is item *creation* with a label id and an apply strategy — there is no call to
+  label an existing item, and defaults are not applied to service principals. A deploy therefore
+  produces unlabelled items silently. Apply labels in the workspace and be explicit that the
+  pipeline is label-blind.
+- **A dated constraint.** From 28 February 2027, a principal without read-write on every item in a
+  workspace cannot deploy to it or assign it when labelled protection policies are in use. Workspace
+  Contributor satisfies this; item-level grants would not. See
+  [the labels note](../research/sensitivity-labels-lifecycle.md).
 
 ## Traps
 
