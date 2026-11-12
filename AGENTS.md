@@ -21,6 +21,9 @@ Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents
 - This repo is a research artefact (`docs/adr/0001-research-artefact-not-deployment-tool.md`).
   Do not add a package manifest, Terraform root, CI pipeline or deploy script. Reference
   artefacts belong inside a research note, labelled illustrative and dated.
+- **Specs here are synthesis, not plans.** `docs/specs/` records what the research concluded, for
+  whoever builds the work repo. Do not turn one into build tickets in this tracker; the tracker
+  is for research questions.
 - Read `docs/adr/` before questioning a decision; one that looks odd is usually recorded there.
 - Never add credentials, service connections or tenant-specific identifiers.
 

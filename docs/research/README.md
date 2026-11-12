@@ -25,7 +25,9 @@ docs.
 
 ## Open questions
 
-Collected during grilling; promoted to a note when they start blocking a decision.
+Collected during grilling; promoted to a note when they start blocking a decision. The working
+list lives in [`backlog.md`](backlog.md) — section A is open questions carried by the notes
+below, section B is topics not yet researched.
 
 All of the original questions are now answered — see the index above. What remains is
 tenant-specific and not researchable from this repo:

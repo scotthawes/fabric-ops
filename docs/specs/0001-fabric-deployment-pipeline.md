@@ -1,7 +1,10 @@
 # Spec 0001 — Fabric deployment pipeline for the work repo
 
-- **Status:** draft — seams need confirming before tickets
-- **Tickets:** [issue #1](https://github.com/scotthawes/fabric-ops/issues/1) is this spec; the work is issues #2–#12, published with native blocking edges. Only #2 is startable.
+- **Status:** synthesis — a record of the design decisions, not a plan for this repository
+- **Date:** 2026-11-12
+- **Scope note:** this document collates what the research concluded. It is read by whoever builds
+  the work repo. Nothing here is built or deployed from `fabric-ops` (ADR 0001), and the tracker
+  holds no build tickets for it.
 - **Date:** 2026-11-12
 - **Derived from:** [recommendations](../recommendations/), [ADRs 0002–0006](../adr/), and the six research notes
 - **Builds in:** the work repo (Azure Repos, same ADO organisation) — **not** this repository, per [ADR 0001](../adr/0001-research-artefact-not-deployment-tool.md)
@@ -215,7 +218,7 @@ Fabric API prove nothing about whether the deployment works.
 
 ## Further Notes
 
-**Seams — confirm before tickets.** Three seams are proposed, in preference order:
+**Seams — for whoever builds it.** Three seams are proposed, in preference order:
 
 1. **Post-deploy assertions against the real tenant** (highest, fewest moving parts): every test
    reads platform state through the Fabric API after a deploy. Cost: needs a tenant and a
