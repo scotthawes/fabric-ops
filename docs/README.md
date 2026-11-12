@@ -12,7 +12,7 @@ The map of this pack. Everything here is research, decision or synthesis — not
 | The design argued, area by area | [`recommendations/`](recommendations/) — 01 identity, 02 capacity, 03 deployment, 04 governance |
 | The decisions and what they cost | [`adr/`](adr/) — 0001 to 0008 |
 | What a human must verify in the tenant | [`runbook/01-work-tenant-checklist.md`](runbook/01-work-tenant-checklist.md) |
-| How the platform is run after launch | [`runbook/02-steady-state.md`](runbook/02-steady-state.md), from [`specs/0002`](specs/0002-platform-operations.md) |
+| How the described platform behaves once running | [`runbook/02-steady-state.md`](runbook/02-steady-state.md), from [`specs/0002`](specs/0002-platform-operations.md) |
 | Artefacts to adapt for the work repo | [`reference/`](reference/) — pipeline YAML, Terraform, naming, layout, API census |
 | Which API surfaces we have actually collected | [`reference/api-surface-coverage.md`](reference/api-surface-coverage.md) |
 | Which platforms we depend on, and what is unverified | [`reference/platform-operations-register.md`](reference/platform-operations-register.md) |
@@ -43,6 +43,13 @@ SP can hold capacity Contributor, whether a group of only SPs satisfies the admi
 what the tenant's network posture actually is, and similar. Each needs a tenant, a billing answer, or
 a Learn page that does not exist yet. Nothing in this pack should be treated as final until they are
 answered.
+
+**And a floor under that:** some of those questions can only be answered by *performing a deployment*,
+which this project will never do — research-only is the charter, not a waiting room
+([ADR 0001, amendment 2026-11-12](adr/0001-research-artefact-not-deployment-tool.md)). For those, no
+answer is coming. The surrounding claims are the pack's best reading of the documentation and are
+labelled as such; read them as "established by documentation, unverified in a tenant", and do not wait
+for a confirmation that will not arrive.
 
 ## Maintaining it
 

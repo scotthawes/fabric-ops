@@ -1,7 +1,14 @@
 # Run-book 02 — Steady state
 
-**Dated 2026-11-12.** The operating model in [spec 0002](../specs/0002-platform-operations.md), as
-procedures. Four recurring operations, each with an owner, an output and an escalation rule.
+**Dated 2026-11-12.** [Spec 0002](../specs/0002-platform-operations.md) as procedures — written in the
+form they would take if someone ran them, so that the shape of a healthy operation is legible to
+whoever builds one elsewhere.
+
+**A description, not a commitment.** This project is research-only and operates nothing
+([ADR 0001, amendment 2026-11-12](../adr/0001-research-artefact-not-deployment-tool.md)); no stage in
+this page is triggered here, and none of the escalation rules route to anyone in this repository. Four
+recurring operations, each with an owner, an output and an escalation rule — owned, if at all, by a
+platform team that is not this pack.
 
 The test of this page: someone who has never run it can follow one operation and know whether the
 result is good.

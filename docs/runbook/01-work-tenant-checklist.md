@@ -1,5 +1,10 @@
 # Run-book 01 — First contact with the work tenant
 
+An **observation instrument**, not a provisioning checklist: this is what to look at and what to
+write down, for a research pass against a tenant someone else operates. It is not a delivery plan
+and nothing in it authorises a deployment — the project is research-only, permanently
+([ADR 0001, amendment 2026-11-12](../adr/0001-research-artefact-not-deployment-tool.md)).
+
 Run these in order. Each item says what you are checking, why it matters, and what a wrong
 answer costs. Nothing here can be verified from this repo — see
 [ADR 0001](../adr/0001-research-artefact-not-deployment-tool.md).
@@ -74,8 +79,9 @@ that outlives the person who made it is the main risk this pack carries.
   *workload identity federation*. A client secret here defeats [ADR 0002](../adr/0002-two-service-principals-federated.md).
 - **Verify explicitly:** that `sp-fabric-admin` can read one admin API response. That proves the
   security group membership and the toggle, which are two separate things that fail alike.
-- **Still unknown:** whether a service principal needs a Fabric or Power BI licence. The first
-  real deploy answers it; note the answer here.
+- **Still open, and not answerable here:** whether a service principal needs a Fabric or Power BI
+  licence. The documentation does not settle it, and the test that would — a first deploy — is out of
+  scope (item 7). Record it as a gap, not as a pending step.
 - **Two steps are human-only, and they are consent, not configuration.** A Privileged Role
   Administrator must consent the Graph application permissions, and a Project Collection
   Administrator must add the first service principal to the ADO organisation. Everything after
@@ -103,14 +109,17 @@ that outlives the person who made it is the main risk this pack carries.
 - **Watch for:** cross-geography export and sensitivity-labelled export are separate tenant
   settings; either one being off produces a connection that works for some items only.
 
-## 7. First deployment, smallest possible
+## 7. First deployment — out of scope, and recorded as a gap
 
-- **Check:** deploy one workspace, one role assignment and one notebook to `dev`. Then read all
-  three back.
-- **Why:** proves the identity, the ordering (containers before content) and the parameterisation
-  in one run, before anything complicated exists.
-- **Expected:** the role assignment exists with the group's object ID, the notebook's definition
-  matches the repo, and the capacity is not paused.
+- **What it would have checked:** deploy one workspace, one role assignment and one notebook to
+  `dev`, then read all three back. That single run is what would prove the identity, the ordering
+  (containers before content) and the parameterisation together.
+- **Why it cannot happen here:** it is a deployment, and this project is research-only
+  ([ADR 0001, amendment](../adr/0001-research-artefact-not-deployment-tool.md)). There is no "smallest
+  possible one" exception.
+- **What to record instead:** that the container-then-content ordering is **argued from the
+  documentation and unproven in a tenant**. Anyone building elsewhere should treat it as a hypothesis
+  their first run confirms, not as a step already validated by this pack.
 
 ## 8. Access audit
 
@@ -158,7 +167,7 @@ that outlives the person who made it is the main risk this pack carries.
 
 | Unknown | Who answers it | Why it matters |
 | --- | --- | --- |
-| Whether an SP needs a Fabric licence | first failing call | blocks a clean prod cutover |
+| Whether an SP needs a Fabric licence | nobody here — the test is a deploy, which is out of scope | a builder elsewhere cannot cost the add-on from this pack |
 | Whether an SP can hold the Fabric administrator role | M365 admin centre | otherwise tenant settings stay human |
 | Whether a group of only an SP satisfies the admin API settings | a test call | hinge of the admin path |
 | Supported item-type list for your estate | Learn + a test commit | silent non-sync |

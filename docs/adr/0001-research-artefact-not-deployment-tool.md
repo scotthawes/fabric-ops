@@ -2,6 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-11
+- **Amended:** 2026-11-12 — research-only is permanent and not contingent on tenant access
 - **Deciders:** Scott
 
 ## Context
@@ -40,3 +41,29 @@ inside a research note, labelled illustrative and dated; the work repo owns the 
 - Verification of tenant-specific behaviour (which tenant settings are actually on, whether a
   service principal is permitted) is a human step in the work tenant, and must be written as
   a checklist rather than assumed.
+
+## Amendment 2026-11-12 — research-only is the charter, not a circumstance
+
+The Context above gives a contingent reason for this decision: the work tenant was not reachable
+from the machine the pack was written on, so building here was impossible as well as inadvisable.
+That reading leaves the decision looking like a holding pattern — do research until a tenant
+arrives, then build.
+
+**This project is research, permanently.** The decision does not depend on what becomes reachable.
+The contingency is struck; the scope is not.
+
+- **Tenant access, if it is ever granted, is an observation instrument.** Reading tenant settings,
+  enumerating capacities and inventories, and answering the tracked `needs-info` questions are in
+  scope. Creating a capacity, deploying an item, configuring a deployment pipeline or connecting a
+  workspace to Git are not — not as a smoke test, not "just the smallest possible one".
+- **No work repo follows from this pack.** If somebody builds a Fabric platform, that is a separate
+  project with its own charter, its own repository and its own decisions. This pack is an input to
+  it. It is not phase 0 of it, and nothing here is owed a build.
+- **Consequently, some questions stay permanently open.** Anything whose answer requires performing
+  a deployment — whether a service principal needs a Fabric licence, whether the container-then-
+  content ordering holds in a real run — is now a recorded gap rather than a pending step. Say
+  "not established", not "to be confirmed at first deploy".
+- **The run-books are observation instruments, not procedures.** `runbook/01` reads a tenant; it
+  does not provision one. `runbook/02` describes how the described platform behaves in steady state;
+  it is not an operating commitment this repo makes. `specs/0001` and `0002` remain synthesis, as
+  `AGENTS.md` already insists.

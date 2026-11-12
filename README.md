@@ -9,17 +9,18 @@ A research pack for deploying and administering **Microsoft Fabric** in a work t
 capacities and tenant settings, workspace lifecycle, item deployment, and the users and roles
 that see the content.
 
-**Status: research only.** Nothing here deploys. There is no code, no pipeline and no
-credential in this repo — by decision, not by accident (`docs/adr/0001-…`). The audience is a
-human who carries the findings into the **work repo**, where an Azure DevOps pipeline with a
-service connection does the deploying.
+**Status: research only — permanently.** Nothing here deploys, and nothing here is intended to
+deploy later. There is no code, no pipeline and no credential in this repo — by charter, not by
+circumstance (`docs/adr/0001-…`, amended 2026-11-12). The audience is a human building a Fabric
+platform somewhere else, who wants a defensible answer to *how* before writing any of it.
 
 ## Why this repo exists
 
-The work tenant is not reachable from the machine this repo was created on, and the work is
-delivered in a separate repository. So the thing worth building here is the part that
-transfers: a defensible answer to *how* the fabric should be deployed, administered and
-governed, with sources a colleague can check in five minutes.
+The question worth answering is *how* a Fabric estate should be deployed, administered and
+governed — with sources a colleague can check in five minutes. Answering it does not require
+touching a tenant, and building it is a different project with its own repository, its own
+decisions and its own charter. So this repo stays on the question: research, decisions, and the
+synthesis someone else starts from. Tenant access is useful only as an observation instrument.
 
 Every claim about Fabric behaviour cites Microsoft Learn or an official `microsoft/*`
 repository, and carries the date it was checked. Fabric ships monthly and previews graduate,
