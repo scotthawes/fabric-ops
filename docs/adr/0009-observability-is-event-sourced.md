@@ -87,6 +87,11 @@ single-capacity rule.
   central workspace, region and SKU before enabling collection anywhere.
 - **One KQL database per sending workspace** lands in the central workspace, and each counts toward its
   1,000-item limit — so the central workspace is a scaling surface, not just a store.
+- **The monitoring store has no cross-region protection.** The disaster-recovery capacity switch
+  covers OneLake data — lakehouse and warehouse files — and KQL database data is stored outside OneLake,
+  so it needs "a separate disaster recovery approach" and geo-replication does not reach it. Losing the
+  monitoring region therefore loses the review history, not just the live alerts. That is an accepted
+  cost of the design, not an oversight; the alternative is a second copy nobody would test.
 - **Alerting is still not guaranteed.** Event delivery is best effort with duplicates and no backfill;
   a listener whose owner loses permission pauses and holds events for up to 24 hours, which looks like
   a calm estate. Every rule must dedupe on `windowStartTime, windowEndTime, capacityId`, and absence of

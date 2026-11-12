@@ -95,5 +95,8 @@ result is good.
 ## What this run-book does not cover
 
 Incident response beyond the first check, change advisory process, and staffing — organisational
-facts the pack cannot supply. Where a symptom has no first check here, the gap is real: add it when it
+facts the pack cannot supply. **For the regional-disaster case specifically (2026-11-12):** the documented
+story is a read-only failover and a manual rebuild, not a recovery guarantee — see
+[`business-continuity-what-does-fabric-guarantee.md`](../research/business-continuity-what-does-fabric-guarantee.md).
+A capacity does not fail over; you create a new one. Where a symptom has no first check here, the gap is real: add it when it
 is discovered, with the date.

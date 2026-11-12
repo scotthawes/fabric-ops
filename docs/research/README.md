@@ -37,6 +37,7 @@ docs.
 | [`operating-model-what-prior-art-supports-spec-0002.md`](operating-model-what-prior-art-supports-spec-0002.md) | What does the open-source field support in spec 0002's operating model? | answered 2026-11-12 |
 | [`real-time-intelligence-what-can-be-retained-and-deployed.md`](real-time-intelligence-what-can-be-retained-and-deployed.md) | What can be retained and deployed as code in Real-Time Intelligence, and what does a capacity-observability store actually require? | answered 2026-11-12 |
 | [`mirroring-which-sources-latency-and-cost.md`](mirroring-which-sources-latency-and-cost.md) | Which sources can Fabric mirror, how fast, and what does it cost per mirrored item? | answered 2026-11-12 |
+| [`business-continuity-what-does-fabric-guarantee.md`](business-continuity-what-does-fabric-guarantee.md) | What does Microsoft actually document about business continuity and disaster recovery for a Fabric estate, and what can a builder promise? | answered 2026-11-12 |
 
 ## Adding a note
 
