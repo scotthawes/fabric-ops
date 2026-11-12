@@ -107,22 +107,36 @@ an item — not definition deployment.
 
 ## What this audit does not yet cover
 
-Be honest about the boundaries — this is a derived audit, not an endpoint census.
-
 | Gap | Why it matters | Status |
 | --- | --- | --- |
-| Any step relying on the legacy `api.powerbi.com` surface | Needs a second token audience; "groups" means workspaces; separate service-principal switches; no Fabric support statement | cost of the legacy route |
-| Endpoint-level confirmation | The Auto column now rests on a measured inventory: **835 operations**, 434 deployment-relevant | done — see [API inventory](../research/fabric-api-inventory.md) |
-| Workspace apps and audiences | `fabric_org_app` exists for org apps; the workspace *app* may have no route | not assessed |
-| Gateway registration and members | `fabric_gateway` exists, but installation and clustering are separate | not assessed |
-| Mirroring start/stop | Changes whether ingestion is a pipeline concern at all | not assessed |
-| Report rebinding, dataset takeover | Needed when a model is replaced rather than updated | not assessed |
-| Tags, folders, encryption (CMK), external data shares | All have Terraform resources, all preview or newer | not assessed |
-| Data agent and ontology configuration | New, preview, likely portal-first | not assessed |
-| Job run and cancel | Running a notebook or pipeline on demand versus on schedule | not assessed |
+| Data agent and ontology configuration | New, preview; likely portal-first | not assessed |
+| Folder assignment of items | `fabric_folder` is preview; unclear whether items can be moved in by API | not assessed |
+| Cross-item dependency edges | Sequencing two items is the external pipeline's problem; confirm nothing changed | not assessed |
 
-Anything marked "not assessed" is a *maybe*, not a *no*. Do not quote this page as the final answer
-on what is automatable until those rows are filled.
+Everything else that was unassessed on 2026-11-12 is now assessed — apps, tags, network controls,
+encryption, external shares, endorsement, rebind/takeover, gateway membership, and runtime operations.
+
+## The rule, if you keep only one line
+
+> A surface is automatable **iff** a write operation exists **on the object itself** and its identity
+> table says Service principal **Yes**. A `GET`-only group, a view published over other items, or a
+> verb that acts on a set is portal-only.
+
+That rule predicted every verdict below, including the three we had wrong before checking.
+
+## Governance and workspace surfaces
+
+| Action | Verdict | Mechanism | Blocker or caveat |
+| --- | :-: | --- | --- |
+| Create an org app and its audience | Auto | `fabric_org_app`, `fabric_org_app_audience` | GA operations, SP supported, neither resource preview |
+| Publish a **workspace** app | Manual | Portal | Different object from an org app; no `/apps` write route, and the Power BI `Apps` group is read-only |
+| Create a tag | Gated | `fabric_tag` | Tenant-scope tag creation needs Fabric administrator |
+| Assign a tag | Auto | REST tag assignment | Contributor-level; Terraform has no apply-tag field |
+| Encrypt a workspace (CMK) | Gated | `Assign`/`Reset Workspace Encryption` | Learn documents the operations; the provider gates it behind `preview`; needs a tenant setting and a Key Vault role |
+| Workspace firewall and inbound Azure rules | Auto | REST + Terraform | The API is the only route once private links break the portal UI |
+| Create or revoke an external data share | Auto | `fabric_external_data_share` | Creates/revokes only |
+| **Accept** an external data share | Auto | API, in the customer's tenant | Must run in the receiving tenant — a second identity, not a second mechanism |
+| Endorse (promoted / certified) | Manual | Portal | Zero "endorse" operations across all 61 specs; no field in any item schema |
 
 ## The safety rails
 

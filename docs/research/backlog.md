@@ -77,7 +77,7 @@ Ordered by how much they would change what the team does.
 18. **Runtime operations.** Job types, run/cancel, scheduling, refresh and mirroring control —
     the automatable half that is not definition deployment. _(done 2026-11-12)_
 19. **Workspace surfaces and governance.** Apps, tags, folders, network controls, encryption,
-    external shares, endorsement and domains. _(in progress 2026-11-12)_
+    external shares, endorsement and domains. _(done 2026-11-12)_
 20. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 
