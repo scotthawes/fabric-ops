@@ -97,7 +97,7 @@ check you could write in a pipeline:
 
 1. **The deploy principal is not a Fabric administrator.** A principal without that role cannot reach
    *any* of the irreversible operations: permanent workspace delete, capacity delete, hard delete.
-   This is why [ADR 0002](../../adr/0002-two-service-principals-federated.md) refuses to give the
+   This is why [ADR 0002](../adr/0002-two-service-principals-federated.md) refuses to give the
    deploy identity admin rights, and it is a better control than a protected stage.
 2. **`hardDelete=true` is never sent.** One query parameter converts a recoverable delete into an
    unrecoverable one, and it needs no elevated role beyond item write. Treat it as forbidden in code,
