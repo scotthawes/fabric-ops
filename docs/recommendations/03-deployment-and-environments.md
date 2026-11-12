@@ -102,8 +102,9 @@ that combination is unavailable rather than merely awkward.
   definition-deployable but mark service-principal support as unsupported. Do not put either
   behind the deploy principal without testing in the work tenant.
 - **Shells, not schemas.** For Warehouse, SQL database and Lakehouse, `fabric-cicd` deploys the
-  item shell only — DDL, tables and schemas need their own step. A "deployed" warehouse can be
-  empty and still look successful.
+  item shell only. Schema is a second stage in the same run — state-based for the warehouse,
+  `dbt-fabricspark` for lakehouse tables ([ADR 0008](../adr/0008-schema-is-state-based.md)). A
+  "deployed" warehouse can be empty and still look successful.
 - **Provider support.** `microsoft/fabric` is outside Microsoft support. Keep the Terraform
   small enough that falling back to REST is an afternoon, not a project.
 - **First-run ordering.** Capacity creation is subscription-scope Azure, the rest is Fabric-scope.

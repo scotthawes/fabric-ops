@@ -50,7 +50,7 @@ Ordered by how much they would change what the team does.
    reviews of serialised JSON are meaningful rather than structural.
 7. **Schema and DDL management.** How warehouse and lakehouse schemas are versioned and migrated
    when item deployment only ships shells.
-   _(in progress 2026-11-12)_
+   _(done 2026-11-12 — ADR 0008)_
 8. **Monitoring surface.** Capacity Metrics app measures, Real-Time hub event schemas, and which
    alert is actually possible — given there are no Azure Monitor metrics.
    _(in progress 2026-11-12)_

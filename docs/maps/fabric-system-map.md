@@ -117,7 +117,7 @@ This is the part the ADRs decide, layer by layer.
 | Workspace | Creation, capacity assignment, role assignments, dev Git binding | Terraform `microsoft/fabric` ([ADR 0003](../adr/0003-terraform-control-plane-fabric-cicd-items.md)) | Workspace Admin grants, item sharing, apps |
 | Item definitions | 23 item types | `fabric-cicd` from committed definitions | 7 item types cannot be deployed at all; a further 4 are API-only ([coverage](../research/item-type-deployment-coverage.md)) |
 | Storage and connections | Nothing | — | Gateway installation, connection creation, per-stage binding, credentials ([gateway note](../research/gateway-and-connectivity.md)) |
-| Schema and DDL | Ordered migration step | separate pipeline stage | The migration content itself |
+| Schema and DDL | Stage B: state-based schema deploy after shells | `sqlproj` + `SqlPackage` for the warehouse, `dbt-fabricspark` for lakehouse tables ([ADR 0008](../adr/0008-schema-is-state-based.md)) | The desired-state content; deciding table ownership between the two tools |
 | Access data plane | Role assignment to groups | Terraform | Group membership (Entra), OneLake roles, SQL grants |
 | Monitoring | Nothing yet | — | Reading the Capacity Metrics app or building an alert ([monitoring](../research/monitoring-and-alerting-surface.md)) |
 

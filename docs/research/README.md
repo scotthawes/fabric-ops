@@ -19,6 +19,7 @@ docs.
 | [`terraform-provider-surface.md`](terraform-provider-surface.md) | What does the Terraform provider surface actually contain, how does it authenticate, and what does each call require? | answered 2026-11-12 |
 | [`sensitivity-labels-lifecycle.md`](sensitivity-labels-lifecycle.md) | What is the lifecycle of a sensitivity label, and what can a pipeline never do about it? | answered 2026-11-12 |
 | [`onelake-security-model.md`](onelake-security-model.md) | What is the OneLake data security model, and what can a pipeline do about it? | answered 2026-11-12 |
+| [`schema-and-ddl-management.md`](schema-and-ddl-management.md) | How are warehouse and lakehouse schemas versioned and deployed when items ship as shells? | answered 2026-11-12 |
 
 ## Adding a note
 
