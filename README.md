@@ -44,11 +44,13 @@ so an undated claim is a liability.
 
 ## Reading order
 
-1. [`docs/guides/what-goes-where.md`](docs/guides/what-goes-where.md) — the launch decision sheet:
+1. [`docs/README.md`](docs/README.md) — the map of the pack: where to start, what is settled, what
+   still needs a tenant.
+2. [`docs/guides/what-goes-where.md`](docs/guides/what-goes-where.md) — the launch decision sheet:
    Terraform, pipeline, or manual, and the order to run them.
-2. [`docs/maps/fabric-system-map.md`](docs/maps/fabric-system-map.md) — the platform in one page,
+3. [`docs/maps/fabric-system-map.md`](docs/maps/fabric-system-map.md) — the platform in one page,
    with every layer annotated for what we automate and what stays human.
-3. `docs/recommendations/01-…` then `02-…`, `03-…`, `04-…` — the design, in the order it
+4. `docs/recommendations/01-…` then `02-…`, `03-…`, `04-…` — the design, in the order it
    depends on itself.
 2. `docs/adr/` — why each choice was made, and what it costs.
 3. `docs/runbook/01-…` — what a human must confirm in the work tenant before any of it is
