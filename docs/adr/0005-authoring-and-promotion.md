@@ -37,6 +37,11 @@ and data do not round-trip).
 - **Sensitivity labels are not a deployed property.** Git does not export them, and REST item
   creation applies one only when `sensitivityLabelSettings` is passed. Apply labels in the
   workspace and treat the pipeline as label-blind.
+- **The authoring model has two tenant-setting dependencies**, not one: `Users can synchronize
+  workspace items with their Git repositories`, and — if auto-labelling is on —
+  `Users can export workspace items with applied sensitivity labels to Git repositories`. With the
+  second off, labelled items become uncommittable and a deploy fails partway through a workspace
+  rather than at the first item.
 - Because the `main` branch is what the pipeline deploys, `dev` must be updated from Git to see
   what was merged, or the next commit will resurrect what the merge removed.
 - A pull request touches JSON, so review is a diff of serialised definitions — reviewable for

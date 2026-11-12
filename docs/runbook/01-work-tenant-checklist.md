@@ -45,6 +45,10 @@ that outlives the person who made it is the main risk this pack carries.
   first call with an error that reads like a role problem.
 - **Watch for:** "Service principals can use Fabric APIs" appears in older docs and some
   Microsoft tutorials. It is not a setting in the current index. Do not hunt for it.
+- **Beyond these four:** [the tenant settings catalogue](../research/tenant-settings-catalogue.md)
+  catalogues 57 settings that change deployment or access behaviour. The ones most likely to bite
+  after the four above are the two Git export switches, the shareable-link setting, and
+  `Publish to web`.
 
 ## 3. Capacity
 
