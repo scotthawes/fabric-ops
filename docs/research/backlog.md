@@ -68,7 +68,7 @@ Ordered by how much they would change what the team does.
     by hand.
 15. **REST API inventory.** The full endpoint surface from `microsoft/fabric-rest-api-specs`, the
     deployment-relevant subset, and the operations that exist but are unusable headlessly.
-    _(in progress 2026-11-12)_
+    _(done 2026-11-12)_
 16. **Legacy Power BI REST as an automation surface.** Whether gateway binding, semantic-model RLS
     and label setting are automatable after all, via `api.powerbi.com`.
     _(in progress 2026-11-12)_

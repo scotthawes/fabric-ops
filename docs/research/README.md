@@ -26,6 +26,7 @@ docs.
 | [`item-definition-formats.md`](item-definition-formats.md) | What is inside an item definition, and what should a reviewer look for? | answered 2026-11-12 |
 | [`ado-pipeline-mechanics.md`](ado-pipeline-mechanics.md) | What does Azure DevOps provide for this pipeline, and where are its sharp edges? | answered 2026-11-12 |
 | [`workspace-and-item-lifecycle.md`](workspace-and-item-lifecycle.md) | What is safe to automate, what needs an approval, and what is irreversible? | answered 2026-11-12 |
+| [`fabric-api-inventory.md`](fabric-api-inventory.md) | What is the actual REST API surface, and which part of it is deployment-relevant? | answered 2026-11-12 |
 
 ## Adding a note
 

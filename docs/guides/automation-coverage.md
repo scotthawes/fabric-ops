@@ -71,6 +71,29 @@ Three columns of judgement:
 | Grant workspace identity on storage | Manual | Azure RBAC | Azure-side permission |
 | Create OneLake security roles | Gated | `fabric_onelake_data_access_security` (preview) | `role_name` is ForceNew — rename is destroy/create |
 
+## The API surface underneath
+
+Measured at `microsoft/fabric-rest-api-specs` commit `3f8600f`, 2026-11-10:
+
+- **835 operations across 61 groups**, grouped by *item type* rather than by workload — there is no
+  "Data Engineering" or "Power BI" group. The two cross-cutting groups are `platform` (187 ops,
+  published on Learn as **Core**) and `admin` (60 ops).
+- **434 are deployment-relevant** (286 write, 148 read) across thirteen families.
+- **About 24 calls** implement everything this project needs.
+- **58 operations declare service-principal support as No** — whole groups in some cases:
+  `anomalyDetector`, `digitalTwinBuilder`, `eventSchemaSet`, `operationsAgent`, `userDataFunction`,
+  `mlModel`, `mlExperiment`. That is why the Manual column is not merely "we haven't got to it".
+- **48 paths are `?beta=true`**, and beta is a *query parameter*, never a path prefix — so it is easy
+  to call a beta surface without noticing.
+
+Two cautions from the spec itself: `admin/swagger.json` records workspace restore as a **`GET`**, so do
+not generate a mutating client from it unchecked; and the 18 `METHOD path` collisions are mostly
+admin-vs-Core pairs that differ only by base path.
+
+The apparent gap between "434 write operations" and "23 deployable item types" is not a contradiction:
+most of those writes are per-item *operations* — refresh, run job, list tables, update a connection on
+an item — not definition deployment.
+
 ## What this audit does not yet cover
 
 Be honest about the boundaries — this is a derived audit, not an endpoint census.
@@ -78,7 +101,7 @@ Be honest about the boundaries — this is a derived audit, not an endpoint cens
 | Gap | Why it matters | Status |
 | --- | --- | --- |
 | **The legacy Power BI REST API** (`api.powerbi.com`) | Likely to move gateway binding, semantic-model RLS and label setting from Manual to Auto. Our conclusions were reached from the Core API alone | being verified |
-| Endpoint-level confirmation | The Auto column rests on earlier notes, not on a full operation list | API inventory in progress |
+| Endpoint-level confirmation | The Auto column now rests on a measured inventory: **835 operations**, 434 deployment-relevant | done — see [API inventory](../research/fabric-api-inventory.md) |
 | Workspace apps and audiences | `fabric_org_app` exists for org apps; the workspace *app* may have no route | not assessed |
 | Gateway registration and members | `fabric_gateway` exists, but installation and clustering are separate | not assessed |
 | Mirroring start/stop | Changes whether ingestion is a pipeline concern at all | not assessed |
