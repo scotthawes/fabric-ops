@@ -62,6 +62,33 @@ disqualifies them as the promotion mechanism for a Git-first repo. They remain u
 - Long deployments consume capacity units themselves. On a small SKU, deploying three
   environments back to back is measurable load.
 
+## What the pipeline cannot do
+
+Connectivity is the part people assume is automated and is not. A deployed semantic model or data
+pipeline that reads a gated source arrives with **no gateway binding and no credentials**: the item
+exists, the report opens, and refresh fails with `CreateGatewayConnectionFailed`,
+`InvalidConnectionDetails` or `AccessUnauthorized`.
+
+| Step | Why it stays manual |
+| --- | --- |
+| Install, register and cluster a gateway; hold its recovery key | Infrastructure outside Fabric, with its own owner |
+| Grant gateway and connection roles | Permission on the gateway, not the workspace |
+| Create the connection | Credentials are never committed |
+| Bind each item, per stage, and set credentials | The binding is per item and per workspace; nothing copies it |
+| Approve managed private endpoints | Requires the target owner's approval |
+| Create the resource instance rule and workspace identity | Azure-side permission on the storage account |
+| Rotate secrets and update the gateway monthly | Ongoing operational duty |
+
+`fabric-cicd` deploys the definition; it cannot deploy the relationship to the data. Budget for one
+binding pass per environment per gated source, and put it in the run-book rather than discovering it
+at first refresh.
+
+Which route a given source needs — on-premises gateway, VNet gateway, managed private endpoint,
+trusted workspace access, or a plain connection — is decided in
+[`gateway-and-connectivity.md`](../research/gateway-and-connectivity.md). One consequence worth
+knowing early: an on-premises gateway cannot register in a tenant with private link enabled, so
+that combination is unavailable rather than merely awkward.
+
 ## Risks
 
 - **Item-type coverage.** 23 item types survive all three gates — Git support, a public

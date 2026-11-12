@@ -80,7 +80,6 @@ The Azure Monitor supported-metrics index has no `Microsoft.Fabric` entry as of 
   hang off.
 
 ## When to split the capacity
-
 This is a cheap, reversible decision: create a second SKU and reassign a workspace. Split when
 any of these happens:
 

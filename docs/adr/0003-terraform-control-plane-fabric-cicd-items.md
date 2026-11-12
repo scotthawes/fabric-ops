@@ -44,6 +44,12 @@ support the provider under Fabric support policies.
   promising an item type ships with the pipeline.
 - For Warehouse, SQL database and Lakehouse, this deploys the **item shell only** — DDL, tables
   and schemas need a separate step, so a green pipeline can leave an empty warehouse behind.
+- **Connectivity is not deployable.** A deployed semantic model or pipeline that reads a gated
+  source arrives with no gateway binding and no credentials: the item exists and the report opens,
+  but refresh fails with a connection error. Binding is per stage and per item, and must be done by
+  a human — see [`gateway-and-connectivity.md`](../research/gateway-and-connectivity.md). This is
+  the largest hole in the "everything deploys unattended" assumption and should be stated to
+  report authors before the first test deploy.
 - The `microsoft/fabric` provider is explicitly outside Microsoft support. When it breaks, the
   fallback is the Core REST API by hand — keep the Terraform small enough that this is cheap.
 - Tenant settings in Terraform are tenant-wide. A pipeline that can set them is a

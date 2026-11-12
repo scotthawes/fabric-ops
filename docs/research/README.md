@@ -14,6 +14,7 @@ docs.
 | [`governance-access-and-workspace-roles.md`](governance-access-and-workspace-roles.md) | Who can see what in Fabric, and what does the platform not tell you about it? | answered 2026-11-11 |
 | [`item-type-deployment-coverage.md`](item-type-deployment-coverage.md) | Which item types can actually be deployed through the pipeline, and which must be created by hand? | answered 2026-11-11 |
 | [`tenant-settings-catalogue.md`](tenant-settings-catalogue.md) | Which tenant settings are not harmless — the ones that block automation or let access escape a workspace? | answered 2026-11-12 |
+| [`gateway-and-connectivity.md`](gateway-and-connectivity.md) | When does a source need a gateway, which kind, and what can the pipeline not do about it? | answered 2026-11-12 |
 
 ## Adding a note
 

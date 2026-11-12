@@ -119,6 +119,19 @@ that outlives the person who made it is the main risk this pack carries.
 - **Remember:** a role change only takes effect at the member's next Fabric sign-in, so a removal
   verified in the portal can still be live in someone's open session.
 
+## 9. Sources and gateways
+
+- **Check:** list every source the solution reads, and for each, which route it needs — plain
+  connection, VNet data gateway, on-premises data gateway, managed private endpoint, or trusted
+  workspace access. Then confirm who owns each gateway and how its credentials rotate.
+- **Why:** none of this is deployable. A deployed model with no binding looks healthy and fails at
+  refresh, and the binding is per item, per stage, so it must be repeated in test and prod.
+- **Route table:** [`gateway-and-connectivity.md`](../research/gateway-and-connectivity.md).
+- **Watch for:** an on-premises data gateway cannot register in a tenant with private link enabled.
+  If run-book item 1 finds private link on, the on-premises gateway route is closed.
+- **Record:** the owner, the rotation cadence, and the error you saw when a binding was missing —
+  so the next person recognises it.
+
 ## Things this run-book cannot settle
 
 | Unknown | Who answers it | Why it matters |
