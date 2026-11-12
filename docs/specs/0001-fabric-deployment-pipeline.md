@@ -5,7 +5,8 @@
 - **Derived from:** [recommendations](../recommendations/), [ADRs 0002–0006](../adr/), and the six research notes
 - **Builds in:** the work repo (Azure Repos, same ADO organisation) — **not** this repository, per [ADR 0001](../adr/0001-research-artefact-not-deployment-tool.md)
 
-Vocabulary is the project glossary: [work repo](../GLOSSARY.md), workspace, item, capacity, deployment.
+Vocabulary is the project glossary: [work repo](../../GLOSSARY.md), workspace, item, capacity,
+deployment.
 
 ## Problem Statement
 
