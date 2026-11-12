@@ -150,6 +150,10 @@ travel — "users accessing the data through a shortcut might see the full wareh
 - **Audit log: probable, unproven.** `operation-list` has `GetArtifactRoles` ("Get USEC roles for an artifact") and
   `UpdateArtifactRoles` ("Update USEC roles for an artifact"), both "OneLake operation". "USEC" is never expanded, so I
   cannot confirm these are role writes.
+  **Corrected 2026-11-12:** `UpdateArtifactRoles` is an audit operation name with no API behind it; the write path is the
+  GA `PUT …/items/{itemId}/dataAccessRoles` and the matching audit operation is `CreateOrUpdateDataAccessRoles`. Role
+  changes are documented as reaching the Fabric audit log; before/after content is not — see the answered block at the
+  foot of this note.
 - **Data access: only OneLake diagnostics.** "To audit OneLake data access and storage operations, use OneLake
   diagnostics. The Fabric audit log isn't a complete source for OneLake data-plane activity." Enable **Add diagnostic
   events to a lakehouse**; events carry `executingUPN`, `operationName`, `isShortcut`, `accessedViaResource`,
@@ -198,11 +202,13 @@ travel — "users accessing the data through a shortcut might see the full wareh
 
 ## What this does not establish
 
-- Whether `UpdateArtifactRoles`/`GetArtifactRoles` are the role write path — "USEC" is never expanded — hence whether
-  role changes produce an audit record with before/after values.
+- Whether `UpdateArtifactRoles`/`GetArtifactRoles` are the role write path — **partly answered 2026-11-12:** they are
+  audit names only, the write path is `PUT …/dataAccessRoles` (see the answered block at the foot of this note). Still
+  open for a tenant: whether the audit record carries before/after values.
 - Whether RLS in user identity mode really binds Admins, Members and Contributors. Two Learn pages contradict each
   other; "grants don't restrict them, but a predicate they are a member of does" is the only reconciling reading, and a
-  tenant test must settle it.
+  tenant test must settle it. **Reread 2026-11-12:** the contradiction survived a direct comparison of both pages —
+  neither states that condition, so it is still a tenant test.
 - Whether the REST `preview=true` parameter marks a preview API or a preview feature (bulk `PUT` needs none), and
   whether a Viewer can in fact call `GET …/dataAccessRoles`.
 - Whether `DefaultReader` is recreated if deleted, or only at item creation; whether the 250-role cap counts it; and
@@ -226,3 +232,72 @@ travel — "users accessing the data through a shortcut might see the full wareh
 | [List Item Access Details](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-item-access-details) | Admin-API blind spot: `permissions` and `additionalPermissions` only |
 | [terraform-provider-fabric — `onelake_data_access_security`](https://github.com/microsoft/terraform-provider-fabric/blob/main/docs/resources/onelake_data_access_security.md) | Preview resource, ForceNew fields, import syntax; cited Learn page 404s |
 | [fabric-sdk-go — `onelakedataaccesssecurity_client.go`](https://github.com/microsoft/fabric-sdk-go/blob/main/fabric/core/onelakedataaccesssecurity_client.go) | Confirms the routes and verbs behind the provider |
+
+## Answered 2026-11-12 — Is `UpdateArtifactRoles` the write path for OneLake security roles, and is it audited with before/after values?
+
+**Answer.** Not as named. `UpdateArtifactRoles` is an audit operation name and corresponds to no documented API. The write path is the generally available `PUT …/items/{itemId}/dataAccessRoles` (`operationId` `OneLakeDataAccessSecurity_CreateOrUpdateDataAccessRoles`), and the audit operation whose name matches that operation is **`CreateOrUpdateDataAccessRoles`** — "Creates or updates data access roles" — not `UpdateArtifactRoles`. That role changes reach the Fabric audit log is now documented outright; whether the record carries before/after role definitions is not documented anywhere and needs a tenant.
+
+**Evidence** (all checked 2026-11-12):
+
+| Check | Finding | Source |
+| --- | --- | --- |
+| `artifactRoles` in the OpenAPI | Absent. `microsoft/fabric-rest-api-specs` at `3f8600f` contains five `dataAccessRoles` operations and no `artifactRoles` path or definition | clone of [fabric-rest-api-specs](https://github.com/microsoft/fabric-rest-api-specs) |
+| The write operation | `PUT https://api.fabric.microsoft.com/v1/workspaces/{workspaceId}/items/{itemId}/dataAccessRoles`; "Creates or updates data access roles in OneLake."; only query parameter `dryRun`; `If-Match`/`If-None-Match`; 50 calls/min; "The caller must have *reshare* permissions for the item" | [Create Or Update Data Access Roles](https://learn.microsoft.com/en-us/rest/api/fabric/core/onelake-data-access-security/create-or-update-data-access-roles) (ms.date 2022-12-28; updated 2026-11-10) |
+| Identity table | `User` — Yes; `Service principal and Managed identities` — Yes | same page |
+| Preview or GA (bulk `PUT`) | No `preview` parameter: across all five operations the OpenAPI carries only `dryRun`, `continuationToken` and `dataAccessRoleConflictPolicy`. The Learn pages for the single-role operations were not re-read here, so §4's `?preview=true` is unconfirmed by the spec rather than contradicted by it | same page, and `platform/swagger.json` |
+| Under `/v1/admin`? | No. The path sits under `/v1/workspaces/…`. The `admin` group's role paths are `domains/{domainId}/roleAssignments` and `connections/{connectionId}/roleAssignments` — nothing for item data roles | `admin/swagger.json` (60 operations) |
+| Audit name | `CreateOrUpdateDataAccessRoles` — "Creates or updates data access roles"; and `ListDataAccessRoles` — "Returns a list of data access roles" | [Operation list](https://learn.microsoft.com/en-us/fabric/admin/operation-list) (ms.date 2026-11-12, updated 2026-11-10) |
+| Is auditing documented at all | "For OneLake control-plane activities, such as changes to security roles, shortcuts, sharing, lifecycle policies, and storage tiers, use the Fabric audit log." | [Data security overview](https://learn.microsoft.com/en-us/fabric/onelake/security/get-started-security) (ms.date 2026-09-01, updated 2026-09-29) |
+| `UpdateArtifactRoles` elsewhere | One Learn page only — the operation list. GitHub code search returns six files, of which the only Microsoft one is `MicrosoftDocs/fabric-docs/docs/admin/operation-list.md`; no SDK, provider or spec refers to it | GitHub code search, 2026-11-12 |
+| Before/after fields | The Power BI audit schema that Fabric events extend adds twelve properties — `AppName`, `DashboardName`, `DataClassification`, `DatasetName`, `ActivityStatus`, `MigrationTriggerType`, `MembershipInformation`, `OrgAppPermission`, `ReportName`, `SharingInformation`, `SwitchState`, `WorkSpaceName` — and none is a previous/current value pair. `ModifiedProperties`, `OldValue` and `NewValue` appear in that document only under other workloads' schemas | [Microsoft 365 Management Activity schema](https://learn.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema#power-bi-schema) |
+
+**What is still unestablished.**
+
+- **Which audit operation the `PUT` actually emits.** The operation list now carries two pairs that both read as OneLake role operations: `GetArtifactRoles`/`UpdateArtifactRoles` ("Get/Update USEC roles for an artifact", note "OneLake operation.") and `ListDataAccessRoles`/`CreateOrUpdateDataAccessRoles`. "USEC" is still never expanded, so "it is the legacy internal name for the same write" is not excluded. Name-matching is evidence, not identity: `ListDataAccessRoles` is described as "Returns a list of data access roles" while the REST summary is "Returns a list of OneLake roles."
+- **Whether the record carries the role definitions.** The operation being logged is documented; the payload is not. No page read describes the contents of a `CreateOrUpdateDataAccessRoles` record, and the schema has no field shaped for one.
+- **What settles it: one tenant.** Make one role change in the portal and one through `PUT …/dataAccessRoles`, then open `purview.microsoft.com/audit/` and read `AuditData` for both records over that window. That names the operation and shows whether the role payload, prior values, or only an actor-and-item pair is present. Documentation cannot settle it, and neither can any amount of further page-reading.
+- **Verdicts:** no row in [`automation-coverage.md`](../guides/automation-coverage.md) changes. `Create OneLake security roles` stays **Gated** — the reason is `role_name` being ForceNew, not visibility. The answer does mean a role write is not invisible to an auditor, which strengthens the read-side drift check in §4 rather than the deploy case.
+
+## Answered 2026-11-12 — Does row-level security bind the Admin/Member/Contributor workspace roles in user-identity mode?
+
+**Answer.** The documentation asserts both positions and never reconciles them. Three pages state that the workspace roles are not restricted by OneLake security; one page states, as an explicit exception, that RLS in user identity mode is enforced "for all users, including those in Admin, Member, and Contributor roles". Neither statement carries the condition that would make both true — membership of the role holding the predicate — so the question is undecided on paper and needs a tenant.
+
+**Evidence** (all checked 2026-11-12). The two pages that conflict:
+
+[OneLake Security for SQL analytics endpoints](https://learn.microsoft.com/en-us/fabric/onelake/security/sql-analytics-endpoint-onelake-security) — ms.date 2026-07-22, updated 2026-09-09. Under **Limitations → Applies only to readers → Exceptions**:
+
+> "**RLS in user identity mode**: When row-level security (RLS) is configured in user identity mode, the defined security rules are enforced for all users, including those in Admin, Member, and Contributor roles."
+
+The same page, two paragraphs apart, states the general rule and then the switch note:
+
+> "OneLake security is primarily enforced for users accessing data through **Viewer**-level workspace or item access. Users with broader workspace roles such as **Admin**, **Member**, or **Contributor** retain elevated access and are not the primary target of OneLake security enforcement."
+
+> "Only users with Viewer permissions or shared read-only access are governed by OneLake security."
+
+[OneLake table, column, and row-level security](https://learn.microsoft.com/en-us/fabric/onelake/security/table-column-row-security) — ms.date 2026-08-19, updated 2026-08-19, second paragraph:
+
+> "OneLake security roles use a grant model to give access to data. You can't deny access that is granted through a different role or permission model. For that reason, these controls don't restrict access for users in the Admin, Member, and Contributor roles at the workspace level."
+
+Two further pages repeat the second position with no carve-out:
+
+| Page | Date | Sentence |
+| --- | --- | --- |
+| [Data security overview](https://learn.microsoft.com/en-us/fabric/onelake/security/get-started-security) | ms.date 2026-09-01, updated 2026-09-29 | "Workspace Admins, Members, and Contributors already have read and write permissions on all data in a workspace, so they're not affected by OneLake security roles." Its plane table adds "Admins, Members, and Contributors already have data access." |
+| [OneLake security roles, permissions, and scopes](https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model) | ms.date 2026-08-28, updated 2026-10-16 | "(Default roles apply only to Viewers, because Admin, Member, and Contributor roles have elevated access through the Write permission.)" and "Workspace Admins, Members, and Contributors retain access through their Write permission." |
+
+**Is it a real contradiction?** Tested against the four ways it could dissolve:
+
+| Candidate reconciliation | Verdict |
+| --- | --- |
+| Different modes — user identity vs default/workspace identity | **No.** The exception names user identity mode explicitly. The other pages are mode-agnostic but describe the same roles and the same predicates. |
+| Different layers — OneLake security roles vs SQL/warehouse RLS | **Partly, and it is the most useful distinction found.** The exception is on the SQL analytics endpoint page, but its own comparison table places RLS "Defined as part of OneLake security roles" under user identity mode, so this is OneLake RLS, not a `CREATE SECURITY POLICY`. It is nonetheless the *endpoint* asserting it, and the endpoint's sync service is documented as "Translating OneLake-defined policies (RLS, CLS, OLS) into equivalent SQL-compatible database role structures", propagated "with the `OLS_` prefix". If RLS binds an Admin anywhere, it will be there first; whether Spark and the other engines follow is not stated. |
+| Different product generations | **No.** All four pages are current, the newest updated 2026-10-16. |
+| Different scope — the sentence is about role membership, not about workspace role | **This is the only reading under which both are true, and neither page says it.** A grant cannot subtract; a row predicate is not a grant. The exception says "all users" with no membership condition; the other page says "these controls" with no exception. |
+
+Read strictly, the documented algebra points away from the exception. Access for these roles is not a role grant at all — it is the control plane `Write` permission ("retain access through their Write permission"), and `DefaultReader`, whose members are "All users with ReadAll permission", does not include them. `data-access-control-model` then says that across multiple roles "row-level security rules combine with an `OR` operator". With no role-derived grant to attach a predicate to, OR-ing an unrestricted grant with a predicate yields the unrestricted grant — which is the §1 grant-only model and page B. The note's earlier reconciling line, "grants don't restrict them, but a predicate they are a member of does", remains a plausible *implementation* and is not what any page states. Supporting that the exception records observed behaviour rather than designed semantics: its sibling exceptions are all cases where enforcement is unexpectedly more restrictive — "Shortcut deny behavior" and "Security sync failure cases".
+
+**What is still unestablished.**
+
+- Whether an explicit RLS predicate filters reads by a workspace Admin, Member or Contributor, in any engine. No page read states a mechanism by which a principal whose access comes from `Write` acquires a predicate.
+- **What settles it: one tenant, four observations.** A lakehouse with one table; a Viewer and an Admin; one role granting `Read` on that table with a row predicate (for example `select * from T where Region = "EMEA"`); the Admin added as an explicit member. Then compare (a) the Admin in a Spark notebook, (b) the Admin at the SQL endpoint in **User's identity access mode**, (c) the same Admin after removal from the role, (d) the Viewer in the same role. If (a) and (b) filter and (c) does not, page A is right and page B needs an RLS carve-out. If only (b) filters, the effect is SQL-endpoint-only and page A's placement is exact. If neither filters, page B is right and page A's exception is wrong.
+- **Verdicts:** no row in [`automation-coverage.md`](../guides/automation-coverage.md) changes. §7's "RLS contradiction" failure mode stands as written and now has both sides quoted with dates.

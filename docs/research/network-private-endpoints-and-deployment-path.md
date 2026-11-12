@@ -111,7 +111,10 @@ the private-link network may use the public endpoint. The tenant private API nam
   and use the tenant/workspace FQDN, with public egress still allowed for Entra. Off → a public pool works.
 - **Tenant-level or workspace-level?** Workspace-level forbids deployment pipelines and semantic models,
   needs `z{xy}` FQDNs and a different DNS zone, so the mechanism and every connection string change.
-  Tenant-level keeps deployment pipelines usable but blocks all public callers.
+  Tenant-level blocks all public callers. **Corrected 2026-11-12:** the previous sentence asserted that
+  tenant-level "keeps deployment pipelines usable". That has no source — Learn documents the
+  deployment-pipeline restriction only for *workspace*-level private link, and says nothing either way
+  for tenant level, so it is unestablished rather than settled. See the answered block below.
 - **Which DNS zones are linked to the agent VNet, and does the tenant FQDN resolve?** If not, the fallback
   is `api.fabric.microsoft.com` plus public egress — which the tenant may have forbidden. And can the agent
   reach `api.fabric.microsoft.com:443` and `login.microsoftonline.com:443`? Without the second, no service
@@ -143,6 +146,106 @@ the private-link network may use the public endpoint. The tenant private API nam
 - Whether deployment pipelines work under *tenant-level* private links — only the workspace-level block is
   documented.
 - The work tenant's actual settings, DNS, capacity SKUs and item inventory.
+
+## Answered 2026-11-12 — are deployment pipelines supported under tenant-level private link?
+
+**Learn does not say.** The deployment-pipeline block is documented only for *workspace-level* private
+link. The tenant-level pages mention deployment pipelines nowhere — not in the supported-experience
+list, not in the "Other considerations and limitations" list — so the workspace-level block must not be
+read across, and there is equally no documented statement that tenant level is fine. Documentation
+settles only this: the restriction Microsoft chose to write down is workspace-scoped.
+
+### The only sentences that mention it, all workspace-scoped
+
+- "The following item types aren't currently supported in workspaces enabled with workspace-level private links: … **Deployment pipelines**" ([workspace-level support][ws-support], ms.date 2026-10-13).
+- "If any workspace in a deployment pipeline is set to deny public access (restricted), deployment pipelines can't connect to that workspace. Configuring inbound restriction is blocked for any workspace that is assigned to a pipeline." (same page)
+- "Deployment pipelines aren't currently supported for workspace with inbound access protection." Repeated in that page's limitations list as "Deployment pipelines are currently not supported with workspace inbound access protection." ([CI/CD network security][cicd], ms.date 2025-12-15, updated 2026-09-29)
+
+Every sentence says *workspace*. None says *tenant*.
+
+### What each page checked contains (all read 2026-11-12)
+
+| Page | ms.date (updated) | Deployment pipelines mentioned? |
+| --- | --- | --- |
+| [Tenant-level overview][pl] | 2026-10-13 (2026-10-15) | No. 16 experience sections and 17 limitation bullets; neither names them |
+| [Tenant-level setup][pl-use] | 2025-08-13 (2026-09-29) | No. "some unsupported Fabric items become disabled … learn the full list" → that list omits them |
+| [Workspace-level support][ws-support] | 2026-10-13 (2026-10-15) | Yes — unsupported items list and the management-options note |
+| [Workspace-level overview][ws-overview] | 2026-05-26 (2026-05-27) | No (FQDN/resolution table only; its "can only connect to the specific workspace" row is the mechanism that bites) |
+| [Inbound overview][inbound] | 2026-01-27 (2026-10-15) | No. Table 1's nine rows have no pipeline row |
+| [CI/CD network security][cicd] | 2025-12-15 (2026-09-29) | Yes — the two workspace-scoped callouts above |
+| [Deployment pipelines intro][dp-intro] | 2026-09-24 (2026-11-06) | No. Supported-items list only |
+| [Deployment process][dp-process] | 2026-09-24 (2026-11-02) | No. Its "Considerations and limitations" is general/semantic-model/dataflow/DLP — zero network content |
+| [Assign a workspace][dp-assign] | 2025-12-15 (2026-11-02) | No. Six assignment conditions, none about networks |
+| [Pipeline automation API][dp-auto] | 2026-09-24 (2026-09-29) | No. API limitations are dataflows and Power BI options |
+| [CI/CD workflow options][dp-manage] | 2026-10-18 (2026-10-19) | No. Option 3 (deployment pipelines) carries no network caveat |
+| [Troubleshoot CI/CD][dp-trouble] | 2026-09-23 | No. Zero occurrences of "private link" or "network" |
+| [Security overview][sec-ov] / [fundamentals][sec-fund] | — | No. Zero occurrences of "deployment pipeline" |
+
+Also checked and negative: `security-workspace-level-private-links-set-up` (2026-02-04), which has 36
+occurrences of "private link" and none of "deployment pipeline".
+
+### Why the tenant case is a different question, not a weaker version of the same one
+
+1. Tenant-level blocking is conditional on **scenario support**, not on item type: "Traffic from the
+   virtual network targeting endpoints and scenarios that *don't* support private links are blocked by
+   the service" ([pl]). Whether deployment pipelines is such a scenario is precisely the unstated part.
+2. The setup page defers the list to the article that does not contain it: "When you turn on *Block
+   Internet Access*, some unsupported Fabric items become disabled. Learn the full list of limitations
+   and considerations in About private links" ([pl-use]).
+3. At workspace level the pipeline fails for **two independent reasons** — semantic models *and*
+   deployment pipelines are both unsupported ([ws-support]) — whereas tenant level supports semantic
+   models, with connection caveats ([pl]). The confound is absent at tenant level, so a workspace-level
+   failure tells you nothing about it.
+
+One false positive to avoid: the tenant-level overview has a section headed "### Pipeline". It is data
+pipelines — "use the pipeline to load data from any data source with public endpoints into a
+private-link-enabled Microsoft Fabric lakehouse" — not deployment pipelines.
+
+### Mechanism
+
+Undocumented, but one endpoint-shape fact is worth recording and one inference is not. The only
+mechanistic wording is "deployment pipelines **can't connect to that workspace**", which casts the
+pipeline service as an inbound *client* of the workspace rather than as the caller being restricted. No
+page states where that connection originates, which hostname it uses (workspace FQDN, tenant FQDN or
+`api.fabric.microsoft.com`), or whether a control-plane call from outside the VNet is involved. The
+"control-plane API from outside the VNet" explanation is plausible and consistent with the wording, but
+it is not documented; do not record it as established.
+
+The endpoint shape is documented and is a third case. The workspace-level page states the classifying
+rule — "APIs with endpoints containing `v1/workspaces/{workspaceId}` support workspace-level private
+links because they operate within the context of a specific workspace. In contrast, admin APIs use
+`admin/workspaces/{workspaceId}` … and aren't covered" ([ws-support]) — and the census shows the
+deployment-pipeline operations are neither: they are tenant-scoped,
+`POST /v1/deploymentPipelines/{deploymentPipelineId}/deploy` (`DeploymentPipelines_DeployStageContent`)
+and siblings. That is consistent with the restriction being written as an explicit item-type rule rather
+than falling out of the FQDN rule, and it is why the endpoint shape alone cannot settle the tenant case.
+
+### A contradiction this note already carries
+
+§"What this settles" used to state "Tenant-level keeps deployment pipelines usable but blocks all
+public callers", while §"What this does not establish" states that the tenant-level case is
+unestablished. The first sentence had no source behind it; it was corrected in place on 2026-11-12.
+Treat deployment pipelines under tenant-level private link as **open**, and do not use "pipelines keep
+working" as an argument for choosing tenant over workspace level.
+
+### What remains unestablished
+
+Whether the deployment pipeline service can create, assign and deploy at all when **Block Public
+Internet Access** is on at tenant scope. The observation that settles it — on a tenant with
+tenant-level private link and public access restricted, using an F-capacity workspace that holds no
+semantic models, so the workspace-level confound cannot apply:
+
+1. Create a pipeline and assign that workspace to the dev stage. Record the error code if it refuses:
+   `InboundRestrictionNotEligible` would mean the workspace-eligibility rule is being applied at tenant
+   scope; `RequestDeniedByInboundPolicy` would mean the *call* was judged out-of-network.
+2. Deploy to an empty test stage, and call
+   `POST /v1/deploymentPipelines/{deploymentPipelineId}/deploy` (`DeploymentPipelines_DeployStageContent`),
+   once from inside the VNet and once from a public host. Succeeds inside / fails outside confirms the
+   tenant path is honoured for the pipeline service; failing in both means the pipeline service is one of
+   the "scenarios that don't support private links".
+3. Note whether the workspace that a clean deploy creates is itself reachable afterwards — the docs say
+   a clean deploy creates a workspace on the capacity ([dp-process]) and say nothing about its network
+   posture.
 
 ## Sources
 
@@ -177,5 +280,14 @@ the private-link network may use the public endpoint. The tenant private API nam
 [allow]: https://learn.microsoft.com/en-us/fabric/security/fabric-allow-list-urls
 [onelake]: https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api
 [cicd]: https://learn.microsoft.com/en-us/fabric/cicd/cicd-security
+[ws-overview]: https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-overview
+[dp-intro]: https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines
+[dp-process]: https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/understand-the-deployment-process
+[dp-assign]: https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/assign-pipeline
+[dp-auto]: https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/pipeline-automation-fabric
+[dp-manage]: https://learn.microsoft.com/en-us/fabric/cicd/manage-deployment
+[dp-trouble]: https://learn.microsoft.com/en-us/fabric/cicd/troubleshoot-cicd
+[sec-ov]: https://learn.microsoft.com/en-us/fabric/security/security-overview
+[sec-fund]: https://learn.microsoft.com/en-us/fabric/security/security-fundamentals
 [linux]: https://learn.microsoft.com/en-us/azure/devops/pipelines/agents/linux-agent?view=azure-devops
 [cli]: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux

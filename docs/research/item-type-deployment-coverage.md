@@ -102,6 +102,80 @@ Its stated caveats, verbatim from the provider docs: "**Not all Fabric resources
 - Runtime behaviour of preview items, throttling headroom, or whether `fabric-cicd` will gain handlers for Org app, Graph QuerySet and Mirrored Azure Databricks Catalog.
 - Whether Terraform resources marked preview-gated actually round-trip definitions for every type; only the resource's existence was checked, not each `definition` schema.
 
+## Answered 2026-11-12 — is the "API support" table complete?
+
+**No, and it does not have to be read as if it were.** `item-management-overview` is a curated matrix
+of 37 item types; the OpenAPI spec that the REST reference is generated from declares 61 groups, 49 of
+which carry a `getDefinition`/`updateDefinition` pair. Eighteen of those 49 are absent from the matrix.
+Five of the six types the issue names — `Map`, `VariableLibrary`, `AnomalyDetector`,
+`CosmosDBDatabase`, `OperationsAgent` — have the definition pair, a Learn definition page and a place in
+both supported-items lists. `WarehouseSnapshot` has none of the three and is a different case.
+
+Census used: `docs/reference/api-operations.tsv`, **825 operations / 61 groups**, generated 2026-11-12
+from `microsoft/fabric-rest-api-specs` at commit `3f8600f` (2026-11-10). All five definition pairs below
+are `POST /workspaces/{workspaceId}/<collection>/{id}/getDefinition` and `…/updateDefinition`.
+
+| Census group | Ops | Definition operations | Learn definition page | Git list | Deployment-pipeline list |
+| --- | --- | --- | --- | --- | --- |
+| `map` | 7 | `Items_GetMapDefinition`, `Items_UpdateMapDefinition` | "Map item definition" | Maps | Maps |
+| `variableLibrary` | 7 | `Items_GetVariableLibraryDefinition`, `Items_UpdateVariableLibraryDefinition` | "Variable Library definition" | Variable Library | Variable Library |
+| `anomalyDetector` | 7 | `Items_GetAnomalyDetectorDefinition`, `Items_UpdateAnomalyDetectorDefinition` | "Anomaly detector item definition" | Anomaly detection *(preview)* | Anomaly detection *(preview)* |
+| `cosmosDbDatabase` | 7 | `Items_GetCosmosDBDatabaseDefinition`, `Items_UpdateCosmosDBDatabaseDefinition` | "Cosmos DB Database definition" | Cosmos database *(preview)* | Cosmos database *(preview)* |
+| `operationsAgent` | 7 | `Items_GetOperationsAgentDefinition`, `Items_UpdateOperationsAgentDefinition` | "Operations agent definition" | Operations Agent *(preview)* | Operations Agent *(preview)* |
+| `warehouseSnapshot` | 5 | **none** — create, get, update, delete, list only | none | absent | absent |
+
+Sources for those columns: [item-mgmt] (37 rows, footer "Last updated on 2026-06-18", metadata
+updated 2026-11-10), [itemdef] (48 entries, two of them duplicated — Dataflow and KQL Dashboard — so
+46 distinct; updated 2026-11-11), [git-intro] (updated
+2026-11-10), [dp-intro] (updated 2026-11-06).
+
+### The matrix is right about what it lists, and silent about the rest
+
+Its 37 rows span seven experience headings — Data Factory 4, Data Engineering 7, Data Science 2, Data
+Warehouse 7, Fabric IQ 1, Power BI 7, Real-Time Intelligence 9. Thirty-one carry a definition pair in
+the census; the six that do not are exactly this note's manual-only list (`Dashboard`, `Datamart`,
+`MirroredWarehouse`, `MLExperiment`, `MLModel`, `SQLEndpoint`). That is a good consistency check on both
+sides. The failure is directional only: a type missing from the matrix is not a type missing from the
+API.
+
+The eighteen definition-carrying groups absent from the matrix are `anomalyDetector`, `apacheAirflowJob`,
+`cosmosDbDatabase`, `customStreamConnector`, `dataAgent`, `deploymentPlan`, `eventSchemaSet`,
+`graphModel`, `map`, `monitoring`, `operationsAgent`, `plan`, `platform`, `policySet`, `share`,
+`sqlDatabase`, `userDataFunction`, `variableLibrary`. Two of those are not item types — `platform` holds
+the generic `items/{itemId}/getDefinition` endpoints and `share` the OneLake data-share ones — leaving
+**16 item types** with documented definition operations that the matrix does not mention.
+
+Learn contradicts itself here independently of the census: `sqlDatabase` and `deploymentPlan` are absent
+from the matrix yet appear in **both** supported-items lists, and both have definition pages. So "not in
+the API support table" cannot even be used as a signal that a type is uncooked.
+
+### The instruction in §2 above is overturned
+
+§2 says `PolicySet`, `Monitoring` and `PostgreSQL database` "do not appear in the API support table, so
+their create support 'could not establish' — treat them as unusable". Absence from that table is not
+evidence about operations. The census gives `policySet` 16 operations and `monitoring` 9, each with the
+definition pair, and [itemdef] lists "PolicySet item definition" and "Monitoring definition". What stays
+unknown is narrower: whether those definitions round-trip, and whether a service principal may call them
+— the census explicitly cannot answer either.
+
+### What remains unestablished
+
+- **Whether any of the five definitions round-trips.** The spec proves the operations are declared; the
+  definition page proves a format is documented; neither proves `getDefinition` output is accepted back
+  by `updateDefinition`. The probe: for each type, create in a dev workspace, `getDefinition`, delete,
+  re-create with that definition, then `updateDefinition` the same payload and diff. A failure is
+  informative per type, not per group.
+- **Whether the deployment-pipeline list is UI truth.** This note already records one UI/API mismatch on
+  that page (`Dataflow`: supported in the list, "Dataflows are currently not supported" in the API). The
+  same caution applies to Maps, Anomaly detection, Operations Agent, Cosmos database and Variable
+  Library until a deploy is run.
+- **Service-principal support for all six.** Absent from the census by construction; the matrix has no row
+  for them either, so there is no author statement to quote.
+- **`WarehouseSnapshot`'s route, if any.** It has item CRUD and no definition operations, is in neither
+  supported-items list, and has no definition page. It appears to be created from a warehouse rather than
+  authored, but no page checked says how it may be deployed; treat it as manual and out of scope for the
+  23-type promise.
+
 ## Sources
 
 | Source | What it was used for | Dated |

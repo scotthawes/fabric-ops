@@ -86,7 +86,7 @@ Three columns of judgement:
 | Semantic-model RLS roles | Partial | XMLA read-write + TMSL | No REST operation; an SP can create roles but not be a role member |
 | Rebinding a report / dataset takeover | Auto | Power BI `Rebind Report`, `TakeOver` | Legacy audience; Write + Build on the target |
 | Publish a workspace app | Manual | Portal only | The `Apps` group is eight reads |
-| Create OneLake security roles | Gated | `fabric_onelake_data_access_security` (preview) | `role_name` is ForceNew — rename is destroy/create |
+| Create OneLake security roles | Gated | `fabric_onelake_data_access_security` (preview) | `role_name` is ForceNew — rename is destroy/create. The preview is the *provider*, not the capability: `PUT …/items/{itemId}/dataAccessRoles` is GA and service-principal supported (checked 2026-11-12) |
 
 ## The API surface underneath
 

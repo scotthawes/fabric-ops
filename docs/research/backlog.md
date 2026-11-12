@@ -13,7 +13,6 @@ Anything answered since the note was written is struck through with a pointer.
 
 | Question | Raised by | Needs | Status |
 | --- | --- | --- | --- |
-| Is the API support table complete? It omits `Map`, `VariableLibrary`, `AnomalyDetector`, `CosmosDBDatabase`, `OperationsAgent`, `WarehouseSnapshot` and others with definition pages | item coverage | Learn + probe | open |
 | Does a service principal need a Fabric or Power BI licence? | identity | deploy, or support case | open |
 | Can an SP hold capacity **Contributor**, directly or through a group? | capacity | tenant | open |
 | Does a group containing only service principals satisfy both Admin API allow-lists? | identity | tenant | open |
@@ -21,15 +20,15 @@ Anything answered since the note was written is struck through with a pointer.
 | What does Fabric display for an assignment whose Entra group was purged? | governance | tenant | open |
 | What does a scheduled refresh do when its capacity is paused? | capacity | tenant | open |
 | Does a prepaid yearly reservation keep billing while paused? | capacity | billing question | open |
-| Are deployment pipelines supported under **tenant-level** private link? | network | Learn + tenant | open |
+| Are deployment pipelines supported under **tenant-level** private link? | network | tenant — **documentation exhausted 2026-11-12: restriction is documented at workspace scope only; tenant pages never mention deployment pipelines** | open |
 | Do the Terraform provider and `fabric-cicd` honour `HTTP_PROXY`? | network | vendor docs or test | open |
 | Does an ARM/Terraform-created capacity default overage to on, at 25%? | capacity | tenant | open |
 | Do Terraform item resources round-trip every definition, or only create? | deployment | probe per type | open — resource *existence* confirmed, round-trip not |
 | Is `SqlPackage` `Publish` transactional against a Fabric warehouse, and does the DDL really apply? | schema | tenant | open |
 | Does `CREATE OR ALTER` execute on the warehouse endpoint? Syntax says yes, the "applies to" table says no | schema | tenant | open |
 | Can warehouse `MERGE` tolerate new source columns at all? | schema | tenant | open |
-| Is `UpdateArtifactRoles` the write path for OneLake roles, and is it audited with before/after values? | OneLake security | Learn | open |
-| Does RLS bind Admin/Member/Contributor in user-identity mode? Two Learn pages state opposite things | OneLake security | Learn + tenant | open |
+| ~~Is `UpdateArtifactRoles` the write path for OneLake roles~~ — **no: audit name only; the write path is `PUT …/dataAccessRoles` (GA, SP supported)**. Residual: does the audit record carry before/after role definitions? | OneLake security | tenant | open |
+| Does RLS bind Admin/Member/Contributor in user-identity mode? Two Learn pages state opposite things | OneLake security | tenant — **documentation exhausted 2026-11-12: both pages re-read, contradiction genuine, neither states the reconciling condition** | open |
 | Is `DefaultReader` recreated after deletion, and does the 250-role cap count it? | OneLake security | tenant | open |
 | Does an API-created item referencing a lakehouse count as "created from" for label inheritance? | labels | tenant | open |
 | Does `Update Item Definition` preserve an existing label? | labels | tenant | open |
