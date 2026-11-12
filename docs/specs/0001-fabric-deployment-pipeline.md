@@ -1,6 +1,7 @@
 # Spec 0001 — Fabric deployment pipeline for the work repo
 
 - **Status:** draft — seams need confirming before tickets
+- **Tickets:** [issue #1](https://github.com/scotthawes/fabric-ops/issues/1) is this spec; the work is issues #2–#12, published with native blocking edges. Only #2 is startable.
 - **Date:** 2026-11-12
 - **Derived from:** [recommendations](../recommendations/), [ADRs 0002–0006](../adr/), and the six research notes
 - **Builds in:** the work repo (Azure Repos, same ADO organisation) — **not** this repository, per [ADR 0001](../adr/0001-research-artefact-not-deployment-tool.md)
