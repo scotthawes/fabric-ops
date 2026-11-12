@@ -81,7 +81,7 @@ Ordered by how much they would change what the team does.
 20. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant,
     and what has to change before launch. _(done 2026-11-12 — F64 licence cliff)_
 21. **Purview and lineage.** What governance metadata Fabric emits, what is automatable, and what
-    stays human. _(in progress 2026-11-12)_
+    stays human. _(done 2026-11-12)_
 22. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 

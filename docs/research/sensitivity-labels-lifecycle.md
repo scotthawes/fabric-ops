@@ -201,6 +201,14 @@ items as a warning, never as a failed deploy.
   SP-created items.
 - The exact error text when Git refuses to export a labelled item, and the error code behind an `ApplyOrFail` failure.
 
+## Correction — 2026-11-12
+
+There is now an admin operation for Fabric items: `POST /v1/admin/items/bulkSetLabels`. Two things
+stop it being the answer: its identity table lists service-principal support as **No**, and the Learn
+page for it 404s at the time of writing. So this note's conclusion stands — labels are not a deployed
+property — but the gap is now narrower than "no operation exists". See
+[`purview-and-lineage.md`](purview-and-lineage.md).
+
 ## Sources
 
 | Source | What it was used for |

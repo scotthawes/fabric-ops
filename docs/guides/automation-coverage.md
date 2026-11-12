@@ -29,8 +29,12 @@ Three columns of judgement:
 | Set a tenant setting | Gated | `fabric_tenant_setting` | No `import`; `delete_behaviour` defaults to `NoChange` |
 | Create a domain | Gated | `fabric_domain` | Requires Fabric administrator; app must have no admin-consented Fabric permission |
 | Assign workspaces to a domain | Auto | `fabric_domain_workspace_assignments` (preview) | Preview-gated, provider-wide flag |
-| Apply a sensitivity label | Partial | `setLabels` (Power BI artifacts only) | Covers dashboards, reports, datasets, dataflows; no Fabric-native items; no API for an existing Fabric item |
-| Endorse an item (promoted/certified) | Manual | Portal | No documented API |
+| Apply a sensitivity label | Partial | `setLabels` (Power BI artifacts only); `POST /v1/admin/items/bulkSetLabels` for Fabric items | The bulk operation exists but its identity table says Service principal **No**, and the Learn page 404s — treat as unavailable until it works |
+| Set an item description | Auto | `Update Item` | The only governance metadata a pipeline can write routinely |
+| Apply tags to an item | Auto | `Tags_ApplyTags` | Service principal supported |
+| Endorse an item (promoted / certified) | Manual | Portal | Zero "endorse" operations across all 61 spec groups; no schema field |
+| Set item ownership | Manual | Portal | `creatorPrincipal` is read-only; no operation sets it |
+| Export governance metadata to Purview | Auto | Purview **Fabric** source scan | Pull via scanner/admin APIs; needs an active Purview account; item-level only outside Power BI |
 
 ## Workspaces and access
 
