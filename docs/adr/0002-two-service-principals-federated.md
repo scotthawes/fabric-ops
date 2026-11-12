@@ -34,6 +34,13 @@ from a pipeline stage with an approval gate.
 - Confirmed 2026-11-12: the Fabric Terraform provider supports federated credentials (`use_oidc`,
   and `azure_devops_service_connection_id` for ADO), so the whole control plane can run without a
   secret — the identity design does not need a client secret anywhere.
+- **Confirmed 2026-11-12: every Entra and ADO operation this design needs is app-only capable** —
+  group create and membership, app registration, service principal, and the federated credential
+  itself (`POST /applications/{id}/federatedIdentityCredentials`, which hangs off the application,
+  not the service principal). Two steps are human-only and cannot be scripted by us: a **Privileged
+  Role Administrator** must consent the Graph application permissions, and a **Project Collection
+  Administrator** must add the first service principal to the ADO organisation. Everything after
+  those two is code.
 - The boundary is narrower, not absolute: `sp-fabric-admin` still needs workspace Admin, so it
   can deploy too. Accept it, and keep it off the merge path.
 - Day-to-day friction: any pipeline that does both jobs needs two service connections, and a

@@ -76,6 +76,13 @@ that outlives the person who made it is the main risk this pack carries.
   security group membership and the toggle, which are two separate things that fail alike.
 - **Still unknown:** whether a service principal needs a Fabric or Power BI licence. The first
   real deploy answers it; note the answer here.
+- **Two steps are human-only, and they are consent, not configuration.** A Privileged Role
+  Administrator must consent the Graph application permissions, and a Project Collection
+  Administrator must add the first service principal to the ADO organisation. Everything after
+  those two is scriptable.
+- **Order matters on the ADO side:** the workload-identity service connection must be created with
+  `creationMode: Manual` *before* the Entra federated credential exists, and the credential hangs off
+  the **application**, not the service principal.
 
 ## 5. Groups and naming
 

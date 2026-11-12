@@ -36,8 +36,8 @@ Anything answered since the note was written is struck through with a pointer.
 ## B. Topics not yet researched
 
 0. **Entra and Azure DevOps operations.** The ~10 Graph operations and ~6 ADO operations this design
-   actually calls, with their scopes and whether an app-only principal can perform them. This is the
-   last unverified mechanism in the pack. _(in progress 2026-11-12)_
+   actually calls, with their scopes and whether an app-only principal can perform them.
+   _(done 2026-11-12 — all app-only capable; two admin-consent steps are human-only)_
 
 
 Ordered by how much they would change what the team does.
