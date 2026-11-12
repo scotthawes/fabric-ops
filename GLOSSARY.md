@@ -14,8 +14,9 @@ from the machine this repo lives on, which is signed into a personal tenant inst
 
 **Work repo**
 The repository that actually deploys: it owns the Azure DevOps pipeline, the service
-connection, Terraform state and environment topology. This repo carries findings *to* it and
-never becomes it.
+connection, Terraform state and environment topology. It is a separate project with its own charter
+([ADR 0001](docs/adr/0001-research-artefact-not-deployment-tool.md), amended 2026-11-12); this repo
+carries findings *to* it and never becomes it.
 
 **Trial capacity**
 The free, time-limited Fabric capacity used for experimentation. Useful for learning
@@ -45,6 +46,15 @@ and the item-definition APIs all operate on.
 **Domain**
 A tenant-level grouping of workspaces used for governance, so administration can be
 delegated by business area rather than workspace by workspace.
+
+**Monitoring Item**
+The Fabric item that holds a workspace's telemetry: an Eventstream, a read-only KQL database and an
+Activator. Its Eventhouse destination cannot be changed after configuration, and only one Monitoring
+Item can collect for a workspace at a time.
+
+**Eventhouse**
+A Fabric item holding a KQL database. Here it is the store for capacity events, retained for as long
+as its data policy says rather than the metrics app's 14-day compute view.
 
 **Capacity overage**
 A billing allowance that lets a capacity exceed its provisioned units and charges the excess at

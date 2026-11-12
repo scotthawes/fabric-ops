@@ -191,6 +191,9 @@ Four corrections and one refinement, kept here rather than rewritten into the se
   `Microsoft.Fabric` and the Capacity Metrics app cannot alert; the machine-readable route is Real-Time
   hub events. "Weekly, scheduled" implies an event pipeline that does not exist in this pack's design;
   otherwise the operation is a human reading a portal page.
+  **Proposed 2026-11-12:** [ADR 0009](../adr/0009-observability-is-event-sourced.md) would make it an
+  Eventhouse on its own capacity, queried by the review, with retention set to outlive a quarter.
+  Until that capacity exists the operation is manual, and should be labelled so.
 - **One refinement worth taking:** put the prod *plan* in the last job of the test stage, because ADO
   evaluates an environment's approval checks when the stage begins, not when the job does.
 

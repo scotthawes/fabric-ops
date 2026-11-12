@@ -61,3 +61,15 @@ service principal holds capacity **Contributor** so it can assign workspaces.
 - **This is a cheap decision to reverse:** creating a second SKU and reassigning a workspace is
   an afternoon's work. Revisit it if production is throttled by non-production traffic twice,
   or when a single workload needs more than the shared SKU can smooth.
+
+## Amendment 2026-11-12 — one exception, for monitoring
+
+[ADR 0009](0009-observability-is-event-sourced.md) (proposed) would put the central monitoring Eventhouse on its
+own capacity, because Activator alerts "respect the capacity state and can be throttled" — so a monitoring
+path sharing this SKU degrades exactly when the capacity is in trouble, and its ingestion competes with
+the workloads it measures. That is the only exception to the single-capacity rule, and it is a second
+and smaller SKU, not a second estate.
+
+The revisit trigger above gains a sibling: production throttled by non-production traffic twice, **or**
+an incident in which monitoring data or alerts lagged the capacity event behind it.
+
