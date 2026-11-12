@@ -1,12 +1,17 @@
 # Illustrative Azure DevOps pipeline — fabric-ops, 2026-11-11. Not runnable from this repo.
 #
 # Assumptions, all true in the work repo first: Azure Repos in the same ADO organisation as the dev
-# workspace's Git integration (ADR 0005); self-hosted Linux agents; two federated connections with no
-# secret (ADR 0002) — sc-fabric-admin -> sp-fabric-admin (roles only) and sc-fabric-deploy ->
-# sp-fabric-deploy (items only); approval on the ADO Environment `fabric-sales-forecast-prod` with
-# dev/test unchecked; Terraform state in Azure Storage, one key per environment. Deploy stages are
+# workspace's Git integration (ADR 0005); self-hosted Linux agents (terraform, python3+pip, az CLI
+# >= 2.30, git >= 2.9.0); two federated connections with no secret (ADR 0002) — sc-fabric-admin ->
+# sp-fabric-admin (roles only) and sc-fabric-deploy -> sp-fabric-deploy (items only); approval on the
+# ADO Environment `fabric-sales-forecast-prod` with dev/test unchecked; Terraform state in Azure
+# Storage, one key per environment. Deploy stages are
 # written once and expanded at compile time: the three `deployOrder` entries ARE DeployDev,
 # DeployTest and DeployProd, chained in order.
+#
+# THE GATE IS THE `environment:` LINE BELOW. Remove it and the stage deploys ungated, silently.
+# An approval that times out marks the stage *skipped*, not failed — check the stage result, not
+# just the pipeline's overall colour.
 
 trigger: { branches: { include: [main] } }
 pool: { name: fabric-self-hosted }

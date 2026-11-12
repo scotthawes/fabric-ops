@@ -6,134 +6,125 @@
 
 ## Short answer
 
-One primitive does the identity work: an **Azure Resource Manager** service connection with the **Workload identity federation** credential, which
-hands the job a short-lived assertion and stores no secret. Everything else is generic ADO machinery, and its edges are quiet rather than loud: a
-stage with no `environment:` has no approval and no error, a wrong federated subject fails only at token exchange, and a stage behind a failed
-dependency reports "skipped", not "failed".
+One primitive does the identity work: an **Azure Resource Manager** service connection with the **Workload identity federation** credential, which hands the job a short-lived
+assertion and stores no secret. Everything else is generic ADO machinery, and its edges are quiet rather than loud: a stage with no `environment:` has no approval and no
+error, a wrong federated subject fails only at token exchange, and a stage behind a failed dependency reports "skipped", not "failed".
 
 ## Detail
 
 ### 1. Service connections
 
-**There is no Fabric service connection type.** The list of default connection types (ms.date 2026-10-15) runs from Azure Classic to Visual Studio App
-Center — 25 entries including Azure DevOps, Azure Resource Manager, Generic, Jenkins, Kubernetes, SSH — with no Fabric, Power BI or Microsoft 365
-entry. People look for a "Microsoft Fabric", "Power BI" or workspace-scoped connection, or for the **Azure DevOps** type, which is real but connects
-*to Azure DevOps* (PAT-free repo and feed access), not to Fabric. The correct choice is **Azure Resource Manager**.
+**There is no Fabric service connection type.** The list of default connection types (ms.date 2026-10-15) runs from Azure Classic to Visual Studio App Center — 25 entries
+including Azure DevOps, Azure Resource Manager, Generic, Jenkins, Kubernetes, SSH — with no Fabric, Power BI or Microsoft 365 entry. People look for a "Microsoft Fabric",
+"Power BI" or workspace-scoped connection, or for the **Azure DevOps** type, which is real but connects *to Azure DevOps* (PAT-free repo and feed access), not to Fabric. The
+correct choice is **Azure Resource Manager**.
 
-That type offers three credentials. **Workload identity federation** is recommended — "App registration (automatic)", "Managed identity", or "App
-registration or managed identity (manual)" — because it "eliminates the need for secrets and secret management". A **service principal key** survives
-in the manual and legacy-automatic flows, "for backwards compatibility and edge cases and not recommended". A **certificate** appears only in the ADO
-**Server 2022** manual flow, where `Credential` is `Service Principal Key` or `Certificate`; the Services federation flows do not offer it.
+That type offers three credentials. **Workload identity federation** is recommended — "App registration (automatic)", "Managed identity", or "App registration or managed
+identity (manual)" — because it "eliminates the need for secrets and secret management". A **service principal key** survives in the manual and legacy-automatic flows, "for
+backwards compatibility and edge cases and not recommended". A **certificate** appears only in the ADO **Server 2022** manual flow; there the `Credential` field takes
+`Service Principal Key` or `Certificate`, and the Services federation flows do not offer it.
 
-Manual creation, the reliable route when ADO may not create the app: create the app registration; create the connection as "App registration or
-managed identity (manual)" + "Workload identity federation"; copy the generated **Issuer** and **Subject identifier**; **Keep as draft**; in Entra go
-**Certificates & secrets > Federated credentials > Add credentials > Other issuer**, `Type` = *Explicit subject identifier*, paste both, save; back in
-ADO **Finish setup > Verify and save**. The order is forced: "the federated credential can only be created after the service connection is created".
+Manual creation, the reliable route when ADO may not create the app: create the app registration; create the connection as "App registration or managed identity (manual)" +
+"Workload identity federation"; copy the generated **Issuer** and **Subject identifier**; **Keep as draft**; in Entra go **Certificates & secrets > Federated credentials > Add
+credentials > Other issuer**, `Type` = *Explicit subject identifier*, paste both, save; back in ADO **Finish setup > Verify and save**. The order is forced: "the federated
+credential can only be created after the service connection is created".
 
 - Entra issuer (new connections, default): `https://login.microsoftonline.com/<tenant id>/v2.0`; subject
   `<microsoft entra prefix>/sc/<organization id>/<service connection id>`.
-- Azure DevOps issuer (deprecated, retires 2027-07-01): `https://vstoken.dev.azure.com/<org id>`; subject
-  `sc://<organization name>/<project name>/<service connection name>`.
+- Azure DevOps issuer (deprecated, retires 2027-07-01): `https://vstoken.dev.azure.com/<org id>`; subject `sc://<organization name>/<project name>/<service connection name>`.
 
-Entra matches `issuer` and `subject` against the token's `iss` and `sub`; `audiences` takes a single value, recommended `api://AzureADTokenExchange`.
-No wildcards; 20 credentials maximum per app.
+Entra matches `issuer` and `subject` against the token's `iss` and `sub`; `audiences` takes a single value, recommended `api://AzureADTokenExchange`. No wildcards; 20
+credentials maximum per app.
 
-What the pipeline receives: `addSpnToEnvironment: true` on `AzureCLI@2` "adds the service principal ID, service principal key or workload identity
-federation token, and tenant ID … You can use the `servicePrincipalId`, `servicePrincipalKey` or `idToken`, and `tenantId` variables", honoured "only
-when the Azure endpoint has service principal authentication scheme or workload identity federation authentication scheme". The inputs that matter are
-`azureSubscription` (alias `connectedServiceNameARM`), `scriptType`, `scriptLocation`, `inlineScript`/`scriptPath` and `addSpnToEnvironment` (default
-`false`). Two standing hazards: connections "have standing access to the services they connect to", and ADO "might automatically disable connections
-that you didn't use for 100 days". `Grant access permission to all pipelines` "isn't recommended".
+What the pipeline receives: `addSpnToEnvironment: true` on `AzureCLI@2` "adds the service principal ID, service principal key or workload identity federation token, and tenant
+ID … You can use the `servicePrincipalId`, `servicePrincipalKey` or `idToken`, and `tenantId` variables", honoured "only when the Azure endpoint has service principal
+authentication scheme or workload identity federation authentication scheme". The inputs that matter are `azureSubscription` (alias `connectedServiceNameARM`), `scriptType`,
+`scriptLocation`, `inlineScript`/`scriptPath` and `addSpnToEnvironment` (default `false`). Two standing hazards: connections "have standing access to the services they connect
+to", and ADO "might automatically disable connections that you didn't use for 100 days". `Grant access permission to all pipelines` "isn't recommended".
 
 ### 2. Approvals and checks
 
-Checks attach to **resources, never to YAML**: "Approvals and other checks aren't defined in the yaml file. Users modifying the pipeline yaml file
-can't modify the checks performed before start of a stage." Eligible resources are environments, service connections, repositories, variable groups,
-secure files and agent pools, evaluated in order: static checks (Branch control, Required template, Evaluate artifact), pre-check approvals, dynamic
-checks (Approval, Invoke Azure Function, Invoke REST API, Business Hours, Query Azure Monitor alerts), post-check approvals, Exclusive lock.
+Checks attach to **resources, never to YAML**: "Approvals and other checks aren't defined in the yaml file. Users modifying the pipeline yaml file can't modify the checks
+performed before start of a stage." Eligible resources are environments, service connections, repositories, variable groups, secure files and agent pools, evaluated in order:
+static checks (Branch control, Required template, Evaluate artifact), pre-check approvals, dynamic checks (Approval, Invoke Azure Function, Invoke REST API, Business Hours,
+Query Azure Monitor alerts), post-check approvals, Exclusive lock.
 
-**A per-stage approval is an environment approval.** An **Approvals** check on `fabric-sales-forecast-prod` gates the stage whose deployment job
-targets that environment, and only that one; a stage that lost its `environment:` is never gated and never complains. Settings are **Approvers**,
-**instructions for the approvers**, "permit or restrict approvers from approving their own runs", and **Timeout**. The trap: "If approvals aren't
-completed within the specified Timeout, the stage is marked as skipped." The approver list is frozen at check start. A rejection is final ("A single
-final negative decision causes the pipeline to be denied access and the stage to fail"); Branch control fails a stage and needs `refs/heads/<branch
-name>` fully qualified; Business Hours *fails* rather than skips; Exclusive lock is opt-in via `lockBehavior` = `runLatest` (default) or `sequential`.
+**A per-stage approval is an environment approval.** An **Approvals** check on `fabric-sales-forecast-prod` gates the stage whose deployment job targets that environment, and
+only that one; a stage that lost its `environment:` is never gated and never complains. Settings are **Approvers**, **instructions for the approvers**, "permit or restrict
+approvers from approving their own runs", and **Timeout**. The trap: "If approvals aren't completed within the specified Timeout, the stage is marked as skipped." The approver
+list is frozen at check start. A rejection is final ("A single final negative decision causes the pipeline to be denied access and the stage to fail"); Branch control fails a
+stage and needs `refs/heads/<branch name>` fully qualified; Business Hours *fails* rather than skips; Exclusive lock is opt-in via `lockBehavior` = `runLatest` (default) or
+`sequential`.
 
-The record is the `Approval` object — `status`, `createdOn`, `lastModifiedOn`, `minRequiredApprovers`, `instructions`, `blockedApprovers`, and
-`steps[]` with `assignedApprover`, `actualApprover`, `comment`, `initiatedOn`, `lastModifiedOn`, `history`. Who and when are there; **what ran is
-not** — that is the run and the environment's **Deployments** history, which is why the run link is the audit trail.
+The record is the `Approval` object — `status`, `createdOn`, `lastModifiedOn`, `minRequiredApprovers`, `instructions`, `blockedApprovers`, and `steps[]` with
+`assignedApprover`, `actualApprover`, `comment`, `initiatedOn`, `lastModifiedOn`, `history`. Who and when are there; **what ran is not** — that is the run and the
+environment's **Deployments** history, which is why the run link is the audit trail.
 
 ### 3. Identity in the pipeline
 
-`$idToken` is a token for the Entra audience `api://AzureADTokenExchange`; each tool exchanges it for a token for *its own* resource, so one
-connection can serve Terraform, the CLI and fabric-cicd — but the access tokens are not interchangeable, and an ARM token is useless to Fabric.
+`$idToken` is a token for the Entra audience `api://AzureADTokenExchange`; each tool exchanges it for a token for *its own* resource, so one connection can serve Terraform,
+the CLI and fabric-cicd — but the access tokens are not interchangeable, and an ARM token is useless to Fabric.
 
-- **Azure CLI**: nothing extra; `AzureCLI@2` logs in itself. Needs Azure CLI **2.30 or later**, or the agent fails with
-  `unrecognized arguments: --federated-token`.
-- **Terraform**: `ARM_USE_OIDC=true`, `ARM_CLIENT_ID=$servicePrincipalId`, `ARM_TENANT_ID=$tenantId`, `ARM_OIDC_TOKEN=$idToken` — azurerm provider
-  inputs documented by **HashiCorp, not Microsoft**, so outside this note's permitted sources and unverified here.
+- **Azure CLI**: nothing extra; `AzureCLI@2` logs in itself. Needs Azure CLI **2.30 or later**, or the agent fails with `unrecognized arguments: --federated-token`.
+- **Terraform**: `ARM_USE_OIDC=true`, `ARM_CLIENT_ID=$servicePrincipalId`, `ARM_TENANT_ID=$tenantId`, `ARM_OIDC_TOKEN=$idToken` — azurerm provider inputs documented by
+  **HashiCorp, not Microsoft**, so outside this note's permitted sources and unverified here.
 - **Python SDK**: an `azure-identity` credential built from the same three values, then a token for `https://api.fabric.microsoft.com/.default`.
 
-The assertion expires before long jobs finish: `AADSTS700024: Client assertion is not within its valid time range` "if the error happens after
-approximately 1 hour". Re-acquire per long step.
+The assertion expires before long jobs finish: `AADSTS700024: Client assertion is not within its valid time range` "if the error happens after approximately 1 hour".
+Re-acquire per long step.
 
 ### 4. Agent requirements
 
-The 4.x Linux agent is .NET 8 based, supported on Debian 12, Ubuntu 20.04/22.04/24.04, RHEL 8/9, Oracle Linux 8/9, Fedora 39/40, openSUSE 15.5/15.6,
-SUSE 15.5, Azure Linux 2.0 and Alpine 3.17–3.20, and needs **Git 2.9.0 or higher**; `./bin/installdependencies.sh` covers the rest. The image must
-also carry **azure CLI ≥ 2.30** ("if you are using private agents, install Azure CLI on the computer(s) that run the build and release agent"),
-**terraform** and **python3 + pip**.
+The 4.x Linux agent is .NET 8 based, supported on Debian 12, Ubuntu 20.04/22.04/24.04, RHEL 8/9, Oracle Linux 8/9, Fedora 39/40, openSUSE 15.5/15.6, SUSE 15.5, Azure Linux 2.0
+and Alpine 3.17–3.20, and needs **Git 2.9.0 or higher**; `./bin/installdependencies.sh` covers the rest. The image must also carry **azure CLI ≥ 2.30** ("if you are using
+private agents, install Azure CLI on the computer(s) that run the build and release agent"), **terraform** and **python3 + pip**.
 
-There is **no built-in Terraform tool installer** in the task reference's Tool tasks, which do include `UsePythonVersion@0`, `NodeTool@0`, `GoTool@0`,
-`JavaToolInstaller@1`, `KubectlInstaller@0`, `HelmInstaller@1`, `DockerInstaller@0`. So Terraform is baked into the image or installed by script; for
-a stable pool, bake it. Capabilities are snapshotted: "After you install new software on an agent, you must restart the agent for the new capability
-to show up."
+There is **no built-in Terraform tool installer** in the task reference's Tool tasks, which do include `UsePythonVersion@0`, `NodeTool@0`, `GoTool@0`, `JavaToolInstaller@1`,
+`KubectlInstaller@0`, `HelmInstaller@1`, `DockerInstaller@0`. So Terraform is baked into the image or installed by script; for a stable pool, bake it. Capabilities are
+snapshotted: "After you install new software on an agent, you must restart the agent for the new capability to show up."
 
-Network, per the Linux-agent firewall FAQ: `https://dev.azure.com`, `https://*.dev.azure.com`, `https://login.microsoftonline.com` ("Microsoft Entra
-sign-in"), `https://management.core.windows.net` ("Azure Management APIs") and `https://download.agent.dev.azure.com`, on port 443, plus port 22 only
-for SSH git. Proxy is set at configuration (`--proxyurl`, `--proxyusername`, `--proxypassword`, `--usebasicauthforproxy`) with a `.proxybypass` file
-of ECMAScript regexes — but "many tools do not automatically use the agent configured proxy settings … `curl` and `dotnet` may require proxy
-environment variables such as `http_proxy`". Terraform and pip are in that category.
+Network, per the Linux-agent firewall FAQ: `https://dev.azure.com`, `https://*.dev.azure.com`, `https://login.microsoftonline.com` ("Microsoft Entra sign-in"),
+`https://management.core.windows.net` ("Azure Management APIs") and `https://download.agent.dev.azure.com`, on port 443, plus port 22 only for SSH git. Proxy is set at
+configuration (`--proxyurl`, `--proxyusername`, `--proxypassword`, `--usebasicauthforproxy`) with a `.proxybypass` file of ECMAScript regexes — but "many tools do not
+automatically use the agent configured proxy settings … `curl` and `dotnet` may require proxy environment variables such as `http_proxy`". Terraform and pip are in that
+category.
 
 ### 5. Secrets
 
-Variable groups share values across pipelines; secret variables are "encrypted at rest with a 2048-bit RSA key", are not auto-exported as environment
-variables, and must be mapped per task. Masking is best-effort: "We make an effort to mask secrets … We never mask substrings of secrets. If, for
-example, "abc123" is set as a secret, "abc" isn't masked" — hence "secrets should not contain structured data". A Key Vault–linked group maps "only
-the secret names … not the secret values", fetches at run time, supports secrets only, and rejects RBAC vaults behind private endpoints.
+Variable groups share values across pipelines; secret variables are "encrypted at rest with a 2048-bit RSA key", are not auto-exported as environment variables, and must be
+mapped per task. Masking is best-effort: "We make an effort to mask secrets … We never mask substrings of secrets. If, for example, "abc123" is set as a secret, "abc" isn't
+masked" — hence "secrets should not contain structured data". A Key Vault–linked group maps "only the secret names … not the secret values", fetches at run time, supports
+secrets only, and rejects RBAC vaults behind private endpoints.
 
-Nothing here needs to be a secret, and that is achievable: both identities are federated, Terraform reaches state with `ARM_USE_OIDC` (avoid
-`ARM_ACCESS_KEY`; grant the SP a data-plane role), and fabric-cicd uses the same assertion. Conditional on every external system the pipeline touches
-being Entra-authenticated; a non-Azure dependency reintroduces a secret, and a variable group or Key Vault link.
+Nothing here needs to be a secret, and that is achievable: both identities are federated, Terraform reaches state with `ARM_USE_OIDC` (avoid `ARM_ACCESS_KEY`; grant the SP a
+data-plane role), and fabric-cicd uses the same assertion. Conditional on every external system the pipeline touches being Entra-authenticated; a non-Azure dependency
+reintroduces a secret, and a variable group or Key Vault link.
 
 ### 6. Pipeline structure
 
-A **deployment job** targets an `environment`, records deployment history and applies a strategy — `runOnce`, `rolling`, `canary`, with `rolling`
-VM-only. `runOnce` fits here: one target, no traffic to shift. A deployment job "doesn't automatically clone the source repo … use `checkout: self`",
-and the Download Artifact task "is auto injected only in the `deploy` hook" (suppress with `download: none`).
+A **deployment job** targets an `environment`, records deployment history and applies a strategy — `runOnce`, `rolling`, `canary`, with `rolling` VM-only. `runOnce` fits here:
+one target, no traffic to shift. A deployment job "doesn't automatically clone the source repo … use `checkout: self`", and the Download Artifact task "is auto injected only
+in the `deploy` hook" (suppress with `download: none`).
 
-Stages run in declared order unless `dependsOn` says otherwise; `dependsOn: []` runs in parallel and a list fans in. A custom `condition` "remove[s]
-the conditions for completion and success", so write `and(succeeded(), …)` unless you mean otherwise. `trigger: manual` makes a stage manually
-startable; `isSkippable: false` removes it from **Stages to run**.
+Stages run in declared order unless `dependsOn` says otherwise; `dependsOn: []` runs in parallel and a list fans in. A custom `condition` "remove[s] the conditions for
+completion and success", so write `and(succeeded(), …)` unless you mean otherwise. `trigger: manual` makes a stage manually startable; `isSkippable: false` removes it from
+**Stages to run**.
 
-To promote identical bytes: publish once in `Build` (`- publish:` or `PublishPipelineArtifact@1` with `targetPath`, `artifactName`), then
-`download: current` plus `artifact:` per deploy stage, landing at `$(Pipeline.Workspace)/<artifact name>`. No deploy stage rebuilds; the artifact
-belongs to the run, so every stage consumes the same content, and deleting the run deletes it.
+To promote identical bytes: publish once in `Build` (`- publish:` or `PublishPipelineArtifact@1` with `targetPath`, `artifactName`), then `download: current` plus `artifact:`
+per deploy stage, landing at `$(Pipeline.Workspace)/<artifact name>`. No deploy stage rebuilds; the artifact belongs to the run, so every stage consumes the same content, and
+deleting the run deletes it.
 
 ### 7. Failure and recovery
 
-A completed run offers **Run new**; a stage whose checks timed out can be retried ("You can retry a stage when approvals and checks time out"), and on
-a rolling deployment a retry "re-runs the deployment on all VMs not just failed targets". Every stage execution re-evaluates its checks, so expect a
-fresh approval.
+A completed run offers **Run new**; a stage whose checks timed out can be retried ("You can retry a stage when approvals and checks time out"), and on a rolling deployment a
+retry "re-runs the deployment on all VMs not just failed targets". Every stage execution re-evaluates its checks, so expect a fresh approval.
 
-**There is no rollback.** ADO supplies a place to put one — `on: failure` under the strategy, "used to run steps for rollback actions or clean-up" —
-and nothing more. The alternatives are to revert the commit and re-run (Terraform state records what exists) or to redeploy the previous run's
-artifact with `DownloadPipelineArtifact@2` (`buildType: specific`, `pipelineId`, `buildVersionToDownload: specific`). Neither undoes a Fabric item
-deletion; fabric-cicd orphan removal is one-way.
+**There is no rollback.** ADO supplies a place to put one — `on: failure` under the strategy, "used to run steps for rollback actions or clean-up" — and nothing more. The
+alternatives are to revert the commit and re-run (Terraform state records what exists) or to redeploy the previous run's artifact with `DownloadPipelineArtifact@2`
+(`buildType: specific`, `pipelineId`, `buildVersionToDownload: specific`). Neither undoes a Fabric item deletion; fabric-cicd orphan removal is one-way.
 
-Retention is project-level only — "Azure DevOps no longer supports per-pipeline retention rules" — and deleting a run removes "Logs, All pipeline and
-build artifacts, … Run metadata". Critically, "Retention policy retains only the succeeded and partially-succeeded runs", so a failed prod run is not
-protected by the recent-runs count.
+Retention is project-level only — "Azure DevOps no longer supports per-pipeline retention rules" — and deleting a run removes "Logs, All pipeline and build artifacts, … Run
+metadata". Critically, "Retention policy retains only the succeeded and partially-succeeded runs", so a failed prod run is not protected by the recent-runs count.
 
 ## Sharp edges, with the symptom
 
@@ -151,14 +142,14 @@ protected by the recent-runs count.
 Minimum ADO configuration for this design:
 
 - [ ] One project, Azure Repos repo, self-hosted Linux pool (`pool: { name: fabric-self-hosted }`).
-- [ ] Two **Azure Resource Manager** connections, `sc-fabric-deploy` and `sc-fabric-admin`, credential **Workload identity federation**, one
-      **Explicit subject identifier** federated credential each, pipeline permissions restricted.
-- [ ] One **environment per deployed stage** (`fabric-sales-forecast-dev|test|prod`), each with an **Approvals** check (approvers, instructions,
-      Timeout, self-approval rule); **Branch control** (`refs/heads/main`) on prod; **Exclusive lock** if runs must not overlap.
-- [ ] Agent image with terraform, python3 + pip, az CLI ≥ 2.30, git ≥ 2.9.0; proxy at `config.sh` time *and* `http_proxy`/`https_proxy` exported;
-      egress to `dev.azure.com`, `login.microsoftonline.com`, `management.core.windows.net`, `download.agent.dev.azure.com`.
-- [ ] `Build` stage with no connection and no backend, then `runOnce` deployment jobs per environment chained by `dependsOn`, each
-      `checkout: self`; artifacts published once in `Build`.
+- [ ] Two **Azure Resource Manager** connections, `sc-fabric-deploy` and `sc-fabric-admin`, credential **Workload identity federation**, one **Explicit subject identifier**
+      federated credential each, pipeline permissions restricted.
+- [ ] One **environment per deployed stage** (`fabric-sales-forecast-dev|test|prod`), each with an **Approvals** check (approvers, instructions, Timeout, self-approval rule);
+      **Branch control** (`refs/heads/main`) on prod; **Exclusive lock** if runs must not overlap.
+- [ ] Agent image with terraform, python3 + pip, az CLI ≥ 2.30, git ≥ 2.9.0; proxy at `config.sh` time *and* `http_proxy`/`https_proxy` exported; egress to `dev.azure.com`,
+      `login.microsoftonline.com`, `management.core.windows.net`, `download.agent.dev.azure.com`.
+- [ ] `Build` stage with no connection and no backend, then `runOnce` deployment jobs per environment chained by `dependsOn`, each `checkout: self`; artifacts published once
+      in `Build`.
 - [ ] No variable group, no Key Vault link, no secret variable — with a comment saying why.
 - [ ] Project retention reviewed, knowing failed runs are not counted.
 - [ ] Pipeline permissions tightened on the release pipeline, not only on the connections.
@@ -171,8 +162,7 @@ The three settings most likely to be missed:
 
 ## What this does not establish
 
-- Whether retrying a *stage* (rather than a new run) re-requests an approval. Checks re-evaluate per stage execution, so it should; no Learn page
-  states it.
+- Whether retrying a *stage* (rather than a new run) re-requests an approval. Checks re-evaluate per stage execution, so it should; no Learn page states it.
 - Any retention period specific to approval records; only the run's retention is documented.
 - `ARM_USE_OIDC`/`ARM_OIDC_TOKEN` — HashiCorp documentation, named but not vouched for.
 - Whether environment auto-creation still grants the creating user Administrator on every current path.

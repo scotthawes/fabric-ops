@@ -74,6 +74,22 @@ tenant-configuration problem.
 - Token lifetime is 60–90 minutes and managed-identity lifetimes are not configurable; a long
   deployment must refresh rather than assume its token survives the run.
 
+## The Azure DevOps side, which is where the privilege actually sits
+
+Three sharp edges, all discovered in practice rather than in the docs:
+
+- **The approval lives on the ADO Environment, not on the stage.** A stage that loses its
+  `environment:` line deploys ungated and says nothing. Worse, an approval that times out marks the
+  stage *skipped*, not failed — the run looks green-ish and nothing shipped.
+- **The federated credential's subject is bound to the organisation, project and connection names**
+  (or their IDs). Rename any of them, or copy the connection, and everything authenticates until the
+  token exchange fails with `AADSTS700213` — a permissions-looking error that is really a naming
+  change.
+- **Contributors can create and edit pipelines by default.** Since the pipeline is authorised to use
+  the service connections, editing YAML is equivalent to using the admin principal. Restrict
+  "Edit build pipeline" (or approve changes to the pipeline file) or the two-principal split in
+  [ADR 0002](../../adr/0002-two-service-principals-federated.md) is a boundary on paper only.
+
 ## What it costs to get this wrong
 
 A single principal with Member rights on the deploy path means anything that can merge code can

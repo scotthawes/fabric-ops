@@ -24,6 +24,7 @@ docs.
 | [`monitoring-and-alerting-surface.md`](monitoring-and-alerting-surface.md) | With no Azure Monitor metrics, what can actually be alerted on in Fabric? | answered 2026-11-12 |
 | [`workspace-identity.md`](workspace-identity.md) | What is a workspace identity, what is it for, and where does it replace a service principal? | answered 2026-11-12 |
 | [`item-definition-formats.md`](item-definition-formats.md) | What is inside an item definition, and what should a reviewer look for? | answered 2026-11-12 |
+| [`ado-pipeline-mechanics.md`](ado-pipeline-mechanics.md) | What does Azure DevOps provide for this pipeline, and where are its sharp edges? | answered 2026-11-12 |
 
 ## Adding a note
 

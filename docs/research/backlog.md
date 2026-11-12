@@ -62,7 +62,7 @@ Ordered by how much they would change what the team does.
 11. **Workspace identity.** What it is used for, how it is created, and where it replaces a service
     principal. _(done 2026-11-12)_
 12. **Azure DevOps mechanics.** Service connection types, Environment approvals, self-hosted agent
-    hardening and secret-free handling. _(in progress 2026-11-12)_
+    hardening and secret-free handling. _(done 2026-11-12)_
 13. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant.
 14. **Purview and lineage.** What governance metadata Fabric emits, and what has to be maintained
     by hand.
