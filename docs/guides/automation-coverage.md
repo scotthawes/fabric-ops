@@ -55,8 +55,8 @@ Three columns of judgement:
 | Create a shortcut | Auto | `fabric_shortcut` | Needs the target item's `item_id`; ordering after items |
 | Set a schedule | Auto | `fabric_item_job_scheduler` | Schedules are not in definitions; auto-disable after ~10 failures |
 | Refresh a semantic model | Auto | REST refresh | Refresh can fail long after a green deploy |
-| Move an item between workspaces | Manual (verify) | REST, preview status unclear | References break; see the lifecycle note |
-| Delete an item | Gated | REST | Soft delete; recovery path unverified |
+| Move an item between workspaces | Manual | — | There is no cross-workspace move. `Move Item` is folder-only, so a "move" is create + delete with a **new item ID** |
+| Delete an item | Gated | REST | Soft delete; `hardDelete=true` makes it unrecoverable and needs only item write |
 
 ## Connectivity and data
 
@@ -89,6 +89,25 @@ Be honest about the boundaries — this is a derived audit, not an endpoint cens
 
 Anything marked "not assessed" is a *maybe*, not a *no*. Do not quote this page as the final answer
 on what is automatable until those rows are filled.
+
+## The safety rails
+
+Three structural protections, in decreasing order of strength — the first one is stronger than any
+check you could write in a pipeline:
+
+1. **The deploy principal is not a Fabric administrator.** A principal without that role cannot reach
+   *any* of the irreversible operations: permanent workspace delete, capacity delete, hard delete.
+   This is why [ADR 0002](../../adr/0002-two-service-principals-federated.md) refuses to give the
+   deploy identity admin rights, and it is a better control than a protected stage.
+2. **`hardDelete=true` is never sent.** One query parameter converts a recoverable delete into an
+   unrecoverable one, and it needs no elevated role beyond item write. Treat it as forbidden in code,
+   not just in review.
+3. **A capacity delete is the real point of no return.** The Azure resource disappears, and items are
+   recoverable for seven days *only if* the workspace is reassigned to a same-region capacity within
+   that window. There is no equivalent of a workspace's soft delete for the capacity itself.
+
+One free interlock: deleting a workspace that is assigned to a deployment pipeline simply fails, which
+is an accidental reason to leave that assignment in place.
 
 ## The shape of the answer
 

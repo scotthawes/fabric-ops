@@ -73,7 +73,7 @@ Ordered by how much they would change what the team does.
     and label setting are automatable after all, via `api.powerbi.com`.
     _(in progress 2026-11-12)_
 17. **Workspace and item lifecycle.** Rename, move, delete, recover — which are safe to automate and
-    which are irreversible. _(in progress 2026-11-12)_
+    which are irreversible. _(done 2026-11-12)_
 18. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 
