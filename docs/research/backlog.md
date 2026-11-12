@@ -78,7 +78,11 @@ Ordered by how much they would change what the team does.
     the automatable half that is not definition deployment. _(done 2026-11-12)_
 19. **Workspace surfaces and governance.** Apps, tags, folders, network controls, encryption,
     external shares, endorsement and domains. _(done 2026-11-12)_
-20. **Platform taxonomy.** The official component names and workload grouping, so the system map
+20. **Power BI coexistence.** What a Fabric estate inherits from an existing Premium or Pro tenant,
+    and what has to change before launch. _(in progress 2026-11-12)_
+21. **Purview and lineage.** What governance metadata Fabric emits, what is automatable, and what
+    stays human. _(in progress 2026-11-12)_
+22. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
 
 ## C. How an item gets done
