@@ -53,6 +53,9 @@ Three columns of judgement:
 | Deploy schema (warehouse) | Auto | `SqlPackage` publish | Preview DacFx; partial atomicity |
 | Deploy lakehouse tables | Auto | `dbt-fabricspark` | Keys `NOT ENFORCED` |
 | Create a shortcut | Auto | `fabric_shortcut` | Needs the target item's `item_id`; ordering after items |
+| Assign an item to a folder | Auto | `POST …/items/{itemId}/move` | Same workspace only; `fabric_folder` is preview |
+| Configure a data agent | Auto | `dataAgent` group, including staging | Preview item type; 41 operations |
+| Deploy an ontology | Auto | `ontology` group, `updateDefinition` | Preview |
 | Set a schedule | Auto | `fabric_item_job_scheduler` | Four shapes (Cron/Daily/Weekly/Monthly), UTC bounds; auto-disables after ~10 failures; runs as its owner |
 | Run a job on demand | Auto | `POST …/jobs/{jobType}/instances` | Returns `202` and is **not** an LRO — poll the instance, never `/v1/operations` |
 | Cancel a job | Gated | `POST …/instances/{id}/cancel` | A request, not a guarantee; only documented refusal is `JobAlreadyCompleted` |
@@ -105,16 +108,19 @@ The apparent gap between "434 write operations" and "23 deployable item types" i
 most of those writes are per-item *operations* — refresh, run job, list tables, update a connection on
 an item — not definition deployment.
 
-## What this audit does not yet cover
+## Closing the last three gaps
 
-| Gap | Why it matters | Status |
+Checked directly against the generated census rather than assumed:
+
+| Question | Answer | Evidence |
 | --- | --- | --- |
-| Data agent and ontology configuration | New, preview; likely portal-first | not assessed |
-| Folder assignment of items | `fabric_folder` is preview; unclear whether items can be moved in by API | not assessed |
-| Cross-item dependency edges | Sequencing two items is the external pipeline's problem; confirm nothing changed | not assessed |
+| Can items be assigned to folders? | **Yes** — folders are full CRUD plus a move, and `POST /workspaces/{id}/items/{itemId}/move` moves an item **to a folder**. Still within one workspace | census, `platform` group |
+| Can a data agent be configured unattended? | **Yes** — full CRUD plus staging operations for datasources, elements, few-shots and topics. Preview item type, but no API gap | census, `dataAgent` group (41 ops) |
+| Can an ontology be deployed? | **Yes** — create, update, `getDefinition`, `updateDefinition` | census, `ontology` group |
+| Can cross-item dependencies be expressed? | **No** — no dependency operations exist in any group. Sequencing two items is the external pipeline's problem | census, no matches |
 
-Everything else that was unassessed on 2026-11-12 is now assessed — apps, tags, network controls,
-encryption, external shares, endorsement, rebind/takeover, gateway membership, and runtime operations.
+So of the nine rows that read "not assessed" earlier today, **all nine are now answered**, and eight of
+them are automatable.
 
 ## The rule, if you keep only one line
 
