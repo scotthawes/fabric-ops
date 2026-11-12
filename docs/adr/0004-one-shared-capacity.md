@@ -40,11 +40,20 @@ service principal holds capacity **Contributor** so it can assign workspaces.
   itself supports no alerts, so every alert is something to build, not configure — and an event
   listener whose owner loses permission pauses and holds events for 24 hours, which looks identical
   to a quiet estate.
-- Sizing is driven by the peak of the *largest* environment, so dev and test ride free but
-  cannot be tuned or throttled independently.
+- **The SKU is also a licensing decision, at F64.** At **F64 and above** — or on a P capacity —
+  a user with the workspace **Viewer** role can read Power BI content on a Fabric (Free) licence.
+  Below F64, every viewer still needs Pro or PPU. So the cheapest SKU that "runs the workloads" can
+  raise the per-user cost of the whole estate, and sizing down to save capacity spend can re-impose
+  Pro on everyone.
+- **Our access model has to respect that cliff.** Groups carry `Contributor` by default, and any role
+  other than Viewer requires Pro/PPU even on F64+. Granting Contributor to "help during launch" is a
+  licensing decision as well as an access one — see
+  [`powerbi-coexistence.md`](../research/powerbi-coexistence.md).
 - Throttling is shared: sustained dev load degrades interactive queries and refresh in
   production. Mitigations to evaluate in the work tenant — surge protection, alerting on
   capacity utilisation thresholds, and moving heavy scheduled work outside business hours.
+- Sizing is driven by the peak of the *largest* environment, so dev and test ride free but
+  cannot be tuned or throttled independently.
 - A capacity-level incident is a three-environment outage. The pipeline must treat a paused or
   throttled capacity as a normal failure mode with a clear error, not an unexpected one.
 - **This is a cheap decision to reverse:** creating a second SKU and reassigning a workspace is

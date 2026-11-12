@@ -38,6 +38,10 @@ and can hand out access the pipeline never sees.
   co-members. SQL grants are outside it entirely.
 - A workspace whose admins have all left reports `Orphaned` and still looks `Active` to the admin
   API, and role changes only take effect at the member's next Fabric sign-in.
+- **The role a group carries is also a licensing decision.** Only `Viewer` lets a user read Power BI
+  content on a Fabric (Free) licence, and only at F64+; `Contributor` needs Pro or PPU regardless of
+  SKU. So "just give them Contributor to unblock them" re-prices that person — see
+  [`powerbi-coexistence.md`](../research/powerbi-coexistence.md).
 - Group sprawl: three environments × N workspaces means 3N groups, each needing an owner and a
   naming convention. Budget for the naming, not just the groups.
 - A workspace with a group-based `Contributor` cannot express "this person is a Contributor in

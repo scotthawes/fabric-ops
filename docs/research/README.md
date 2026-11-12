@@ -30,6 +30,7 @@ docs.
 | [`powerbi-rest-api-for-fabric-items.md`](powerbi-rest-api-for-fabric-items.md) | What can the legacy Power BI API still automate for Fabric items — binding, RLS, labels? | answered 2026-11-12 |
 | [`jobs-schedules-and-mirroring.md`](jobs-schedules-and-mirroring.md) | Which runtime operations can be automated — runs, cancels, schedules and mirroring? | answered 2026-11-12 |
 | [`workspace-surfaces-and-governance.md`](workspace-surfaces-and-governance.md) | Which workspace and governance surfaces can be automated, and which are portal-only? | answered 2026-11-12 |
+| [`powerbi-coexistence.md`](powerbi-coexistence.md) | What does adopting Fabric change for an existing Power BI tenant? | answered 2026-11-12 |
 
 ## Adding a note
 

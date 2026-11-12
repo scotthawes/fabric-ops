@@ -33,6 +33,22 @@ capacity; it only consumes one.
 - **One capacity incident is a three-environment outage.** Pause, throttle, or a bad resize and
   everything on the SKU goes with it.
 
+## The SKU is a licensing decision, not just a compute decision
+
+Two facts that change the arithmetic, both from
+[`powerbi-coexistence.md`](../research/powerbi-coexistence.md):
+
+- At **F64 and above** — or on a P capacity — a workspace **Viewer** reads Power BI content on a
+  Fabric (Free) licence. **Below F64, every viewer needs Pro or PPU.** So the cheap SKU is only cheap
+  if nobody looks at the reports.
+- Any role other than Viewer needs Pro or PPU **even on F64+**. Our access model grants groups
+  `Contributor`, which means the people building get licensed regardless — the saving applies to
+  viewers only.
+
+Put the two together and the sizing question is: *how many people only read?* If that number is
+large, F64 pays for itself against their Pro licences; if it is small, the smaller SKU is genuinely
+cheaper and the licence cost is unchanged.
+
 ## Cost control is three levers, and only one is in Terraform
 
 | Lever | Where | Note |
