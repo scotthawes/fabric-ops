@@ -1,0 +1,826 @@
+group	method	path	operationId	beta	kind	summary
+admin	DELETE	/capacities/{capacityId}/delegatedTenantSettingOverrides/{tenantSettingName}	Tenants_DeleteCapacityTenantSettingOverride		admin	Remove given tenant setting override for given capacity Id.
+admin	DELETE	/connections/{connectionId}	Connections_DeleteConnection		admin	Deletes the specified connection.
+admin	DELETE	/connections/{connectionId}/roleAssignments/{connectionRoleAssignmentId}	Connections_DeleteConnectionRoleAssignment		admin	Deletes the specified role assignment for the connection.
+admin	DELETE	/domains/{domainId}	Domains_DeleteDomain		admin	Deletes the specified domain.
+admin	DELETE	/tags/{tagId}	Tags_DeleteTag		admin	Delete the specified tag.
+admin	DELETE	/workloads/assignments/{assignmentId}	Workloads_DeleteWorkloadAssignment		admin	Delete workload assignment.
+admin	GET	/capacities/delegatedTenantSettingOverrides	Tenants_ListCapacitiesTenantSettingsOverrides		admin	Returns list of tenant setting overrides that override at the capacities.
+admin	GET	/capacities/{capacityId}/delegatedTenantSettingOverrides	Tenants_ListCapacityTenantSettingsOverridesByCapacityId		admin	Returns list of tenant setting overrides that override for given capacity Id.
+admin	GET	/connections	Connections_ListConnections		admin	Returns a list of connections in the tenant.
+admin	GET	/connections/{connectionId}	Connections_GetConnection		admin	Returns the specified connection.
+admin	GET	/connections/{connectionId}/roleAssignments	Connections_ListConnectionRoleAssignments		admin	Returns a list of connection role assignments.
+admin	GET	/connections/{connectionId}/roleAssignments/{connectionRoleAssignmentId}	Connections_GetConnectionRoleAssignment		admin	Returns the principal's role assignment for the connection.
+admin	GET	/domains	Domains_ListDomains		admin	Returns info for all domains.
+admin	GET	/domains/delegatedTenantSettingOverrides	Tenants_ListDomainsTenantSettingsOverrides		admin	Returns list of domain delegation setting overrides.
+admin	GET	/domains/{domainId}	Domains_GetDomain		admin	Returns the specified domain info.
+admin	GET	/domains/{domainId}/roleAssignments	Domains_ListRoleAssignments		admin	Returns a list of domain role assignments.
+admin	GET	/domains/{domainId}/workspaces	Domains_ListDomainWorkspaces		admin	Returns a list of the workspaces assigned to the specified domain.
+admin	GET	/items	Items_ListItems		admin	Returns a list of active Fabric and PowerBI items.
+admin	GET	/items/externalDataShares	ExternalDataSharesProvider_ListExternalDataShares		admin	Lists the external data shares in the tenant.
+admin	GET	/policySets/active?beta=true	PolicySets_Get_Active_(beta)	yes	admin	Returns the active policy set on the tenant scope.
+admin	GET	/tags	Tags_ListTags		admin	Returns a list of all the tenant's tags.
+admin	GET	/tenantsettings	Tenants_ListTenantSettings		admin	Returns a list of the tenant settings.
+admin	GET	/users/{userId}/access	Users_ListAccessEntities		admin	Returns a list of permission details for Fabric and PowerBI items the specified user can access.
+admin	GET	/workloads	Workloads_ListWorkloads		admin	Returns all workloads, optionally filtered by assignment status. If AssignmentStatus is not specified or set to AssignmentStatus.Any, the result will include assigned workloads and unassigned workloads.
+admin	GET	/workloads/assignments	Workloads_ListWorkloadAssignments		admin	List all workload assignments. The result contains a list of assignments which can be filtered by the workload ID and assignment type.
+admin	GET	/workspaces	Workspaces_ListWorkspaces		admin	Returns a list of workspaces.
+admin	GET	/workspaces/delegatedTenantSettingOverrides	Tenants_ListWorkspacesTenantSettingsOverrides		admin	Returns list of workspace delegation setting overrides.
+admin	GET	/workspaces/discoverGitConnections	Workspaces_ListGitConnections		admin	Returns a list of Git connections.
+admin	GET	/workspaces/networking/communicationpolicies	Workspaces_ListNetworkingCommunicationPolicies		admin	Returns network communication policy settings for all workspaces in the tenant.
+admin	GET	/workspaces/{workspaceId}	Workspaces_GetWorkspace		admin	Returns the specified workspace.
+admin	GET	/workspaces/{workspaceId}/items/{itemId}	Items_GetItem		admin	Returns the specified Fabric or PowerBI item.
+admin	GET	/workspaces/{workspaceId}/items/{itemId}/users	Items_ListItemAccessDetails		admin	Returns a list of users (including groups and service principals) and lists their workspace roles.
+admin	GET	/workspaces/{workspaceId}/users	Workspaces_ListWorkspaceAccessDetails		admin	Returns a list of users (including groups and ServicePrincipals) that have access to the specified workspace.
+admin	PATCH	/connections/{connectionId}/roleAssignments/{connectionRoleAssignmentId}	Connections_UpdateConnectionRoleAssignment		admin	Updates the principal's role assignment for the connection.
+admin	PATCH	/domains/{domainId}	Domains_UpdateDomain		admin	Updates the specified domain info.
+admin	PATCH	/tags/{tagId}	Tags_UpdateTag		admin	Updates the specified tag.
+admin	POST	/capacities/{capacityId}/delegatedTenantSettingOverrides/{tenantSettingName}/update	Tenants_UpdateCapacityTenantSettingOverride		admin	Update given tenant setting override for given capacity Id.
+admin	POST	/connections/{connectionId}/roleAssignments	Connections_AddConnectionRoleAssignment		admin	Adds a connection role assignment.
+admin	POST	/domains	Domains_CreateDomain		admin	Creates a new domain.
+admin	POST	/domains/{domainId}/assignWorkspaces	Domains_AssignDomainWorkspacesByIds		admin	Assign workspaces to the specified domain by workspace ID.
+admin	POST	/domains/{domainId}/assignWorkspacesByCapacities	Domains_AssignDomainWorkspacesByCapacities		admin	Assign all workspaces that reside on the specified capacities to the specified domain.
+admin	POST	/domains/{domainId}/assignWorkspacesByPrincipals	Domains_AssignDomainWorkspacesByPrincipals		admin	Assign workspaces to the specified domain, when one of the specified principals has admin permission in the workspace.
+admin	POST	/domains/{domainId}/roleAssignments/bulkAssign	Domains_RoleAssignmentsBulkAssign		admin	Assign the specified admins or contributors to the domain.
+admin	POST	/domains/{domainId}/roleAssignments/bulkUnassign	Domains_RoleAssignmentsBulkUnassign		admin	Unassign the specified admins or contributors from the domain.
+admin	POST	/domains/{domainId}/roleAssignments/syncToSubdomains	Domains_SyncRoleAssignmentsToSubdomains		admin	Sync the role assignments from the specified domain to its subdomains.
+admin	POST	/domains/{domainId}/unassignAllWorkspaces	Domains_UnassignAllDomainWorkspaces		admin	Unassign all workspaces from the specified domain.
+admin	POST	/domains/{domainId}/unassignWorkspaces	Domains_UnassignDomainWorkspacesByIds		admin	Unassign workspaces from the specified domain by workspace ID.
+admin	POST	/items/bulkRemoveLabels	Labels_BulkRemoveLabels		admin	Remove sensitivity labels from Fabric items (such as lakehouses and reports) by item ID. The sensitivity labels of the autogenerated items linked to the items in the call, are removed and their IDs aren't returned. Items with linked autogenerated items that are supported are: Lakehouse, Warehouse, Datamart, SQLDatabase, MirroredDatabase.
+admin	POST	/items/bulkRemoveSharingLinks	SharingLinks_BulkRemoveSharingLinks		admin	Deletes all organization sharing links for the specified Fabric items. This action cannot be undone.
+admin	POST	/items/bulkSetLabels	Labels_BulkSetLabels		admin	Set sensitivity labels on Fabric items, such as lakehouses and reports, by item ID. The sensitivity labels are applied to the autogenerated items related to the requested items, and their IDs aren't returned. Items with linked autogenerated items that are supported are: Lakehouse, Warehouse, Datamart, SQLDatabase and MirroredDatabase.
+admin	POST	/items/removeAllSharingLinks	SharingLinks_RemoveAllSharingLinks		admin	Deletes all organization sharing links for all Fabric items in the tenant. This action cannot be undone.
+admin	POST	/tags/bulkCreateTags	Tags_BulkCreateTags		admin	Create new tags.
+admin	POST	/tenantsettings/{tenantSettingName}/update	Tenants_UpdateTenantSetting		admin	Update a given tenant setting.
+admin	POST	/workloads/assignments	Workloads_CreateWorkloadAssignment		admin	Create workload assignment.
+admin	POST	/workspaces/{workspaceId}/grantAdminTemporaryAccess	Workspaces_GrantAdminTemporaryAccess		admin	Grants admin temporary (24h) access to a user's 'My Workspace'.
+admin	POST	/workspaces/{workspaceId}/items/{itemId}/externalDataShares/{externalDataShareId}/revoke	ExternalDataSharesProvider_RevokeExternalDataShare		admin	Revokes the specified external data share. This action cannot be undone.
+admin	POST	/workspaces/{workspaceId}/policySets/{policySetId}/activate	PolicySets_Activate		admin	Activates the policy set on the tenant scope.
+admin	POST	/workspaces/{workspaceId}/policySets/{policySetId}/deactivate	PolicySets_Deactivate		admin	Deactivates the policy set from the tenant scope.
+admin	POST	/workspaces/{workspaceId}/removeAdminTemporaryAccess	Workspaces_RemoveAdminTemporaryAccess		admin	Removes admin temporary access from a user's 'My Workspace'.
+admin	POST	/workspaces/{workspaceId}/restore	Workspaces_RestoreWorkspace		admin	Restores a deleted workspace.
+anomalyDetector	DELETE	/workspaces/{workspaceId}/anomalyDetectors/{anomalyDetectorId}	Items_DeleteAnomalyDetector		write	Deletes the specified AnomalyDetector.
+anomalyDetector	GET	/workspaces/{workspaceId}/anomalyDetectors	Items_ListAnomalyDetectors		read	Returns a list of AnomalyDetectors from the specified workspace.
+anomalyDetector	GET	/workspaces/{workspaceId}/anomalyDetectors/{anomalyDetectorId}	Items_GetAnomalyDetector		read	Returns properties of the specified AnomalyDetector.
+anomalyDetector	PATCH	/workspaces/{workspaceId}/anomalyDetectors/{anomalyDetectorId}	Items_UpdateAnomalyDetector		write	Updates the properties of the specified AnomalyDetector.
+anomalyDetector	POST	/workspaces/{workspaceId}/anomalyDetectors	Items_CreateAnomalyDetector		write	Creates a AnomalyDetector in the specified workspace.
+anomalyDetector	POST	/workspaces/{workspaceId}/anomalyDetectors/{anomalyDetectorId}/getDefinition	Items_GetAnomalyDetectorDefinition		definition	Returns the specified AnomalyDetector definition.
+anomalyDetector	POST	/workspaces/{workspaceId}/anomalyDetectors/{anomalyDetectorId}/updateDefinition	Items_UpdateAnomalyDetectorDefinition		definition	Overrides the definition for the specified AnomalyDetector.
+apacheAirflowJob	DELETE	/workspaces/{workspaceId}/apacheAirflowJobs/poolTemplates/{poolTemplateId}?beta=true	PoolManagement_Delete_Airflow_Pool_Template_(beta)	yes	write	Delete an Apache Airflow pool template.
+apacheAirflowJob	DELETE	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}	Items_DeleteApacheAirflowJob		write	Deletes the specified Apache Airflow job.
+apacheAirflowJob	DELETE	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/files/{filePath}?beta=true	Files_Delete_Apache_Airflow_Job_File_(beta)	yes	write	Deletes the specified Apache Airflow job file.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs	Items_ListApacheAirflowJobs		read	Returns a list of Apache Airflow jobs from the specified workspace.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/poolTemplates/{poolTemplateId}?beta=true	PoolManagement_Get_Airflow_Pool_Template_(beta)	yes	read	Get an Apache Airflow pool template.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/poolTemplates?beta=true	PoolManagement_List_Airflow_Pool_Templates_(beta)	yes	read	List Apache Airflow pool templates.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/settings?beta=true	WorkspaceSettings_Get_Airflow_Workspace_Settings_(beta)	yes	read	Get Apache Airflow workspace settings.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}	Items_GetApacheAirflowJob		read	Returns properties of the specified Apache Airflow job.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/compute?beta=true	Compute_Get_Apache_Airflow_Job_Compute_(beta)	yes	read	Returns the compute configuration for the specified Apache Airflow job environment.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/libraries?beta=true	Requirements_List_Apache_Airflow_Job_Libraries_(beta)	yes	read	Returns a list of installed libraries for the specified Apache Airflow job environment.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/settings?beta=true	Settings_Get_Apache_Airflow_Job_Settings_(beta)	yes	read	Returns the environment settings for the specified Apache Airflow job.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment?beta=true	Environment_Get_Apache_Airflow_Job_Environment_(beta)	yes	read	Gets the Apache Airflow environment for the specified Apache Airflow job.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/files/{filePath}?beta=true	Files_Get_Apache_Airflow_Job_File_(beta)	yes	read	Returns the specified Apache Airflow job file.
+apacheAirflowJob	GET	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/files?beta=true	Files_List_Apache_Airflow_Job_Files_(beta)	yes	read	Returns a list of Apache Airflow job files from the specified Apache Airflow job.
+apacheAirflowJob	PATCH	/workspaces/{workspaceId}/apacheAirflowJobs/settings?beta=true	WorkspaceSettings_Update_Airflow_Workspace_Settings_(beta)	yes	write	Update Apache Airflow workspace settings.
+apacheAirflowJob	PATCH	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}	Items_UpdateApacheAirflowJob		write	Updates the properties of the specified Apache Airflow job.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs	Items_CreateApacheAirflowJob		write	Creates an Apache Airflow job in the specified workspace.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/poolTemplates?beta=true	PoolManagement_Create_Airflow_Pool_Template_(beta)	yes	write	Create an Apache Airflow pool template.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/deployRequirements?beta=true	Requirements_Deploy_Apache_Airflow_Job_Requirements_(beta)	yes	write	Deploys requirements for an Apache Airflow job environment.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/start?beta=true	Environment_Start_Apache_Airflow_Job_Environment_(beta)	yes	write	Starts an Apache Airflow job environment.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/stop?beta=true	Environment_Stop_Apache_Airflow_Job_Environment_(beta)	yes	write	Stops an Apache Airflow job environment.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/updateCompute?beta=true	Compute_Update_Apache_Airflow_Job_Compute_(beta)	yes	write	Updates the compute configuration for an Apache Airflow job environment.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/environment/updateSettings?beta=true	Settings_Update_Apache_Airflow_Job_Settings_(beta)	yes	write	Updates the settings for an Apache Airflow job environment.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/getDefinition	Items_GetApacheAirflowJobDefinition		definition	Returns the specified Apache Airflow job public definition.
+apacheAirflowJob	POST	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/updateDefinition	Items_UpdateApacheAirflowJobDefinition		definition	Overrides the definition for the specified Apache Airflow job.
+apacheAirflowJob	PUT	/workspaces/{workspaceId}/apacheAirflowJobs/{apacheAirflowJobId}/files/{filePath}?beta=true	Files_Create_Or_Update_Apache_Airflow_Job_File_(beta)	yes	write	Creates or updates an Apache Airflow job file.
+appBackend	DELETE	/workspaces/{workspaceId}/appBackends/{appBackendId}	Items_DeleteAppBackend		write	Delete the specified AppBackend.
+appBackend	GET	/workspaces/{workspaceId}/appBackends	Items_ListAppBackends		read	List AppBackends in the specified workspace.
+appBackend	GET	/workspaces/{workspaceId}/appBackends/{appBackendId}	Items_GetAppBackend		read	Get the specified AppBackend.
+appBackend	PATCH	/workspaces/{workspaceId}/appBackends/{appBackendId}	Items_UpdateAppBackend		write	Update the specified AppBackend.
+appBackend	POST	/workspaces/{workspaceId}/appBackends	Items_CreateAppBackend		write	Create an AppBackend in the specified workspace.
+azureDatabricksStorage	DELETE	/workspaces/{workspaceId}/azureDatabricksStorages/{azureDatabricksStorageId}	Items_DeleteAzureDatabricksStorage		write	Deletes the specified AzureDatabricksStorage.
+azureDatabricksStorage	GET	/workspaces/{workspaceId}/azureDatabricksStorages	Items_ListAzureDatabricksStorages		read	Returns a list of Azure Databricks storage items from the specified workspace.
+azureDatabricksStorage	GET	/workspaces/{workspaceId}/azureDatabricksStorages/{azureDatabricksStorageId}	Items_GetAzureDatabricksStorage		read	Returns the properties of the specified AzureDatabricksStorage.
+azureDatabricksStorage	PATCH	/workspaces/{workspaceId}/azureDatabricksStorages/{azureDatabricksStorageId}	Items_UpdateAzureDatabricksStorage		write	Updates the properties of the specified AzureDatabricksStorage.
+azureDatabricksStorage	POST	/workspaces/{workspaceId}/azureDatabricksStorages	Items_CreateAzureDatabricksStorage		write	Creates an AzureDatabricksStorage in the specified workspace.
+azureDatabricksStorage	POST	/workspaces/{workspaceId}/azureDatabricksStorages/{azureDatabricksStorageId}/getDefinition	Items_GetAzureDatabricksStorageDefinition		definition	Returns the specified AzureDatabricksStorage public definition.
+azureDatabricksStorage	POST	/workspaces/{workspaceId}/azureDatabricksStorages/{azureDatabricksStorageId}/updateDefinition	Items_UpdateAzureDatabricksStorageDefinition		definition	Overrides the definition for the specified AzureDatabricksStorage.
+copyJob	DELETE	/workspaces/{workspaceId}/copyJobs/{copyJobId}	Items_DeleteCopyJob		write	Deletes the specified CopyJob.
+copyJob	DELETE	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/schedules/{scheduleId}	BackgroundJobs_DeleteExecuteSchedule		job	Deletes the specified CopyJob execute schedule.
+copyJob	GET	/workspaces/{workspaceId}/copyJobs	Items_ListCopyJobs		read	Returns a list of CopyJobs from the specified workspace.
+copyJob	GET	/workspaces/{workspaceId}/copyJobs/{copyJobId}	Items_GetCopyJob		read	Returns properties of the specified CopyJob.
+copyJob	GET	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/instances	BackgroundJobs_ListExecuteJobInstances		job	List execute job instances for the specified CopyJob.
+copyJob	GET	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/instances/{jobInstanceId}	BackgroundJobs_GetExecuteJobInstance		job	Gets the specified CopyJob execute job instance.
+copyJob	GET	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/schedules	BackgroundJobs_ListExecuteSchedules		job	Lists execute schedules for the specified CopyJob.
+copyJob	GET	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/schedules/{scheduleId}	BackgroundJobs_GetExecuteSchedule		job	Gets the specified CopyJob execute schedule.
+copyJob	PATCH	/workspaces/{workspaceId}/copyJobs/{copyJobId}	Items_UpdateCopyJob		write	Updates the properties of the specified CopyJob.
+copyJob	PATCH	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/schedules/{scheduleId}	BackgroundJobs_UpdateExecuteSchedule		job	Updates the specified CopyJob execute schedule.
+copyJob	POST	/workspaces/{workspaceId}/copyJobs	Items_CreateCopyJob		write	Creates a CopyJob in the specified workspace.
+copyJob	POST	/workspaces/{workspaceId}/copyJobs/{copyJobId}/getDefinition	Items_GetCopyJobDefinition		definition	Returns the specified CopyJob public definition.
+copyJob	POST	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/instances	BackgroundJobs_RunOnDemandExecute		job	Run an on-demand execute job instance.
+copyJob	POST	/workspaces/{workspaceId}/copyJobs/{copyJobId}/jobs/execute/schedules	BackgroundJobs_ScheduleExecute		job	Creates an execute schedule for the specified CopyJob.
+copyJob	POST	/workspaces/{workspaceId}/copyJobs/{copyJobId}/resetCopyJob	Items_ResetCopyJob		write	Resets the specified CopyJob.
+copyJob	POST	/workspaces/{workspaceId}/copyJobs/{copyJobId}/updateDefinition	Items_UpdateCopyJobDefinition		definition	Overrides the definition for the specified CopyJob.
+cosmosDbDatabase	DELETE	/workspaces/{workspaceId}/cosmosDbDatabases/{cosmosDbDatabaseId}	Items_DeleteCosmosDBDatabase		write	Deletes the specified Cosmos DB database.
+cosmosDbDatabase	GET	/workspaces/{workspaceId}/cosmosDbDatabases	Items_ListCosmosDBDatabases		read	Returns a list of Cosmos DB databases from the specified workspace.
+cosmosDbDatabase	GET	/workspaces/{workspaceId}/cosmosDbDatabases/{cosmosDbDatabaseId}	Items_GetCosmosDBDatabase		read	Returns properties of the specified Cosmos DB database.
+cosmosDbDatabase	PATCH	/workspaces/{workspaceId}/cosmosDbDatabases/{cosmosDbDatabaseId}	Items_UpdateCosmosDBDatabase		write	Updates the properties of the specified Cosmos DB database.
+cosmosDbDatabase	POST	/workspaces/{workspaceId}/cosmosDbDatabases	Items_CreateCosmosDBDatabase		write	Creates a Cosmos DB database in the specified workspace.
+cosmosDbDatabase	POST	/workspaces/{workspaceId}/cosmosDbDatabases/{cosmosDbDatabaseId}/getDefinition	Items_GetCosmosDBDatabaseDefinition		definition	Returns the specified Cosmos DB database public definition.
+cosmosDbDatabase	POST	/workspaces/{workspaceId}/cosmosDbDatabases/{cosmosDbDatabaseId}/updateDefinition	Items_UpdateCosmosDBDatabaseDefinition		definition	Overrides the definition for the specified Cosmos DB database.
+customStreamConnector	DELETE	/workspaces/{workspaceId}/customStreamConnectors/{customStreamConnectorId}	Items_DeleteCustomStreamConnector		write	Deletes the specified Custom Stream Connector.
+customStreamConnector	GET	/workspaces/{workspaceId}/customStreamConnectors	Items_ListCustomStreamConnectors		read	Lists Custom Stream Connectors in the specified workspace.
+customStreamConnector	GET	/workspaces/{workspaceId}/customStreamConnectors/{customStreamConnectorId}	Items_GetCustomStreamConnector		read	Gets the specified Custom Stream Connector.
+customStreamConnector	PATCH	/workspaces/{workspaceId}/customStreamConnectors/{customStreamConnectorId}	Items_UpdateCustomStreamConnector		write	Updates the specified Custom Stream Connector.
+customStreamConnector	POST	/workspaces/{workspaceId}/customStreamConnectors	Items_CreateCustomStreamConnector		write	Creates a Custom Stream Connector in the specified workspace.
+customStreamConnector	POST	/workspaces/{workspaceId}/customStreamConnectors/{customStreamConnectorId}/getDefinition	Items_GetCustomStreamConnectorDefinition		definition	Returns the specified Custom Stream Connector public definition.
+customStreamConnector	POST	/workspaces/{workspaceId}/customStreamConnectors/{customStreamConnectorId}/updateDefinition	Items_UpdateCustomStreamConnectorDefinition		definition	Overrides the definition for the specified Custom Stream Connector.
+dashboard	GET	/workspaces/{workspaceId}/dashboards	Items_ListDashboards		read	Returns a list of dashboards from the specified workspace.
+dataAgent	DELETE	/workspaces/{workspaceId}/dataAgents/{dataAgentId}	Items_DeleteDataAgent		write	Deletes the specified DataAgent.
+dataAgent	DELETE	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}	Staging_DeleteDatasource		write	Deletes a datasource from the staging environment of the specified DataAgent.
+dataAgent	DELETE	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/elements	Staging_DeleteDatasourceElement		write	Deletes a schema element that is no longer present in the live schema from a staging datasource.
+dataAgent	DELETE	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/fewshots/{fewShotId}	Staging_DeleteDatasourceFewshot		write	Deletes a specific staging fewshot.
+dataAgent	DELETE	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/topics	Staging_DeleteDatasourceTopic		write	Deletes a staging topic file.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents	Items_ListDataAgents		read	Returns a list of DataAgents from the specified workspace.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}	Items_GetDataAgent		read	Returns properties of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources	Published_ListDatasources		read	Returns a list of published datasources for the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources/{datasourceId}	Published_GetDatasource		read	Returns metadata for a specific published datasource of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources/{datasourceId}/elements	Published_ListDatasourceElements		read	Returns schema elements at a level of the schema tree for a published datasource.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources/{datasourceId}/fewshots	Published_ListDatasourceFewshots		read	Returns a list of published fewshots for a datasource of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources/{datasourceId}/fewshots/{fewShotId}	Published_GetDatasourceFewshot		read	Returns a specific published fewshot by ID.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources/{datasourceId}/topics	Published_ListDatasourceTopics		read	Returns a list of published topics for a datasource of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/datasources/{datasourceId}/topics/content	Published_DownloadDatasourceTopic		read	Downloads a published topic file by file name.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/feedback/{feedbackId}/attachments?beta=true	Feedback_Download_Attachments_(beta)	yes	read	Downloads the attachments for the specified feedback record as a ZIP file.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/feedback/{feedbackId}?beta=true	Feedback_Get_Feedback_(beta)	yes	read	Gets the specified feedback record.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/settings	Published_GetSettings		read	Returns the published settings for the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources	Staging_ListDatasources		read	Returns a list of staging datasources for the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}	Staging_GetDatasource		read	Returns metadata for a specific staging datasource of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/elements	Staging_ListDatasourceElements		read	Returns schema elements at a level of the schema tree for a staging datasource.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/fewshots	Staging_ListDatasourceFewshots		read	Returns a list of staging fewshots for a datasource of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/fewshots/{fewShotId}	Staging_GetDatasourceFewshot		read	Returns a specific staging fewshot by ID.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/topics	Staging_ListDatasourceTopics		read	Returns a list of staging topics for a datasource of the specified DataAgent.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/topics/content	Staging_DownloadDatasourceTopic		read	Downloads a staging topic file by file name.
+dataAgent	GET	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/settings	Staging_GetSettings		read	Returns the staging (draft) settings for the specified DataAgent.
+dataAgent	PATCH	/workspaces/{workspaceId}/dataAgents/{dataAgentId}	Items_UpdateDataAgent		write	Updates the properties of the specified DataAgent.
+dataAgent	PATCH	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}	Staging_UpdateDatasource		write	Updates metadata for a specific staging datasource of the specified DataAgent.
+dataAgent	PATCH	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/elements	Staging_UpdateDatasourceElement		write	Updates a specific schema element for a staging datasource.
+dataAgent	PATCH	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/fewshots/{fewShotId}	Staging_UpdateDatasourceFewshot		write	Updates a specific staging fewshot.
+dataAgent	PATCH	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/settings	Staging_UpdateSettings		write	Updates the staging settings for the specified DataAgent.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents	Items_CreateDataAgent		write	Creates a DataAgent in the specified workspace.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/feedback/search?beta=true	Feedback_Search_Feedback_(beta)	yes	write	Searches feedback for the specified Fabric data agent.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/getDefinition	Items_GetDataAgentDefinition		definition	Returns the specified DataAgent public definition.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources	Staging_CreateDatasource		write	Creates a datasource in the staging environment of the specified DataAgent.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/fewshots	Staging_CreateDatasourceFewshot		write	Creates a new fewshot for a staging datasource of the specified DataAgent.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/fewshots/deleteAll	Staging_DeleteAllDatasourceFewshots		write	Deletes all fewshots for a staging datasource of the specified DataAgent.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/topics/format	Staging_FormatDatasourceTopic		write	Formats a staging topic file content.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/publish	Items_PublishDataAgent		write	Publishes the staging configuration of the specified DataAgent.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/reset	Staging_Reset		write	Reverts the staging environment of the specified DataAgent to the published state.
+dataAgent	POST	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/updateDefinition	Items_UpdateDataAgentDefinition		definition	Overrides the definition for the specified DataAgent.
+dataAgent	PUT	/workspaces/{workspaceId}/dataAgents/{dataAgentId}/staging/datasources/{datasourceId}/topics	Staging_UploadDatasourceTopic		write	Uploads a staging topic file.
+dataBuildToolJob	DELETE	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}	Items_DeleteDataBuildToolJob		write	Deletes the specified DataBuildToolJob.
+dataBuildToolJob	GET	/workspaces/{workspaceId}/dataBuildToolJobs	Items_ListDataBuildToolJobs		read	Returns a list of DataBuildToolJobs from the specified workspace.
+dataBuildToolJob	GET	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}	Items_GetDataBuildToolJob		read	Returns properties of the specified DataBuildToolJob.
+dataBuildToolJob	PATCH	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}	Items_UpdateDataBuildToolJob		write	Updates the properties of the specified DataBuildToolJob.
+dataBuildToolJob	POST	/workspaces/{workspaceId}/dataBuildToolJobs	Items_CreateDataBuildToolJob		write	Creates a DataBuildToolJob in the specified workspace.
+dataBuildToolJob	POST	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}/getDefinition	Items_GetDataBuildToolJobDefinition		definition	Returns the specified DataBuildToolJob public definition.
+dataBuildToolJob	POST	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}/jobs/execute/instances	BackgroundJobs_RunOnDemandExecute		job	Run on-demand DataBuildToolJob execute job instance.
+dataBuildToolJob	POST	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}/jobs/execute/schedules	BackgroundJobs_ScheduleDataBuildToolJob		job	Create a new execute schedule for a DataBuildToolJob.
+dataBuildToolJob	POST	/workspaces/{workspaceId}/dataBuildToolJobs/{dataBuildToolJobId}/updateDefinition	Items_UpdateDataBuildToolJobDefinition		definition	Overrides the definition for the specified DataBuildToolJob.
+dataPipeline	DELETE	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}	Items_DeleteDataPipeline		write	Deletes the specified data pipeline.
+dataPipeline	DELETE	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/schedules/{scheduleId}	BackgroundJobs_DeleteExecuteSchedule		job	Deletes the specified execute schedule for a data pipeline.
+dataPipeline	GET	/workspaces/{workspaceId}/dataPipelines	Items_ListDataPipelines		read	Returns a list of data pipelines from the specified workspace.
+dataPipeline	GET	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}	Items_GetDataPipeline		read	Returns properties of the specified data pipeline.
+dataPipeline	GET	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/instances	BackgroundJobs_ListExecuteJobInstances		job	Returns a list of execute job instances for the specified data pipeline.
+dataPipeline	GET	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/instances/{jobInstanceId}	BackgroundJobs_GetExecuteJobInstance		job	Returns the specified execute job instance for a data pipeline.
+dataPipeline	GET	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/schedules	BackgroundJobs_ListExecuteSchedules		job	Returns a list of execute schedules for the specified data pipeline.
+dataPipeline	GET	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/schedules/{scheduleId}	BackgroundJobs_GetExecuteSchedule		job	Returns the specified execute schedule for a data pipeline.
+dataPipeline	PATCH	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}	Items_UpdateDataPipeline		write	Updates the properties of the specified data pipeline.
+dataPipeline	PATCH	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/schedules/{scheduleId}	BackgroundJobs_UpdateExecuteSchedule		job	Updates the specified execute schedule for a data pipeline.
+dataPipeline	POST	/workspaces/{workspaceId}/dataPipelines	Items_CreateDataPipeline		write	Creates a data pipeline in the specified workspace.
+dataPipeline	POST	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/getDefinition	Items_GetDataPipelineDefinition		definition	Returns the specified data pipeline public definition.
+dataPipeline	POST	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/instances	BackgroundJobs_RunOnDemandExecute		job	Runs an on-demand execute job instance.
+dataPipeline	POST	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/jobs/execute/schedules	BackgroundJobs_ScheduleExecute		job	Create a new execute schedule for a data pipeline.
+dataPipeline	POST	/workspaces/{workspaceId}/dataPipelines/{dataPipelineId}/updateDefinition	Items_UpdateDataPipelineDefinition		definition	Overrides the definition for the specified data pipeline.
+dataflow	DELETE	/workspaces/{workspaceId}/dataflows/{dataflowId}	Items_DeleteDataflow		write	Deletes the specified Dataflow.
+dataflow	GET	/workspaces/{workspaceId}/dataflows	Items_ListDataflows		read	Returns a list of Dataflows from the specified workspace.
+dataflow	GET	/workspaces/{workspaceId}/dataflows/gen1UpgradeReadinessResults	Upgrade_ListReadiness		read	Lists Gen1 dataflow upgrade readiness results in the specified workspace.
+dataflow	GET	/workspaces/{workspaceId}/dataflows/{dataflowId}	Items_GetDataflow		read	Returns properties of the specified Dataflow.
+dataflow	GET	/workspaces/{workspaceId}/dataflows/{dataflowId}/parameters	Items_DiscoverDataflowParameters		read	Retrieves all parameters defined in the specified Dataflow.
+dataflow	PATCH	/workspaces/{workspaceId}/dataflows/{dataflowId}	Items_UpdateDataflow		write	Updates the properties of the specified Dataflow.
+dataflow	POST	/workspaces/{workspaceId}/dataflows	Items_CreateDataflow		write	Creates a Dataflow in the specified workspace.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/gen1Upgrade	Upgrade_UpgradeDataflows		write	Upgrades Gen1 dataflows in the specified workspace.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/executeQuery	QueryExecution_ExecuteQuery		write	Executes a query against a dataflow and returns the result.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/getDefinition	Items_GetDataflowDefinition		definition	Returns the specified Dataflow public definition.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/jobs/applyChanges/instances	BackgroundJobs_RunOnDemandApplyChanges		job	Run on-demand apply changes job instance.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/jobs/applyChanges/schedules	BackgroundJobs_ScheduleApplyChanges		job	Create a new apply changes schedule for a dataflow. A dataflow can create maximum 20 schedulers.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/jobs/execute/instances	BackgroundJobs_RunOnDemandExecute		job	Run on-demand execute job instance.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/jobs/execute/schedules	BackgroundJobs_ScheduleExecute		job	Create a new execute schedule for a dataflow. A dataflow can create maximum 20 schedulers.
+dataflow	POST	/workspaces/{workspaceId}/dataflows/{dataflowId}/updateDefinition	Items_UpdateDataflowDefinition		definition	Overrides the definition for the specified Dataflow.
+datamart	GET	/workspaces/{workspaceId}/datamarts	Items_ListDatamarts		read	Returns a list of datamarts from the specified workspace.
+deploymentPlan	DELETE	/workspaces/{workspaceId}/deploymentPlans/{deploymentPlanId}	Items_DeleteDeploymentPlan		write	Deletes the specified deployment plan.
+deploymentPlan	GET	/workspaces/{workspaceId}/deploymentPlans	Items_ListDeploymentPlans		read	Lists deployment plans in the specified workspace.
+deploymentPlan	GET	/workspaces/{workspaceId}/deploymentPlans/{deploymentPlanId}	Items_GetDeploymentPlan		read	Gets the specified deployment plan.
+deploymentPlan	PATCH	/workspaces/{workspaceId}/deploymentPlans/{deploymentPlanId}	Items_UpdateDeploymentPlan		write	Updates the specified deployment plan.
+deploymentPlan	POST	/workspaces/{workspaceId}/deploymentPlans	Items_CreateDeploymentPlan		write	Creates a deployment plan in the specified workspace.
+deploymentPlan	POST	/workspaces/{workspaceId}/deploymentPlans/{deploymentPlanId}/getDefinition	Items_GetDeploymentPlanDefinition		definition	Gets the deployment plan definition.
+deploymentPlan	POST	/workspaces/{workspaceId}/deploymentPlans/{deploymentPlanId}/updateDefinition	Items_UpdateDeploymentPlanDefinition		definition	Updates the deployment plan definition.
+digitalTwinBuilder	DELETE	/workspaces/{workspaceId}/digitaltwinbuilders/{digitaltwinbuilderId}	Items_DeleteDigitalTwinBuilder		write	Deletes the specified DigitalTwinBuilder.
+digitalTwinBuilder	GET	/workspaces/{workspaceId}/digitaltwinbuilders	Items_ListDigitalTwinBuilders		read	Returns a list of DigitalTwinBuilders from the specified workspace.
+digitalTwinBuilder	GET	/workspaces/{workspaceId}/digitaltwinbuilders/{digitaltwinbuilderId}	Items_GetDigitalTwinBuilder		read	Returns properties of the specified DigitalTwinBuilder.
+digitalTwinBuilder	PATCH	/workspaces/{workspaceId}/digitaltwinbuilders/{digitaltwinbuilderId}	Items_UpdateDigitalTwinBuilder		write	Updates the properties of the specified DigitalTwinBuilder.
+digitalTwinBuilder	POST	/workspaces/{workspaceId}/digitaltwinbuilders	Items_CreateDigitalTwinBuilder		write	Creates a DigitalTwinBuilder in the specified workspace.
+digitalTwinBuilder	POST	/workspaces/{workspaceId}/digitaltwinbuilders/{digitaltwinbuilderId}/getDefinition	Items_GetDigitalTwinBuilderDefinition		definition	Returns the specified DigitalTwinBuilder public definition.
+digitalTwinBuilder	POST	/workspaces/{workspaceId}/digitaltwinbuilders/{digitaltwinbuilderId}/updateDefinition	Items_UpdateDigitalTwinBuilderDefinition		definition	Updates the definition of a specified DigitalTwinBuilder. The update overrides the current definition.
+digitalTwinBuilderFlow	DELETE	/workspaces/{workspaceId}/digitalTwinBuilderFlows/{digitalTwinBuilderFlowId}	Items_DeleteDigitalTwinBuilderFlow		write	Deletes the specified Digital Twin Builder Flow.
+digitalTwinBuilderFlow	GET	/workspaces/{workspaceId}/digitalTwinBuilderFlows	Items_ListDigitalTwinBuilderFlows		read	Returns a list of Digital Twin Builder Flows from the specified workspace.
+digitalTwinBuilderFlow	GET	/workspaces/{workspaceId}/digitalTwinBuilderFlows/{digitalTwinBuilderFlowId}	Items_GetDigitalTwinBuilderFlow		read	Returns properties of the specified Digital Twin Builder Flow.
+digitalTwinBuilderFlow	PATCH	/workspaces/{workspaceId}/digitalTwinBuilderFlows/{digitalTwinBuilderFlowId}	Items_UpdateDigitalTwinBuilderFlow		write	Updates the properties of the specified Digital Twin Builder Flow.
+digitalTwinBuilderFlow	POST	/workspaces/{workspaceId}/digitalTwinBuilderFlows	Items_CreateDigitalTwinBuilderFlow		write	Creates a Digital Twin Builder Flow in the specified workspace.
+digitalTwinBuilderFlow	POST	/workspaces/{workspaceId}/digitalTwinBuilderFlows/{digitalTwinBuilderFlowId}/getDefinition	Items_GetDigitalTwinBuilderFlowDefinition		definition	Returns the specified Digital Twin Builder Flow public definition.
+digitalTwinBuilderFlow	POST	/workspaces/{workspaceId}/digitalTwinBuilderFlows/{digitalTwinBuilderFlowId}/updateDefinition	Items_UpdateDigitalTwinBuilderFlowDefinition		definition	Overrides the definition for the specified Digital Twin Builder Flow.
+environment	DELETE	/workspaces/{workspaceId}/environments/{environmentId}	Items_DeleteEnvironment		write	Deletes the specified environment.
+environment	DELETE	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries	Staging_Delete_Custom_Library_(beta)		write	Deletes a library from environment. It supports deleting one file at a time.
+environment	DELETE	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries/{libraryName}	Staging_DeleteCustomLibrary		write	Delete a custom library from environment. It supports deleting one file at a time. The supported file formats are .jar, .py, .whl, and .tar.gz.
+environment	GET	/workspaces/{workspaceId}/environments	Items_ListEnvironments		read	Returns a list of environments from the specified workspace.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}	Items_GetEnvironment		read	Returns properties of the specified environment.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/libraries/exportExternalLibraries	Published_ExportExternalLibraries		read	Export a set of external libraries published in the environment in `YML` format.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/libraries?beta=false	Published_ListLibraries	yes	read	Get environment published libraries.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/poolActivations	PoolActivations_ListPoolActivations		read	Lists pool activations for the specified environment.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/poolActivations/{activationId}	PoolActivations_GetPoolActivation		read	Gets properties of the specified pool activation.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/sparkcompute?beta=true	Published_Get_Spark_Compute_(beta)	yes	read	Get environment spark compute.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries/exportExternalLibraries	Staging_ExportExternalLibraries		read	Export a set of external libraries saved in the environment in YML format.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries?beta=false	Staging_ListLibraries	yes	read	Get a list of libraries staged into environment.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/staging/publish/log	Staging_GetPublishLog		read	Get environment publish log.
+environment	GET	/workspaces/{workspaceId}/environments/{environmentId}/staging/sparkcompute?beta=true	Staging_Get_Spark_Compute_(beta)	yes	read	Get environment staging spark compute.
+environment	PATCH	/workspaces/{workspaceId}/environments/{environmentId}	Items_UpdateEnvironment		write	Updates the properties of the specified environment.
+environment	PATCH	/workspaces/{workspaceId}/environments/{environmentId}/staging/sparkcompute?beta=true	Staging_Update_Spark_Compute_(beta)	yes	write	Update environment staging spark compute. If you want to delete a spark property, set its value as null.
+environment	POST	/workspaces/{workspaceId}/environments	Items_CreateEnvironment		write	Creates an environment in the specified workspace.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/getDefinition	Items_GetEnvironmentDefinition		definition	Returns the specified environment public definition.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/staging/cancelPublish	Items_CancelPublishEnvironment		write	Trigger an environment publish cancellation.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries	Staging_Upload_Custom_Library_(beta)		write	Upload spark library into environment.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries/importExternalLibraries	Staging_ImportExternalLibraries		write	Upload spark external libraries as an `environment.yml` file into environment. It overrides the list of existing external libraries in environment.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries/removeExternalLibrary	Staging_RemoveExternalLibrary		write	Delete a spark external library from an environment.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/staging/libraries/{libraryName}	Staging_UploadCustomLibrary		write	Upload spark library into environment.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/staging/publish?beta=false	Items_PublishEnvironment	yes	write	Trigger an environment publish operation.
+environment	POST	/workspaces/{workspaceId}/environments/{environmentId}/updateDefinition	Items_UpdateEnvironmentDefinition		definition	Overrides the definition for the specified environment.
+eventSchemaSet	DELETE	/workspaces/{workspaceId}/eventSchemaSets/{eventSchemaSetId}	Items_DeleteEventSchemaSet		write	Deletes the specified EventSchemaSet.
+eventSchemaSet	GET	/workspaces/{workspaceId}/eventSchemaSets	Items_ListEventSchemaSets		read	Returns a list of EventSchemaSets from the specified workspace.
+eventSchemaSet	GET	/workspaces/{workspaceId}/eventSchemaSets/{eventSchemaSetId}	Items_GetEventSchemaSet		read	Returns properties of the specified EventSchemaSet.
+eventSchemaSet	PATCH	/workspaces/{workspaceId}/eventSchemaSets/{eventSchemaSetId}	Items_UpdateEventSchemaSet		write	Updates properties of the specified EventSchemaSet.
+eventSchemaSet	POST	/workspaces/{workspaceId}/eventSchemaSets	Items_CreateEventSchemaSet		write	Creates an EventSchemaSet in the specified workspace.
+eventSchemaSet	POST	/workspaces/{workspaceId}/eventSchemaSets/{eventSchemaSetId}/getDefinition	Items_GetEventSchemaSetDefinition		definition	Returns the specified EventSchemaSet definition.
+eventSchemaSet	POST	/workspaces/{workspaceId}/eventSchemaSets/{eventSchemaSetId}/updateDefinition	Items_UpdateEventSchemaSetDefinition		definition	Overrides the definition for the specified EventSchemaSet.
+eventhouse	DELETE	/workspaces/{workspaceId}/eventhouses/{eventhouseId}	Items_DeleteEventhouse		write	Deletes the specified eventhouse.
+eventhouse	GET	/workspaces/{workspaceId}/eventhouses	Items_ListEventhouses		read	Returns a list of eventhouses from the specified workspace.
+eventhouse	GET	/workspaces/{workspaceId}/eventhouses/{eventhouseId}	Items_GetEventhouse		read	Returns properties of the specified eventhouse.
+eventhouse	PATCH	/workspaces/{workspaceId}/eventhouses/{eventhouseId}	Items_UpdateEventhouse		write	Updates the properties of the specified eventhouse.
+eventhouse	POST	/workspaces/{workspaceId}/eventhouses	Items_CreateEventhouse		write	Creates an eventhouse in the specified workspace.
+eventhouse	POST	/workspaces/{workspaceId}/eventhouses/{eventhouseId}/getDefinition	Items_GetEventhouseDefinition		definition	Returns the specified eventhouse public definition.
+eventhouse	POST	/workspaces/{workspaceId}/eventhouses/{eventhouseId}/updateDefinition	Items_UpdateEventhouseDefinition		definition	Overrides the definition for the specified eventhouse.
+eventstream	DELETE	/workspaces/{workspaceId}/eventstreams/{eventstreamId}	Items_DeleteEventstream		write	Deletes the specified eventstream.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams	Items_ListEventstreams		read	Returns a list of eventstreams from the specified workspace.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams/{eventstreamId}	Items_GetEventstream		read	Returns properties of the specified eventstream.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/destinations/{destinationId}	Topology_GetEventstreamDestination		read	Returns the specified destination of the eventstream.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/destinations/{destinationId}/connection	Topology_GetEventstreamDestinationConnection		read	Returns the connection information of a specified destination of the eventstream.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/sources/{sourceId}	Topology_GetEventstreamSource		read	Returns the specified source of the eventstream.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/sources/{sourceId}/connection	Topology_GetEventstreamSourceConnection		read	Returns the connection information of specified source of the eventstream.
+eventstream	GET	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/topology	Topology_GetEventstreamTopology		read	Returns the topology of the specified eventstream.
+eventstream	PATCH	/workspaces/{workspaceId}/eventstreams/{eventstreamId}	Items_UpdateEventstream		write	Updates the properties of the specified eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams	Items_CreateEventstream		write	Creates an eventstream in the specified workspace.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/destinations/{destinationId}/pause	Topology_PauseEventstreamDestination		write	Pause running the specified destination in the eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/destinations/{destinationId}/resume	Topology_ResumeEventstreamDestination		write	Resume running the specified destination in the eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/getDefinition	Items_GetEventstreamDefinition		definition	Returns the specified eventstream public definition.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/pause	Topology_PauseEventstream		write	Pause running all supported sources and destinations of the eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/resume	Topology_ResumeEventstream		write	Resume running all supported sources and destinations of the eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/sources/{sourceId}/pause	Topology_PauseEventstreamSource		write	Pause running the specified source in the eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/sources/{sourceId}/resume	Topology_ResumeEventstreamSource		write	Resume running the specified source in the eventstream.
+eventstream	POST	/workspaces/{workspaceId}/eventstreams/{eventstreamId}/updateDefinition	Items_UpdateEventstreamDefinition		definition	Updates the definition of a specified eventstream. The update overrides the current definition.
+graphModel	DELETE	/workspaces/{workspaceId}/graphModels/{graphModelId}	Items_DeleteGraphModel		write	Deletes the specified GraphModel.
+graphModel	GET	/workspaces/{workspaceId}/graphModels	Items_ListGraphModels		read	Returns a list of GraphModels from the specified workspace.
+graphModel	GET	/workspaces/{workspaceId}/graphModels/{graphModelId}	Items_GetGraphModel		read	Returns properties of the specified GraphModel.
+graphModel	GET	/workspaces/{workspaceId}/graphModels/{graphModelId}/getQueryableGraphType?beta=true	Items_Get_Queryable_Graph_Type_(beta)	yes	read	Get the current queryable graph type.
+graphModel	PATCH	/workspaces/{workspaceId}/graphModels/{graphModelId}	Items_UpdateGraphModel		write	Updates the properties of the specified GraphModel.
+graphModel	POST	/workspaces/{workspaceId}/graphModels	Items_CreateGraphModel		write	Creates a GraphModel in the specified workspace.
+graphModel	POST	/workspaces/{workspaceId}/graphModels/{graphModelId}/executeQuery?beta=true	Items_Execute_Query_(beta)	yes	write	Executes a query on the specified graph model.
+graphModel	POST	/workspaces/{workspaceId}/graphModels/{graphModelId}/getDefinition	Items_GetGraphModelDefinition		definition	Returns the specified GraphModel public definition.
+graphModel	POST	/workspaces/{workspaceId}/graphModels/{graphModelId}/jobs/refreshGraph/instances	BackgroundJobs_RunOnDemandRefreshGraph		job	Run on-demand RefreshGraph job model.
+graphModel	POST	/workspaces/{workspaceId}/graphModels/{graphModelId}/updateDefinition	Items_UpdateGraphModelDefinition		definition	Overrides the definition for the specified GraphModel.
+graphQLApi	DELETE	/workspaces/{workspaceId}/graphQLApis/{graphQLApiId}	Items_DeleteGraphQLApi		write	Deletes the specified API for GraphQL.
+graphQLApi	GET	/workspaces/{workspaceId}/graphQLApis	Items_ListGraphQLApis		read	Returns a list of API for GraphQL items from the specified workspace.
+graphQLApi	GET	/workspaces/{workspaceId}/graphQLApis/{graphQLApiId}	Items_GetGraphQLApi		read	Returns properties of the specified API for GraphQL.
+graphQLApi	PATCH	/workspaces/{workspaceId}/graphQLApis/{graphQLApiId}	Items_UpdateGraphQLApi		write	Updates the properties of the specified API for GraphQL.
+graphQLApi	POST	/workspaces/{workspaceId}/graphQLApis	Items_CreateGraphQLApi		write	Creates a API for GraphQL item in the specified workspace.
+graphQLApi	POST	/workspaces/{workspaceId}/graphQLApis/{graphQLApiId}/getDefinition	Items_GetGraphQLApiDefinition		definition	Returns the specified GraphQLApi public definition.
+graphQLApi	POST	/workspaces/{workspaceId}/graphQLApis/{graphQLApiId}/updateDefinition	Items_UpdateGraphQLApiDefinition		definition	Overrides the definition for the specified API for GraphQL.
+graphQuerySet	DELETE	/workspaces/{workspaceId}/graphQuerySets/{graphQuerySetId}	Items_DeleteGraphQuerySet		write	Deletes the specified GraphQuerySet.
+graphQuerySet	GET	/workspaces/{workspaceId}/graphQuerySets	Items_ListGraphQuerySets		read	Returns a list of graph querysets from the specified workspace.
+graphQuerySet	GET	/workspaces/{workspaceId}/graphQuerySets/{graphQuerySetId}	Items_GetGraphQuerySet		read	Returns properties of the specified GraphQuerySet.
+graphQuerySet	PATCH	/workspaces/{workspaceId}/graphQuerySets/{graphQuerySetId}	Items_UpdateGraphQuerySet		write	Updates the properties of the specified GraphQuerySet.
+graphQuerySet	POST	/workspaces/{workspaceId}/graphQuerySets	Items_CreateGraphQuerySet		write	Creates a GraphQuerySet in the specified workspace.
+graphQuerySet	POST	/workspaces/{workspaceId}/graphQuerySets/{graphQuerySetId}/getDefinition	Items_GetGraphQuerySetDefinition		definition	Returns the specified graph queryset public definition.
+graphQuerySet	POST	/workspaces/{workspaceId}/graphQuerySets/{graphQuerySetId}/updateDefinition	Items_UpdateGraphQuerySetDefinition		definition	Overrides the definition for the specified graph queryset.
+kqlDashboard	DELETE	/workspaces/{workspaceId}/kqlDashboards/{kqlDashboardId}	Items_DeleteKQLDashboard		write	Deletes the specified KQL dashboard.
+kqlDashboard	GET	/workspaces/{workspaceId}/kqlDashboards	Items_ListKQLDashboards		read	Returns a list of KQL dashboards from the specified workspace.
+kqlDashboard	GET	/workspaces/{workspaceId}/kqlDashboards/{kqlDashboardId}	Items_GetKQLDashboard		read	Returns properties of the specified KQL dashboard.
+kqlDashboard	PATCH	/workspaces/{workspaceId}/kqlDashboards/{kqlDashboardId}	Items_UpdateKQLDashboard		write	Updates the properties of the specified KQL dashboard.
+kqlDashboard	POST	/workspaces/{workspaceId}/kqlDashboards	Items_CreateKQLDashboard		write	Creates a KQL dashboard in the specified workspace.
+kqlDashboard	POST	/workspaces/{workspaceId}/kqlDashboards/{kqlDashboardId}/getDefinition	Items_GetKQLDashboardDefinition		definition	Returns the specified KQL dashboard public definition.
+kqlDashboard	POST	/workspaces/{workspaceId}/kqlDashboards/{kqlDashboardId}/updateDefinition	Items_UpdateKQLDashboardDefinition		definition	Overrides the definition for the specified KQL dashboard.
+kqlDatabase	DELETE	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}	Items_DeleteKQLDatabase		write	Deletes the specified KQL database.
+kqlDatabase	DELETE	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}/shortcuts/{shortcutName}	TableShortcuts_DeleteShortcut		write	Deletes a table shortcut under a database.
+kqlDatabase	GET	/workspaces/{workspaceId}/kqlDatabases	Items_ListKQLDatabases		read	Returns a list of KQL databases from the specified workspace.
+kqlDatabase	GET	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}	Items_GetKQLDatabase		read	Returns properties of the specified KQL database.
+kqlDatabase	GET	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}/shortcuts	TableShortcuts_ListShortcuts		read	Returns a list of all table shortcuts under a database.
+kqlDatabase	GET	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}/shortcuts/{shortcutName}	TableShortcuts_GetShortcut		read	Returns the properties of a table shortcut under a database.
+kqlDatabase	PATCH	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}	Items_UpdateKQLDatabase		write	Updates the properties of the specified KQL database.
+kqlDatabase	POST	/workspaces/{workspaceId}/kqlDatabases	Items_CreateKQLDatabase		write	Creates a KQL database in the specified workspace.
+kqlDatabase	POST	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}/getDefinition	Items_GetKQLDatabaseDefinition		definition	Returns the specified KQL database public definition.
+kqlDatabase	POST	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}/shortcuts	TableShortcuts_CreateShortcut		write	Creates a new table shortcut under a database.
+kqlDatabase	POST	/workspaces/{workspaceId}/kqlDatabases/{kqlDatabaseId}/updateDefinition	Items_UpdateKQLDatabaseDefinition		definition	Overrides the definition for the specified KQL database.
+kqlQueryset	DELETE	/workspaces/{workspaceId}/kqlQuerysets/{kqlQuerysetId}	Items_DeleteKQLQueryset		write	Deletes the specified KQL queryset.
+kqlQueryset	GET	/workspaces/{workspaceId}/kqlQuerysets	Items_ListKQLQuerysets		read	Returns a list of KQL querysets from the specified workspace.
+kqlQueryset	GET	/workspaces/{workspaceId}/kqlQuerysets/{kqlQuerysetId}	Items_GetKQLQueryset		read	Returns properties of the specified KQL queryset.
+kqlQueryset	PATCH	/workspaces/{workspaceId}/kqlQuerysets/{kqlQuerysetId}	Items_UpdateKQLQueryset		write	Updates the properties of the specified KQL queryset.
+kqlQueryset	POST	/workspaces/{workspaceId}/kqlQuerysets	Items_CreateKQLQueryset		write	Creates a KQL queryset in the specified workspace.
+kqlQueryset	POST	/workspaces/{workspaceId}/kqlQuerysets/{kqlQuerysetId}/getDefinition	Items_GetKQLQuerysetDefinition		definition	Returns the specified KQL queryset public definition.
+kqlQueryset	POST	/workspaces/{workspaceId}/kqlQuerysets/{kqlQuerysetId}/updateDefinition	Items_UpdateKQLQuerysetDefinition		definition	Overrides the definition for the specified KQL queryset.
+lakehouse	DELETE	/workspaces/{workspaceId}/lakehouses/{lakehouseId}	Items_DeleteLakehouse		write	Deletes the specified lakehouse.
+lakehouse	DELETE	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/jobs/refreshMaterializedLakeViews/schedules/{scheduleId}	BackgroundJobs_DeleteRefreshMaterializedLakeViewsSchedule		job	Delete an existing Refresh MaterializedLakeViews schedule for a lakehouse.
+lakehouse	DELETE	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/mlvexecutiondefinitions/{mlvExecutionDefinitionId}	MaterializedLakeViews_DeleteMlvExecutionDefinition		definition	Deletes the specified materialized lake views execution definition.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses	Items_ListLakehouses		read	Returns a list of lakehouses from the specified workspace.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses/{lakehouseId}	Items_GetLakehouse		read	Returns properties of the specified lakehouse.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/livySessions	LivySessions_ListLivySessions		read	Returns a list of livy sessions from the specified item identifier.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/livySessions/{livyId}	LivySessions_GetLivySession		read	Returns properties of the specified livy session.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/mlvexecutiondefinitions	MaterializedLakeViews_ListMlvExecutionDefinitions		definition	Returns a list of materialized lake views execution definitions for a lakehouse.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/mlvexecutiondefinitions/{mlvExecutionDefinitionId}	MaterializedLakeViews_GetMlvExecutionDefinition		definition	Returns the specified materialized lake views execution definition.
+lakehouse	GET	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/tables	Tables_ListTables		read	Returns a list of lakehouse Tables.
+lakehouse	PATCH	/workspaces/{workspaceId}/lakehouses/{lakehouseId}	Items_UpdateLakehouse		write	Updates the properties of the specified lakehouse.
+lakehouse	PATCH	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/jobs/refreshMaterializedLakeViews/schedules/{scheduleId}	BackgroundJobs_UpdateRefreshMaterializedLakeViewsSchedule		job	Update an existing Refresh MaterializedLakeViews schedule for a lakehouse.
+lakehouse	PATCH	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/mlvexecutiondefinitions/{mlvExecutionDefinitionId}	MaterializedLakeViews_UpdateMlvExecutionDefinition		definition	Updates the specified materialized lake views execution definition.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses	Items_CreateLakehouse		write	Creates a lakehouse in the specified workspace.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/getDefinition	Items_GetLakehouseDefinition		definition	Returns the specified lakehouse public definition.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/jobs/refreshMaterializedLakeViews/instances	BackgroundJobs_RunOnDemandRefreshMaterializedLakeViews		job	Run on-demand [Refresh MaterializedLakeViews](/fabric/data-engineering/materialized-lake-views/refresh-materialized-lake-view) job instance.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/jobs/refreshMaterializedLakeViews/schedules	BackgroundJobs_CreateRefreshMaterializedLakeViewsSchedule		job	Create a new Refresh MaterializedLakeViews schedule for a lakehouse.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/jobs/tableMaintenance/instances	BackgroundJobs_RunOnDemandTableMaintenance		job	Run on-demand [table maintenance](/fabric/data-engineering/lakehouse-table-maintenance) job instance.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/mlvexecutiondefinitions	MaterializedLakeViews_CreateMlvExecutionDefinition		definition	Creates a materialized lake views execution definition.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/schemas/{schemaName}/tables/{tableName}/load?beta=true	Tables_Load_Schema_Table_(beta)	yes	write	Starts a load table operation for a table within a schema enabled lakehouse and returns the operation status URL in the response location header.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/tables/{tableName}/load	Tables_LoadTable		write	Starts a load table operation and returns the operation status URL in the response location header.
+lakehouse	POST	/workspaces/{workspaceId}/lakehouses/{lakehouseId}/updateDefinition	Items_UpdateLakehouseDefinition		definition	Overrides the definition for the specified lakehouse.
+map	DELETE	/workspaces/{workspaceId}/maps/{mapId}	Items_DeleteMap		write	Deletes the specified Map.
+map	GET	/workspaces/{workspaceId}/maps	Items_ListMaps		read	Returns a list of Maps from the specified workspace.
+map	GET	/workspaces/{workspaceId}/maps/{mapId}	Items_GetMap		read	Returns properties of the specified Map.
+map	PATCH	/workspaces/{workspaceId}/maps/{mapId}	Items_UpdateMap		write	Updates the properties of the specified Map.
+map	POST	/workspaces/{workspaceId}/maps	Items_CreateMap		write	Creates a Map in the specified workspace.
+map	POST	/workspaces/{workspaceId}/maps/{mapId}/getDefinition	Items_GetMapDefinition		definition	Returns the specified Map public definition.
+map	POST	/workspaces/{workspaceId}/maps/{mapId}/updateDefinition	Items_UpdateMapDefinition		definition	Overrides the definition for the specified Map.
+mirroredAzureDatabricksCatalog	DELETE	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs/{mirroredAzureDatabricksCatalogId}	Items_DeleteMirroredAzureDatabricksCatalog		write	Deletes the specified mirroredAzureDatabricksCatalog.
+mirroredAzureDatabricksCatalog	GET	/workspaces/{workspaceId}/azureDatabricks/catalogs	Discovery_DiscoverCatalogs		read	Returns a list of catalogs from Unity Catalog.
+mirroredAzureDatabricksCatalog	GET	/workspaces/{workspaceId}/azureDatabricks/catalogs/{catalogName}/schemas	Discovery_DiscoverSchemas		read	Returns a list of schemas in the given catalog from Unity Catalog.
+mirroredAzureDatabricksCatalog	GET	/workspaces/{workspaceId}/azureDatabricks/catalogs/{catalogName}/schemas/{schemaName}/tables	Discovery_DiscoverTables		read	Returns a list of tables in the given schema from Unity Catalog.
+mirroredAzureDatabricksCatalog	GET	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs	Items_ListMirroredAzureDatabricksCatalogs		read	Returns a list of mirroredAzureDatabricksCatalogs from the specified workspace.
+mirroredAzureDatabricksCatalog	GET	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs/{mirroredAzureDatabricksCatalogId}	Items_GetMirroredAzureDatabricksCatalog		read	Returns properties of the specified mirroredAzureDatabricksCatalog.
+mirroredAzureDatabricksCatalog	PATCH	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs/{mirroredAzureDatabricksCatalogId}	Items_UpdateMirroredAzureDatabricksCatalog		write	Updates the properties of the specified mirroredAzureDatabricksCatalog.
+mirroredAzureDatabricksCatalog	POST	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs	Items_CreateMirroredAzureDatabricksCatalog		write	Creates a mirroredAzureDatabricksCatalog in the specified workspace.
+mirroredAzureDatabricksCatalog	POST	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs/{mirroredAzureDatabricksCatalogId}/getDefinition	Items_GetMirroredAzureDatabricksCatalogDefinition		definition	Returns the specified mirroredAzureDatabricksCatalog public definition.
+mirroredAzureDatabricksCatalog	POST	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs/{mirroredAzureDatabricksCatalogId}/refreshCatalogMetadata	Refresh_RefreshCatalogMetadata		write	Refresh Databricks catalog metadata in mirroredAzureDatabricksCatalogs Item.
+mirroredAzureDatabricksCatalog	POST	/workspaces/{workspaceId}/mirroredAzureDatabricksCatalogs/{mirroredAzureDatabricksCatalogId}/updateDefinition	Items_UpdateMirroredAzureDatabricksCatalogDefinition		definition	Overrides the definition for the specified mirroredAzureDatabricksCatalog.
+mirroredCatalog	DELETE	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}	Items_DeleteMirroredCatalog		write	Deletes the specified MirroredCatalog.
+mirroredCatalog	GET	/workspaces/{workspaceId}/catalogmirroring/scopes	Discovery_ListScopes		read	Returns a hierarchical list of namespaces from the source catalog.
+mirroredCatalog	GET	/workspaces/{workspaceId}/catalogmirroring/tables	Discovery_ListTables		read	Returns a list of tables within a specified namespace scope from the source catalog.
+mirroredCatalog	GET	/workspaces/{workspaceId}/mirroredCatalogs	Items_ListMirroredCatalogs		read	Returns a list of MirroredCatalogs from the specified workspace.
+mirroredCatalog	GET	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}	Items_GetMirroredCatalog		read	Returns properties of the specified MirroredCatalog.
+mirroredCatalog	GET	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}/mirroringStatus	Monitoring_GetMirroringStatus		read	Gets the overall mirroring status of the MirroredCatalog.
+mirroredCatalog	GET	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}/tablesMirroringStatus	Monitoring_ListTablesMirroringStatus		read	Lists the per-table mirroring statuses for the MirroredCatalog.
+mirroredCatalog	PATCH	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}	Items_UpdateMirroredCatalog		write	Updates the properties of the specified MirroredCatalog.
+mirroredCatalog	POST	/workspaces/{workspaceId}/mirroredCatalogs	Items_CreateMirroredCatalog		write	Creates a MirroredCatalog in the specified workspace.
+mirroredCatalog	POST	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}/getDefinition	Items_GetMirroredCatalogDefinition		definition	Returns the specified MirroredCatalog public definition.
+mirroredCatalog	POST	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}/refreshCatalogMetadata	Refresh_RefreshCatalogMetadata		write	Triggers a refresh of catalog metadata from the source.
+mirroredCatalog	POST	/workspaces/{workspaceId}/mirroredCatalogs/{mirroredCatalogId}/updateDefinition	Items_UpdateMirroredCatalogDefinition		definition	Overrides the definition for the specified MirroredCatalog.
+mirroredDatabase	DELETE	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}	Items_DeleteMirroredDatabase		write	Deletes the specified mirrored database.
+mirroredDatabase	GET	/workspaces/{workspaceId}/mirroredDatabases	Items_ListMirroredDatabases		read	Returns a list of mirrored databases from the specified workspace.
+mirroredDatabase	GET	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}	Items_GetMirroredDatabase		read	Returns properties of the specified mirrored database.
+mirroredDatabase	PATCH	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}	Items_UpdateMirroredDatabase		write	Updates the properties of the specified mirrored database.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases	Items_CreateMirroredDatabase		write	Creates a mirrored database in the specified workspace.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}/getDefinition	Items_GetMirroredDatabaseDefinition		definition	Returns the specified mirrored database public definition.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}/getMirroringStatus	Mirroring_GetMirroringStatus		write	Get the status of the mirrored database.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}/getTablesMirroringStatus	Mirroring_GetTablesMirroringStatus		write	Get the mirroring status of the tables.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}/startMirroring	Mirroring_StartMirroring		write	Starts the mirroring.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}/stopMirroring	Mirroring_StopMirroring		write	Stops the mirroring.
+mirroredDatabase	POST	/workspaces/{workspaceId}/mirroredDatabases/{mirroredDatabaseId}/updateDefinition	Items_UpdateMirroredDatabaseDefinition		definition	Overrides the definition for the specified mirrored database.
+mirroredWarehouse	GET	/workspaces/{workspaceId}/mirroredWarehouses	Items_ListMirroredWarehouses		read	Returns a list of mirrored warehouses from the specified workspace.
+mlExperiment	DELETE	/workspaces/{workspaceId}/mlExperiments/{mlExperimentId}	Items_DeleteMLExperiment		write	Deletes the specified machine learning experiment.
+mlExperiment	GET	/workspaces/{workspaceId}/mlExperiments	Items_ListMLExperiments		read	Returns a list of machine learning experiments from the specified workspace.
+mlExperiment	GET	/workspaces/{workspaceId}/mlExperiments/{mlExperimentId}	Items_GetMLExperiment		read	Returns properties of the specified machine learning experiment.
+mlExperiment	PATCH	/workspaces/{workspaceId}/mlExperiments/{mlExperimentId}	Items_UpdateMLExperiment		write	Updates the properties of the specified machine learning experiment.
+mlExperiment	POST	/workspaces/{workspaceId}/mlExperiments	Items_CreateMLExperiment		write	Creates a machine learning experiment in the specified workspace.
+mlModel	DELETE	/workspaces/{workspaceId}/mlModels/{mlModelId}	Items_DeleteMLModel		write	Deletes the specified machine learning model.
+mlModel	GET	/workspaces/{workspaceId}/mlModels	Items_ListMLModels		read	Returns a list of machine learning models from the specified workspace.
+mlModel	GET	/workspaces/{workspaceId}/mlModels/{mlModelId}	Items_GetMLModel		read	Returns properties of the specified machine learning model.
+mlModel	GET	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint	Endpoint_GetMLModelEndpoint		read	Returns properties of the specified machine learning model's endpoint.
+mlModel	GET	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions	Endpoint_ListMLModelEndpointVersions		read	Returns a list of all machine learning model endpoint versions.
+mlModel	GET	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions/{name}	Endpoint_GetMLModelEndpointVersion		read	Returns information about the specified MLModel endpoint version.
+mlModel	PATCH	/workspaces/{workspaceId}/mlModels/{mlModelId}	Items_UpdateMLModel		write	Updates the properties of the specified machine learning model.
+mlModel	PATCH	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint	Endpoint_UpdateMLModelEndpoint		write	Updates the default version of the specified model.
+mlModel	PATCH	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions/{name}	Endpoint_UpdateMLModelEndpointVersion		write	Update machine learning model endpoint version configuration.
+mlModel	POST	/workspaces/{workspaceId}/mlModels	Items_CreateMLModel		write	Creates a machine learning model in the specified workspace.
+mlModel	POST	/workspaces/{workspaceId}/mlModels/{modelId}/endpoint/score	Endpoint_ScoreMLModelEndpoint		write	Scores input data using the default version of the endpoint and returns results.
+mlModel	POST	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions/deactivateAll	Endpoint_DeactivateAllMLModelEndpointVersions		write	Deactivates the specified machine learning model and its version's endpoints.
+mlModel	POST	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions/{name}/activate	Endpoint_ActivateMLModelEndpointVersion		write	Activates the specified model version endpoint.
+mlModel	POST	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions/{name}/deactivate	Endpoint_DeactivateMLModelEndpointVersion		write	Deactivates the specified model version version.
+mlModel	POST	/workspaces/{workspaceId}/mlmodels/{modelId}/endpoint/versions/{name}/score	Endpoint_ScoreMLModelEndpointVersion		write	Scores input data for the specific version of the endpoint and returns results.
+monitoring	DELETE	/workspaces/{workspaceId}/monitoringItems/{monitoringId}	Items_DeleteMonitoring		write	Deletes the specified Monitoring.
+monitoring	GET	/workspaces/{workspaceId}/monitoringItems	Items_ListMonitoringItems		read	Lists Monitoring items in the specified workspace.
+monitoring	GET	/workspaces/{workspaceId}/monitoringItems/{monitoringId}	Items_GetMonitoring		read	Gets the specified Monitoring.
+monitoring	PATCH	/workspaces/{workspaceId}/monitoringItems/{monitoringId}	Items_UpdateMonitoring		write	Updates the specified Monitoring.
+monitoring	POST	/workspaces/{workspaceId}/monitoringItems	Items_CreateMonitoring		write	Creates a Monitoring in the specified workspace.
+monitoring	POST	/workspaces/{workspaceId}/monitoringItems/{monitoringId}/disableDataCollection	DataCollection_Disable		write	Disables data collection for the specified Monitoring.
+monitoring	POST	/workspaces/{workspaceId}/monitoringItems/{monitoringId}/enableDataCollection	DataCollection_Enable		write	Enables data collection for the specified Monitoring.
+monitoring	POST	/workspaces/{workspaceId}/monitoringItems/{monitoringId}/getDefinition	Items_GetMonitoringDefinition		definition	Gets the Monitoring definition.
+monitoring	POST	/workspaces/{workspaceId}/monitoringItems/{monitoringId}/updateDefinition	Items_UpdateMonitoringDefinition		definition	Updates the Monitoring definition.
+mountedDataFactory	DELETE	/workspaces/{workspaceId}/mountedDataFactories/{mountedDataFactoryId}	Items_DeleteMountedDataFactory		write	Deletes the specified mounted data factory.
+mountedDataFactory	GET	/workspaces/{workspaceId}/mountedDataFactories	Items_ListMountedDataFactories		read	Returns a list of mounted data factorys from the specified workspace.
+mountedDataFactory	GET	/workspaces/{workspaceId}/mountedDataFactories/{mountedDataFactoryId}	Items_GetMountedDataFactory		read	Returns properties of the specified mounted data factory.
+mountedDataFactory	PATCH	/workspaces/{workspaceId}/mountedDataFactories/{mountedDataFactoryId}	Items_UpdateMountedDataFactory		write	Updates the properties of the specified mounted data factory.
+mountedDataFactory	POST	/workspaces/{workspaceId}/mountedDataFactories	Items_CreateMountedDataFactory		write	Creates a mounted data factory in the specified workspace.
+mountedDataFactory	POST	/workspaces/{workspaceId}/mountedDataFactories/{mountedDataFactoryId}/getDefinition	Items_GetMountedDataFactoryDefinition		definition	Returns the specified mounted data factory public definition.
+mountedDataFactory	POST	/workspaces/{workspaceId}/mountedDataFactories/{mountedDataFactoryId}/updateDefinition	Items_UpdateMountedDataFactoryDefinition		definition	Overrides the definition for the specified mounted data factory.
+notebook	DELETE	/workspaces/{workspaceId}/notebooks/{notebookId}	Items_DeleteNotebook		write	Deletes the specified notebook.
+notebook	GET	/workspaces/{workspaceId}/notebooks	Items_ListNotebooks		read	Returns a list of notebooks from the specified workspace.
+notebook	GET	/workspaces/{workspaceId}/notebooks/{notebookId}	Items_GetNotebook		read	Returns properties of the specified notebook.
+notebook	GET	/workspaces/{workspaceId}/notebooks/{notebookId}/jobs/execute/instances/{jobInstanceId}?beta=true	BackgroundJobs_Get_Notebook_Job_Instance_(beta)	yes	job	Get one notebook's job instance.
+notebook	GET	/workspaces/{workspaceId}/notebooks/{notebookId}/livySessions	LivySessions_ListLivySessions		read	Returns a list of livy sessions from the specified item identifier.
+notebook	GET	/workspaces/{workspaceId}/notebooks/{notebookId}/livySessions/{livyId}	LivySessions_GetLivySession		read	Returns properties of the specified livy session.
+notebook	PATCH	/workspaces/{workspaceId}/notebooks/{notebookId}	Items_UpdateNotebook		write	Updates the properties of the specified notebook.
+notebook	POST	/workspaces/{workspaceId}/notebooks	Items_CreateNotebook		write	Creates a notebook in the specified workspace.
+notebook	POST	/workspaces/{workspaceId}/notebooks/{notebookId}/getDefinition	Items_GetNotebookDefinition		definition	Returns the specified notebook public definition.
+notebook	POST	/workspaces/{workspaceId}/notebooks/{notebookId}/jobs/execute/instances?beta=false	BackgroundJobs_RunOnDemandNotebook	yes	job	Run on-demand notebook job instance.
+notebook	POST	/workspaces/{workspaceId}/notebooks/{notebookId}/updateDefinition	Items_UpdateNotebookDefinition		definition	Overrides the definition for the specified notebook.
+ontology	DELETE	/workspaces/{workspaceId}/ontologies/{ontologyId}	Items_DeleteOntology		write	Deletes the specified Ontology.
+ontology	GET	/workspaces/{workspaceId}/ontologies	Items_ListOntologies		read	Lists Ontologies in the specified workspace.
+ontology	GET	/workspaces/{workspaceId}/ontologies/{ontologyId}	Items_GetOntology		read	Gets the specified Ontology.
+ontology	PATCH	/workspaces/{workspaceId}/ontologies/{ontologyId}	Items_UpdateOntology		write	Updates the properties of the specified Ontology.
+ontology	POST	/workspaces/{workspaceId}/ontologies	Items_CreateOntology		write	Creates an Ontology in the specified workspace.
+ontology	POST	/workspaces/{workspaceId}/ontologies/{ontologyId}/getDefinition	Items_GetOntologyDefinition		definition	Returns the specified Ontology public definition.
+ontology	POST	/workspaces/{workspaceId}/ontologies/{ontologyId}/updateDefinition	Items_UpdateOntologyDefinition		definition	Updates the definition of a specified Ontology. The update overrides the current definition.
+operationsAgent	DELETE	/workspaces/{workspaceId}/operationsAgents/{operationsAgentId}	Items_DeleteOperationsAgent		write	Deletes the specified OperationsAgent.
+operationsAgent	GET	/workspaces/{workspaceId}/operationsAgents	Items_ListOperationsAgents		read	Returns a list of OperationsAgents from the specified workspace.
+operationsAgent	GET	/workspaces/{workspaceId}/operationsAgents/{operationsAgentId}	Items_GetOperationsAgent		read	Returns properties of the specified OperationsAgent.
+operationsAgent	PATCH	/workspaces/{workspaceId}/operationsAgents/{operationsAgentId}	Items_UpdateOperationsAgent		write	Updates the properties of the specified OperationsAgent.
+operationsAgent	POST	/workspaces/{workspaceId}/operationsAgents	Items_CreateOperationsAgent		write	Creates an OperationsAgent in the specified workspace.
+operationsAgent	POST	/workspaces/{workspaceId}/operationsAgents/{operationsAgentId}/getDefinition	Items_GetOperationsAgentDefinition		definition	Returns the specified OperationsAgent public definition.
+operationsAgent	POST	/workspaces/{workspaceId}/operationsAgents/{operationsAgentId}/updateDefinition	Items_UpdateOperationsAgentDefinition		definition	Overrides the definition for the specified OperationsAgent.
+orgApp	DELETE	/workspaces/{workspaceId}/orgApps/{orgAppId}	Items_DeleteOrgApp		write	Deletes the specified OrgApp.
+orgApp	GET	/workspaces/{workspaceId}/orgApps	Items_ListOrgApps		read	Returns a list of OrgApps from the specified workspace.
+orgApp	GET	/workspaces/{workspaceId}/orgApps/{orgAppId}	Items_GetOrgApp		read	Returns properties of the specified OrgApp.
+orgApp	PATCH	/workspaces/{workspaceId}/orgApps/{orgAppId}	Items_UpdateOrgApp		write	Updates the properties of the specified OrgApp.
+orgApp	POST	/workspaces/{workspaceId}/orgApps	Items_CreateOrgApp		write	Creates an OrgApp in the specified workspace.
+orgApp	POST	/workspaces/{workspaceId}/orgApps/{orgAppId}/getDefinition	Items_GetOrgAppDefinition		definition	Returns the specified OrgApp public definition.
+orgApp	POST	/workspaces/{workspaceId}/orgApps/{orgAppId}/updateDefinition	Items_UpdateOrgAppDefinition		definition	Overrides the definition for the specified OrgApp.
+orgAppAudience	DELETE	/workspaces/{workspaceId}/orgAppAudiences/{orgAppAudienceId}	Items_DeleteOrgAppAudience		write	Deletes the specified OrgAppAudience.
+orgAppAudience	GET	/workspaces/{workspaceId}/orgAppAudiences	Items_ListOrgAppAudiences		read	Returns a list of OrgAppAudiences from the specified workspace.
+orgAppAudience	GET	/workspaces/{workspaceId}/orgAppAudiences/{orgAppAudienceId}	Items_GetOrgAppAudience		read	Returns properties of the specified OrgAppAudience.
+orgAppAudience	PATCH	/workspaces/{workspaceId}/orgAppAudiences/{orgAppAudienceId}	Items_UpdateOrgAppAudience		write	Updates the properties of the specified OrgAppAudience.
+orgAppAudience	POST	/workspaces/{workspaceId}/orgAppAudiences	Items_CreateOrgAppAudience		write	Creates an OrgAppAudience in the specified workspace.
+orgAppAudience	POST	/workspaces/{workspaceId}/orgAppAudiences/{orgAppAudienceId}/getDefinition	Items_GetOrgAppAudienceDefinition		definition	Returns the specified OrgAppAudience public definition.
+orgAppAudience	POST	/workspaces/{workspaceId}/orgAppAudiences/{orgAppAudienceId}/updateDefinition	Items_UpdateOrgAppAudienceDefinition		definition	Overrides the definition for the specified OrgAppAudience.
+paginatedReport	DELETE	/workspaces/{workspaceId}/paginatedReports/{paginatedReportId}	Items_DeletePaginatedReport		write	Deletes the specified paginated report.
+paginatedReport	GET	/workspaces/{workspaceId}/paginatedReports	Items_ListPaginatedReports		read	Returns a list of paginated reports from the specified workspace.
+paginatedReport	GET	/workspaces/{workspaceId}/paginatedReports/{paginatedReportId}	Items_GetPaginatedReport		read	Returns properties of the specified paginated report.
+paginatedReport	PATCH	/workspaces/{workspaceId}/paginatedReports/{paginatedReportId}	Items_UpdatePaginatedReport		write	Updates the properties of the specified paginated report.
+paginatedReport	POST	/workspaces/{workspaceId}/paginatedReports	Items_CreatePaginatedReport		write	Creates a paginated report in the specified workspace.
+paginatedReport	POST	/workspaces/{workspaceId}/paginatedReports/{paginatedReportId}/getDefinition	Items_GetPaginatedReportDefinition		definition	Returns the specified paginated report public definition.
+paginatedReport	POST	/workspaces/{workspaceId}/paginatedReports/{paginatedReportId}/updateDefinition	Items_UpdatePaginatedReportDefinition		definition	Overrides the definition for the specified paginated report.
+plan	DELETE	/workspaces/{workspaceId}/plans/{planId}	Items_DeletePlan		write	Deletes the specified plan.
+plan	GET	/workspaces/{workspaceId}/plans	Items_ListPlans		read	Returns a list of plans from the specified workspace.
+plan	GET	/workspaces/{workspaceId}/plans/{planId}	Items_GetPlan		read	Returns the properties of the specified plan.
+plan	PATCH	/workspaces/{workspaceId}/plans/{planId}	Items_UpdatePlan		write	Updates the properties of the specified plan.
+plan	POST	/workspaces/{workspaceId}/plans	Items_CreatePlan		write	Creates a plan in the specified workspace.
+plan	POST	/workspaces/{workspaceId}/plans/{planId}/getDefinition	Items_GetPlanDefinition		definition	Returns the definition of the specified plan.
+plan	POST	/workspaces/{workspaceId}/plans/{planId}/updateDefinition	Items_UpdatePlanDefinition		definition	Updates the definition of the specified plan.
+platform	DELETE	/capacities/{capacityId}/surgeProtection/actorAutoDetectionRules/{actorAutoDetectionRuleId}	SurgeProtection_DeleteActorAutoDetectionRule		write	Deletes the specified actor auto-detection rule.
+platform	DELETE	/capacities/{capacityId}/surgeProtection/blockedActors/{blockedActorId}	SurgeProtection_DeleteBlockedActor		write	Deletes a blocked actor from a capacity.
+platform	DELETE	/capacities/{capacityId}/surgeProtection/missionCriticalActors/{missionCriticalActorId}	SurgeProtection_DeleteMissionCriticalActor		write	Deletes a mission critical actor from a capacity.
+platform	DELETE	/connections/{connectionId}	Connections_DeleteConnection		write	Delete connection by ID.
+platform	DELETE	/connections/{connectionId}/roleAssignments/{connectionRoleAssignmentId}	Connections_DeleteConnectionRoleAssignment		write	Delete the specified role assignment for the connection.
+platform	DELETE	/deploymentPipelines/{deploymentPipelineId}	DeploymentPipelines_DeleteDeploymentPipeline		write	Deletes the specified deployment pipeline.
+platform	DELETE	/deploymentPipelines/{deploymentPipelineId}/roleAssignments/{principalId}	DeploymentPipelines_DeleteDeploymentPipelineRoleAssignment		write	Deletes the specified deployment pipeline role assignment.
+platform	DELETE	/gateways/{gatewayId}	Gateways_DeleteGateway		write	Delete gateway by ID.
+platform	DELETE	/gateways/{gatewayId}/members/{gatewayMemberId}	Gateways_DeleteGatewayMember		write	Delete gateway member of an OnPremisesGateway by ID.
+platform	DELETE	/gateways/{gatewayId}/roleAssignments/{gatewayRoleAssignmentId}	Gateways_DeleteGatewayRoleAssignment		write	Delete the specified role assignment for the gateway.
+platform	DELETE	/workspaces/{workspaceId}	Workspaces_DeleteWorkspace		write	Deletes the specified workspace and the items under it.
+platform	DELETE	/workspaces/{workspaceId}/folders/{folderId}	Folders_DeleteFolder		write	Deletes the specified folder.
+platform	DELETE	/workspaces/{workspaceId}/git/workspaceRelations/{workspaceRelationId}	Git_DeleteWorkspaceRelation		write	Deletes a workspace relation.
+platform	DELETE	/workspaces/{workspaceId}/items/{itemId}	Items_DeleteItem		write	Deletes the specified item.
+platform	DELETE	/workspaces/{workspaceId}/items/{itemId}/dataAccessRoles/{roleName}	OneLakeDataAccessSecurity_DeleteDataAccessRole		write	Deletes a single data access role.
+platform	DELETE	/workspaces/{workspaceId}/items/{itemId}/externalDataShares/{externalDataShareId}	ExternalDataSharesProvider_DeleteExternalDataShare		write	Deletes the specified external data share.
+platform	DELETE	/workspaces/{workspaceId}/items/{itemId}/jobs/{jobType}/schedules/{scheduleId}	JobScheduler_DeleteItemSchedule		job	Delete an existing schedule for an item.
+platform	DELETE	/workspaces/{workspaceId}/items/{itemId}/shortcuts/{shortcutPath}/{shortcutName}	OneLakeShortcuts_DeleteShortcut		write	Deletes the shortcut but does not delete the destination storage folder.
+platform	DELETE	/workspaces/{workspaceId}/managedPrivateEndpoints/{managedPrivateEndpointId}	ManagedPrivateEndpoints_DeleteWorkspaceManagedPrivateEndpoint		write	Deletes the specified managed private endpoint.
+platform	DELETE	/workspaces/{workspaceId}/recoverableItems/{itemId}	RecoverableItems_DeleteRecoverableItem		write	Permanently deletes a recoverable item.
+platform	DELETE	/workspaces/{workspaceId}/roleAssignments/{workspaceRoleAssignmentId}	Workspaces_DeleteWorkspaceRoleAssignment		write	Deletes the specified workspace role assignment.
+platform	GET	/capacities	Capacities_ListCapacities		read	Returns a list of capacities the principal can access (either administrator or a contributor).
+platform	GET	/capacities/{capacityId}	Capacities_GetCapacity		read	Returns specified capacity information.
+platform	GET	/capacities/{capacityId}/overageConfiguration	Capacities_GetOverageConfiguration		read	Gets the overage configuration for the specified capacity.
+platform	GET	/capacities/{capacityId}/surgeProtection	SurgeProtection_GetCapacitySurgeProtection		read	Returns the surge protection configuration for the specified capacity.
+platform	GET	/capacities/{capacityId}/surgeProtection/actorAutoDetectionRules	SurgeProtection_ListActorAutoDetectionRules		read	Lists actor auto-detection rules on the specified capacity.
+platform	GET	/capacities/{capacityId}/surgeProtection/actorAutoDetectionRules/{actorAutoDetectionRuleId}	SurgeProtection_GetActorAutoDetectionRule		read	Gets the specified actor auto-detection rule.
+platform	GET	/capacities/{capacityId}/surgeProtection/blockedActors	SurgeProtection_ListBlockedActors		read	Lists blocked actors on a capacity.
+platform	GET	/capacities/{capacityId}/surgeProtection/blockedActors/{blockedActorId}	SurgeProtection_GetBlockedActor		read	Gets the specified blocked actor.
+platform	GET	/capacities/{capacityId}/surgeProtection/missionCriticalActors	SurgeProtection_ListMissionCriticalActors		read	Lists mission critical actors on a capacity.
+platform	GET	/capacities/{capacityId}/surgeProtection/missionCriticalActors/{missionCriticalActorId}	SurgeProtection_GetMissionCriticalActor		read	Gets the specified mission critical actor.
+platform	GET	/connections	Connections_ListConnections		read	Returns a list of on-premises, virtual network and cloud connections the user has permission for.
+platform	GET	/connections/supportedConnectionTypes	Connections_ListSupportedConnectionTypes		read	Lists supported connection types.
+platform	GET	/connections/{connectionId}	Connections_GetConnection		read	Get connection by ID.
+platform	GET	/connections/{connectionId}/roleAssignments	Connections_ListConnectionRoleAssignments		read	Returns a list of connection role assignments.
+platform	GET	/connections/{connectionId}/roleAssignments/{connectionRoleAssignmentId}	Connections_GetConnectionRoleAssignment		read	Returns the principal's role assignment for the connection.
+platform	GET	/deploymentPipelines	DeploymentPipelines_ListDeploymentPipelines		read	Returns a list of deployment pipelines the user can access.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}	DeploymentPipelines_GetDeploymentPipeline		read	Returns the specified deployment pipeline metadata.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}/operations	DeploymentPipelines_ListDeploymentPipelineOperations		read	Returns a list of the up-to-20 most recent deploy operations performed on the specified deployment pipeline.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}/operations/{operationId}	DeploymentPipelines_GetDeploymentPipelineOperation		read	Returns the details of the specified deploy operation performed on the specified deployment pipeline, including the deployment execution plan.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}/roleAssignments	DeploymentPipelines_ListDeploymentPipelineRoleAssignments		read	Returns a list of deployment pipeline role assignments.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}/stages	DeploymentPipelines_ListDeploymentPipelineStages		read	Returns the specified deployment pipeline stages.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}/stages/{stageId}	DeploymentPipelines_GetDeploymentPipelineStage		read	Returns the specified deployment pipeline stage metadata.
+platform	GET	/deploymentPipelines/{deploymentPipelineId}/stages/{stageId}/items	DeploymentPipelines_ListDeploymentPipelineStageItems		read	Returns the supported items from the workspace assigned to the specified stage of the specified deployment pipeline.
+platform	GET	/domains	Domains_ListDomains		read	Returns a list of all the tenant's domains.
+platform	GET	/domains/{domainId}	Domains_GetDomain		read	Returns specified domain information.
+platform	GET	/externalDataShares/invitations/{invitationId}	ExternalDataSharesRecipient_GetExternalDataShareInvitationDetails		read	Returns information about an external data share invitation.
+platform	GET	/gateways	Gateways_ListGateways		read	Returns a list of all gateways the user has permission for, including on-premises, on-premises (personal mode), and virtual network gateways.
+platform	GET	/gateways/{gatewayId}	Gateways_GetGateway		read	Get gateway by ID.
+platform	GET	/gateways/{gatewayId}/members	Gateways_ListGatewayMembers		read	Lists gateway members of an OnPremisesGateway by ID.
+platform	GET	/gateways/{gatewayId}/roleAssignments	Gateways_ListGatewayRoleAssignments		read	Returns a list of gateway role assignments.
+platform	GET	/gateways/{gatewayId}/roleAssignments/{gatewayRoleAssignmentId}	Gateways_GetGatewayRoleAssignment		read	Returns the principal's role assignment for the gateway.
+platform	GET	/operations/{operationId}	LongRunningOperations_GetOperationState		read	Returns the current state of the long running operation.
+platform	GET	/operations/{operationId}/result	LongRunningOperations_GetOperationResult		read	Returns the result of the long running operation.
+platform	GET	/tags	Tags_ListTags		read	Returns a list of all the tenant's tags.
+platform	GET	/workspaces	Workspaces_ListWorkspaces		read	Returns a list of workspaces the principal can access. Use the roles query parameter to filter results by the principal workspace role.
+platform	GET	/workspaces/{workspaceId}	Workspaces_GetWorkspace		read	Returns specified workspace information.
+platform	GET	/workspaces/{workspaceId}/encryption	Workspaces_GetWorkspaceEncryption		read	Gets the workspace Customer-Managed Key (CMK) encryption settings.
+platform	GET	/workspaces/{workspaceId}/folders	Folders_ListFolders		read	Returns a list of folders from the specified workspace.
+platform	GET	/workspaces/{workspaceId}/folders/{folderId}	Folders_GetFolder		read	Returns the properties of the specified folder.
+platform	GET	/workspaces/{workspaceId}/git/connection	Git_GetConnection		read	Returns git connection details for the specified workspace.
+platform	GET	/workspaces/{workspaceId}/git/connectionSettings	Git_GetConnectionSettings		read	Gets the connection settings for a Git-connected workspace.
+platform	GET	/workspaces/{workspaceId}/git/myGitCredentials	Git_GetMyGitCredentials		read	Returns the user's Git credentials configuration details.
+platform	GET	/workspaces/{workspaceId}/git/status	Git_GetStatus		read	Returns the `Git status` of items in the workspace, that can be committed to Git.
+platform	GET	/workspaces/{workspaceId}/git/workspaceRelations	Git_ListWorkspaceRelations		read	Returns a list of workspace relations for the specified workspace.
+platform	GET	/workspaces/{workspaceId}/items	Items_ListItems		read	Returns a list of items from the specified workspace.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}	Items_GetItem		read	Returns properties of the specified item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/connections	Items_ListItemConnections		read	Returns the list of connections that the specified item is connected to.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/dataAccessRoles	OneLakeDataAccessSecurity_ListDataAccessRoles		read	Returns a list of OneLake roles.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/dataAccessRoles/{roleName}	OneLakeDataAccessSecurity_GetDataAccessRole		read	Returns data access role details for the given role name.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/externalDataShares	ExternalDataSharesProvider_ListExternalDataSharesInItem		read	Returns a list of the external data shares that exist for the specified item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/externalDataShares/{externalDataShareId}	ExternalDataSharesProvider_GetExternalDataShare		read	Returns the details of the specified external data share.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/jobs/instances	JobScheduler_ListItemJobInstances		job	Returns a list of job instances for the specified item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/jobs/instances/{jobInstanceId}	JobScheduler_GetItemJobInstance		job	Get one item's job instance.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/jobs/{jobType}/schedules	JobScheduler_ListItemSchedules		job	Get scheduling settings for one specific item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/jobs/{jobType}/schedules/{scheduleId}	JobScheduler_GetItemSchedule		job	Get an existing schedule for an item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/relations/downstream?beta=true	Items_Get_Downstream_Relations_(beta)	yes	read	Gets downstream relations for an item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/relations/upstream?beta=true	Items_Get_Upstream_Relations_(beta)	yes	read	Gets upstream relations for an item.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/shortcuts	OneLakeShortcuts_ListShortcuts		read	Returns a list of shortcuts for the item, including all the subfolders exhaustively.
+platform	GET	/workspaces/{workspaceId}/items/{itemId}/shortcuts/{shortcutPath}/{shortcutName}	OneLakeShortcuts_GetShortcut		read	Returns shortcut properties.
+platform	GET	/workspaces/{workspaceId}/managedPrivateEndpoints	ManagedPrivateEndpoints_ListWorkspaceManagedPrivateEndpoints		read	Returns a list of managed private endpoints associated with the specified workspace.
+platform	GET	/workspaces/{workspaceId}/managedPrivateEndpoints/{managedPrivateEndpointId}	ManagedPrivateEndpoints_GetWorkspaceManagedPrivateEndpoint		read	Gets the specified managed private endpoint.
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy	Workspaces_GetNetworkCommunicationPolicy		read	Returns the networking communication policy for the specified workspace.
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy/inbound/azureResources	Workspaces_GetInboundAzureResourceRules		read	Returns the inbound Azure resource instance rules for a workspace. This API is designed to help workspace administrators view the effective inbound Azure resource instance rules in their workspace settings. This feature is currently in preview.
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy/inbound/externalDataShares	Workspaces_GetInboundExternalDataSharesPolicy		read	Returns the inbound External Data Shares bypass policy for a workspace. This API is designed to help workspace administrators view whether External Data Shares traffic is allowed to bypass inbound networking restrictions.
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy/inbound/firewall	Workspaces_GetFirewallRules		read	Returns the IP firewall rules for the workspace. This API is designed to help workspace administrators view the effective IP firewall rules. This feature is currently in preview.
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy/outbound/connections	Workspaces_GetOutboundCloudConnectionRules		read	Returns the cloud connection rules for the workspace enabled with Outbound Access Protection (OAP).
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy/outbound/gateways	Workspaces_GetOutboundGatewayRules		read	Returns the gateway rules for the workspace enabled with Outbound Access Protection (OAP).
+platform	GET	/workspaces/{workspaceId}/networking/communicationPolicy/outbound/git	Workspaces_GetGitOutboundPolicy		read	Returns Git Outbound policy for the specified workspace.
+platform	GET	/workspaces/{workspaceId}/onelake/settings	OneLakeSettings_GetSettings		read	Get workspace OneLake settings.
+platform	GET	/workspaces/{workspaceId}/recoverableItems	RecoverableItems_ListRecoverableItems		read	Lists recoverable items in a workspace.
+platform	GET	/workspaces/{workspaceId}/roleAssignments	Workspaces_ListWorkspaceRoleAssignments		read	Returns a list of workspace role assignments.
+platform	GET	/workspaces/{workspaceId}/roleAssignments/{workspaceRoleAssignmentId}	Workspaces_GetWorkspaceRoleAssignment		read	Returns information of a workspace role assignment.
+platform	PATCH	/capacities/{capacityId}/overageConfiguration	Capacities_UpdateOverageConfiguration		write	Updates the overage configuration for the specified capacity.
+platform	PATCH	/capacities/{capacityId}/surgeProtection	SurgeProtection_UpdateCapacitySurgeProtection		write	Updates the surge protection configuration for the specified capacity.
+platform	PATCH	/capacities/{capacityId}/surgeProtection/actorAutoDetectionRules/{actorAutoDetectionRuleId}	SurgeProtection_UpdateActorAutoDetectionRule		write	Updates the specified actor auto-detection rule.
+platform	PATCH	/capacities/{capacityId}/surgeProtection/blockedActors/{blockedActorId}	SurgeProtection_UpdateBlockedActor		write	Updates a blocked actor on a capacity.
+platform	PATCH	/connections/{connectionId}	Connections_UpdateConnection		write	Updates connection by ID.
+platform	PATCH	/connections/{connectionId}/roleAssignments/{connectionRoleAssignmentId}	Connections_UpdateConnectionRoleAssignment		write	Updates the principal's role assignment for the connection.
+platform	PATCH	/deploymentPipelines/{deploymentPipelineId}	DeploymentPipelines_UpdateDeploymentPipeline		write	Updates the properties of the specified deployment pipeline.
+platform	PATCH	/deploymentPipelines/{deploymentPipelineId}/stages/{stageId}	DeploymentPipelines_UpdateDeploymentPipelineStage		write	Updates the properties of the specified deployment pipeline stage.
+platform	PATCH	/gateways/{gatewayId}	Gateways_UpdateGateway		write	Updates gateway by ID.
+platform	PATCH	/gateways/{gatewayId}/members/{gatewayMemberId}	Gateways_UpdateGatewayMember		write	Updates gateway member of an OnPremisesGateway by ID.
+platform	PATCH	/gateways/{gatewayId}/roleAssignments/{gatewayRoleAssignmentId}	Gateways_UpdateGatewayRoleAssignment		write	Updates the principal's role assignment for the gateway.
+platform	PATCH	/workspaces/{workspaceId}	Workspaces_UpdateWorkspace		write	Updates the specified workspace properties.
+platform	PATCH	/workspaces/{workspaceId}/folders/{folderId}	Folders_UpdateFolder		write	Updates the properties of the specified folder.
+platform	PATCH	/workspaces/{workspaceId}/git/connectionSettings	Git_UpdateConnectionSettings		write	Updates the connection settings for a Git-connected workspace.
+platform	PATCH	/workspaces/{workspaceId}/git/myGitCredentials	Git_UpdateMyGitCredentials		write	Updates the user's Git credentials configuration details.
+platform	PATCH	/workspaces/{workspaceId}/items/{itemId}	Items_UpdateItem		write	Updates the properties of the specified item.
+platform	PATCH	/workspaces/{workspaceId}/items/{itemId}/jobs/{jobType}/schedules/{scheduleId}	JobScheduler_UpdateItemSchedule		job	Update an existing schedule for an item.
+platform	PATCH	/workspaces/{workspaceId}/items/{itemId}/logicalId	Items_UpdateLogicalId		write	Updates the logical ID for the specified item.
+platform	PATCH	/workspaces/{workspaceId}/roleAssignments/{workspaceRoleAssignmentId}	Workspaces_UpdateWorkspaceRoleAssignment		write	Updates a workspace role assignment.
+platform	POST	/capacities/{capacityId}/surgeProtection/actorAutoDetectionRules	SurgeProtection_CreateActorAutoDetectionRule		write	Creates an actor auto-detection rule on the specified capacity.
+platform	POST	/capacities/{capacityId}/surgeProtection/blockedActors	SurgeProtection_CreateBlockedActor		write	Creates a blocked actor on a capacity.
+platform	POST	/capacities/{capacityId}/surgeProtection/missionCriticalActors	SurgeProtection_CreateMissionCriticalActor		write	Creates a mission critical actor on a capacity.
+platform	POST	/catalog/search	Catalog_Search		write	The Catalog Search API enables programmatic discovery of OneLake catalog entries across workspaces. It supports cross-workspace search over catalog metadata and returns results filtered to entries the calling principal is authorized to access. Search results include stable identifiers that are intended to be used with complementary Fabric APIs to retrieve additional details or perform supported actions.
+platform	POST	/connections	Connections_CreateConnection		write	Creates a connection.
+platform	POST	/connections/{connectionId}/roleAssignments	Connections_AddConnectionRoleAssignment		write	Adds a connection role assignment.
+platform	POST	/connections/{connectionId}/testConnection	Connections_TestConnection		write	Tests the connection.
+platform	POST	/deploymentPipelines	DeploymentPipelines_CreateDeploymentPipeline		write	Creates a new deployment pipeline.
+platform	POST	/deploymentPipelines/{deploymentPipelineId}/deploy	DeploymentPipelines_DeployStageContent	yes	write	Deploys items from the specified stage of the specified deployment pipeline.
+platform	POST	/deploymentPipelines/{deploymentPipelineId}/roleAssignments	DeploymentPipelines_AddDeploymentPipelineRoleAssignment		write	Adds a deployment pipeline role assignment.
+platform	POST	/deploymentPipelines/{deploymentPipelineId}/stages/{stageId}/assignWorkspace	DeploymentPipelines_AssignWorkspaceToStage		write	Assigns the specified workspace to the specified deployment pipeline stage.
+platform	POST	/deploymentPipelines/{deploymentPipelineId}/stages/{stageId}/unassignWorkspace	DeploymentPipelines_UnassignWorkspaceFromStage		write	Unassigns the workspace from the specified stage in the specified deployment pipeline.
+platform	POST	/externalDataShares/invitations/{invitationId}/accept	ExternalDataSharesRecipient_AcceptExternalDataShareInvitation		write	Accepts an external data share invitation into a specified data item.
+platform	POST	/gateways	Gateways_CreateGateway		write	Creates a gateway.
+platform	POST	/gateways/{gatewayId}/checkStatus	Gateways_CheckGatewayStatus		write	Checks the status of the specified gateway.
+platform	POST	/gateways/{gatewayId}/members/{gatewayMemberId}/checkStatus	Gateways_CheckGatewayMemberStatus		write	Checks the status of the specified gateway member.
+platform	POST	/gateways/{gatewayId}/restart	Gateways_RestartGateway		write	Restarts the specified gateway.
+platform	POST	/gateways/{gatewayId}/roleAssignments	Gateways_AddGatewayRoleAssignment		write	Adds a gateway role assignment.
+platform	POST	/gateways/{gatewayId}/shutdown	Gateways_ShutdownGateway		write	Shuts down the specified gateway.
+platform	POST	/workspaces	Workspaces_CreateWorkspace		write	Creates a new workspace.
+platform	POST	/workspaces/{workspaceId}/applyTags	Workspaces_ApplyWorkspaceTags		write	Apply tags to a workspace.
+platform	POST	/workspaces/{workspaceId}/assignToCapacity	Workspaces_AssignToCapacity		write	Assigns the specified workspace to the specified capacity.
+platform	POST	/workspaces/{workspaceId}/assignToDomain	Workspaces_AssignToDomain		write	Assigns the specified workspace to the specified domain.
+platform	POST	/workspaces/{workspaceId}/deprovisionIdentity	Workspaces_DeprovisionIdentity		write	Deprovision a workspace identity.
+platform	POST	/workspaces/{workspaceId}/encryption/assign	Workspaces_AssignWorkspaceEncryption		write	Assigns a Customer-Managed Key (CMK) to a workspace.
+platform	POST	/workspaces/{workspaceId}/encryption/reset	Workspaces_ResetWorkspaceEncryption		write	Resets the workspace encryption by removing the Customer-Managed Key (CMK) encryption configuration.
+platform	POST	/workspaces/{workspaceId}/folders	Folders_CreateFolder		write	Creates a folder in the specified workspace.
+platform	POST	/workspaces/{workspaceId}/folders/{folderId}/move	Folders_MoveFolder		write	Moves the specified folder within the same workspace.
+platform	POST	/workspaces/{workspaceId}/git/commitToGit	Git_CommitToGit		write	Commits the changes made in the workspace to the connected remote branch.
+platform	POST	/workspaces/{workspaceId}/git/connect	Git_Connect		write	Connect a specific workspace to a git repository and branch.
+platform	POST	/workspaces/{workspaceId}/git/disconnect	Git_Disconnect		write	Disconnect a specific workspace from the Git repository and branch it is connected to.
+platform	POST	/workspaces/{workspaceId}/git/initializeConnection	Git_InitializeConnection		write	Initialize a connection for a workspace that's connected to Git.
+platform	POST	/workspaces/{workspaceId}/git/updateFromGit	Git_UpdateFromGit	yes	write	Updates the workspace with commits pushed to the connected branch.
+platform	POST	/workspaces/{workspaceId}/git/workspaceRelations	Git_CreateWorkspaceRelation		write	Creates a workspace relation between the specified workspace and a related workspace.
+platform	POST	/workspaces/{workspaceId}/items	Items_CreateItem		write	Creates an item in the specified workspace.
+platform	POST	/workspaces/{workspaceId}/items/bulkExportDefinitions	Items_BulkExportItemDefinitions		definition	Bulk export item definitions from the workspace.
+platform	POST	/workspaces/{workspaceId}/items/bulkImportDefinitions	Items_BulkImportItemDefinitions	yes	definition	Bulk import item definitions into the workspace.
+platform	POST	/workspaces/{workspaceId}/items/bulkMove	Items_BulkMoveItems		write	Moves multiple items to a folder.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/applyTags	Tags_ApplyTags		write	Apply tags on an item.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/dataAccessRoles	OneLakeDataAccessSecurity_CreateOrUpdateSingleDataAccessRole		write	Creates or updates (upserts) a single data access role.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/externalDataShares	ExternalDataSharesProvider_CreateExternalDataShare		write	Creates an external data share for a given path or list of paths in the specified item.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/externalDataShares/{externalDataShareId}/revoke	ExternalDataSharesProvider_RevokeExternalDataShare		write	Revokes the specified external data share. This action cannot be undone.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/getDefinition	Items_GetItemDefinition		definition	Returns the specified item definition.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/identities/default/assign?beta=true	Items_Associate_Identity_(beta)	yes	write	Associates the default identity with an item.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/jobs/instances/{jobInstanceId}/cancel	JobScheduler_CancelItemJobInstance		job	Cancel an item's job instance.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/jobs/{jobType}/instances	JobScheduler_RunOnDemandItemJob		job	Run on-demand item job instance.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/jobs/{jobType}/schedules	JobScheduler_CreateItemSchedule		job	Create a new schedule for an item. An item can create maximum 20 schedulers.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/move	Items_MoveItem		write	Moves the specified item to a folder.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/shortcuts	OneLakeShortcuts_CreateShortcut		write	Creates a new shortcut or updates an existing shortcut.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/shortcuts/bulkCreate	OneLakeShortcuts_CreatesShortcutsInBulk		write	Creates bulk shortcuts.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/unapplyTags	Tags_UnapplyTags		write	Unapply tags from an item.
+platform	POST	/workspaces/{workspaceId}/items/{itemId}/updateDefinition	Items_UpdateItemDefinition		definition	Overrides the definition for the specified item.
+platform	POST	/workspaces/{workspaceId}/managedPrivateEndpoints	ManagedPrivateEndpoints_CreateWorkspaceManagedPrivateEndpoint		write	Creates a managed private endpoint in the specified workspace.
+platform	POST	/workspaces/{workspaceId}/onelake/lifecycle/exportPolicy	OneLakeLifecyclePolicy_ExportPolicy		write	Exports the OneLake lifecycle management policy for a workspace.
+platform	POST	/workspaces/{workspaceId}/onelake/lifecycle/importPolicy	OneLakeLifecyclePolicy_ImportPolicy		write	Imports a OneLake lifecycle management policy for a workspace.
+platform	POST	/workspaces/{workspaceId}/onelake/resetShortcutCache	OneLakeShortcuts_ResetShortcutCache		write	Deletes any cached files that were stored while reading from shortcuts.
+platform	POST	/workspaces/{workspaceId}/onelake/settings/modifyAccessTimeTracking	OneLakeSettings_ModifyAccessTimeTracking		write	Enables or disables OneLake access time tracking for a workspace.
+platform	POST	/workspaces/{workspaceId}/onelake/settings/modifyDefaultTier	OneLakeSettings_ModifyDefaultTier		write	Modifies the default OneLake storage tier for a workspace.
+platform	POST	/workspaces/{workspaceId}/onelake/settings/modifyDiagnostics	OneLakeSettings_ModifyDiagnostics		write	Enables or disables workspace OneLake diagnostic settings.
+platform	POST	/workspaces/{workspaceId}/onelake/settings/modifyFileSoftDelete	OneLakeSettings_ModifyFileSoftDelete		write	Modifies the file soft-delete settings for a workspace.
+platform	POST	/workspaces/{workspaceId}/onelake/settings/modifyImmutabilityPolicy	OneLakeSettings_ModifyImmutabilityPolicy		write	Create or update OneLake immutability settings.
+platform	POST	/workspaces/{workspaceId}/provisionIdentity	Workspaces_ProvisionIdentity		write	Provision a workspace identity for a workspace.
+platform	POST	/workspaces/{workspaceId}/recoverableItems/{itemId}/recover	RecoverableItems_RecoverItem		write	Recovers a soft-deleted item in the specified workspace.
+platform	POST	/workspaces/{workspaceId}/roleAssignments	Workspaces_AddWorkspaceRoleAssignment		write	Adds a workspace role assignment.
+platform	POST	/workspaces/{workspaceId}/unapplyTags	Workspaces_UnapplyWorkspaceTags		write	Unapply tags from a workspace.
+platform	POST	/workspaces/{workspaceId}/unassignFromCapacity	Workspaces_UnassignFromCapacity		write	Unassigns the specified workspace from capacity.
+platform	POST	/workspaces/{workspaceId}/unassignFromDomain	Workspaces_UnassignFromDomain		write	Unassigns the specified workspace from domain.
+platform	PUT	/workspaces/{workspaceId}/items/{itemId}/dataAccessRoles	OneLakeDataAccessSecurity_CreateOrUpdateDataAccessRoles		write	Creates or updates data access roles in OneLake.
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy	Workspaces_SetNetworkCommunicationPolicy		write	Sets the networking communication policy for the specified workspace.
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy/inbound/azureResources	Workspaces_SetInboundAzureResourceRules		write	Sets the inbound Azure resource instance rules for a workspace. This API enables workspace administrators to set inbound Azure resource instance rules that control which Azure resource instances are in the allowed list for a workspace. This feature is currently in preview.
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy/inbound/externalDataShares	Workspaces_SetInboundExternalDataSharesPolicy		write	Sets the inbound External Data Shares bypass policy for a workspace. This API enables workspace administrators to allow or deny External Data Shares traffic to bypass inbound networking restrictions. This feature is currently in preview.
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy/inbound/firewall	Workspaces_SetFirewallRules		write	Sets the IP firewall rules for the workspace. This API enables workspace administrators to set IP firewall rules that control which IP addresses are to be allowed to connect to the workspace. This feature is currently in preview.
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy/outbound/connections	Workspaces_SetOutboundCloudConnectionRules		write	Sets the outbound access protection cloud connection rules for the workspace.
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy/outbound/gateways	Workspaces_SetOutboundGatewayRules		write	Sets the gateway rules for the workspace enabled with Outbound Access Protection (OAP).
+platform	PUT	/workspaces/{workspaceId}/networking/communicationPolicy/outbound/git	Workspaces_SetGitOutboundPolicy		write	Sets Git Outbound policy for the specified workspace, when Outbound policy is set to 'Deny'.
+policySet	DELETE	/workspaces/{workspaceId}/policySets/{policySetId}	Items_DeletePolicySet		write	Deletes the specified policy set.
+policySet	DELETE	/workspaces/{workspaceId}/policySets/{policySetId}/policyRules/{policyRuleId}?beta=true	PolicyRules_Delete_Policy_Rule_(beta)	yes	write	Deletes the specified policy rule from the specified policy set.
+policySet	GET	/capacities/{capacityId}/policySets/active	Activation_GetActiveForCapacity		read	Returns the active policy set on the specified capacity.
+policySet	GET	/workspaces/{workspaceId}/policySets	Items_ListPolicySets		read	Returns a list of policy sets from the specified workspace.
+policySet	GET	/workspaces/{workspaceId}/policySets/{policySetId}	Items_GetPolicySet		read	Returns properties of the specified policy set.
+policySet	GET	/workspaces/{workspaceId}/policySets/{policySetId}/policyRules/{policyRuleId}?beta=true	PolicyRules_Get_Policy_Rule_(beta)	yes	read	Returns a single policy rule from the specified policy set.
+policySet	GET	/workspaces/{workspaceId}/policySets/{policySetId}/policyRules?beta=true	PolicyRules_List_Policy_Rules_(beta)	yes	read	Returns a list of policy rules from the specified policy set.
+policySet	PATCH	/workspaces/{workspaceId}/policySets/{policySetId}	Items_UpdatePolicySet		write	Updates the properties of the specified policy set.
+policySet	PATCH	/workspaces/{workspaceId}/policySets/{policySetId}/policyRules/{policyRuleId}?beta=true	PolicyRules_Update_Policy_Rule_(beta)	yes	write	Updates the properties of the specified policy rule.
+policySet	POST	/workspaces/{workspaceId}/policySets	Items_CreatePolicySet		write	Creates a policy set in the specified workspace.
+policySet	POST	/workspaces/{workspaceId}/policySets/{policySetId}/activate	Activation_Activate		write	Activates the policy set on the specified scope.
+policySet	POST	/workspaces/{workspaceId}/policySets/{policySetId}/deactivate	Activation_Deactivate		write	Deactivates the policy set from the specified scope.
+policySet	POST	/workspaces/{workspaceId}/policySets/{policySetId}/getDefinition	Items_GetPolicySetDefinition		definition	Returns the specified policy set public definition.
+policySet	POST	/workspaces/{workspaceId}/policySets/{policySetId}/policyRules/replaceByPolicy?beta=true	PolicyRules_Replace_Policy_Rules_By_Policy_(beta)	yes	write	Replaces the policy rules for the specified policy in the specified policy set.
+policySet	POST	/workspaces/{workspaceId}/policySets/{policySetId}/policyRules?beta=true	PolicyRules_Create_Policy_Rule_(beta)	yes	write	Creates a policy rule in the specified policy set.
+policySet	POST	/workspaces/{workspaceId}/policySets/{policySetId}/updateDefinition	Items_UpdatePolicySetDefinition		definition	Overrides the definition for the specified policy set.
+realTimeIntelligence	POST	/workspaces/{workspaceId}/realTimeIntelligence/nltokql?beta=true	Copilot_NL_To_KQL_(beta)	yes	write	Returns a KQL query generated from natural language.
+reflex	DELETE	/workspaces/{workspaceId}/reflexes/{reflexId}	Items_DeleteReflex		write	Deletes the specified Reflex.
+reflex	GET	/workspaces/{workspaceId}/reflexes	Items_ListReflexes		read	Returns a list of Reflexes from the specified workspace.
+reflex	GET	/workspaces/{workspaceId}/reflexes/{reflexId}	Items_GetReflex		read	Returns properties of the specified Reflex.
+reflex	PATCH	/workspaces/{workspaceId}/reflexes/{reflexId}	Items_UpdateReflex		write	Updates the properties of the specified Reflex.
+reflex	POST	/workspaces/{workspaceId}/reflexes	Items_CreateReflex		write	Creates a Reflex in the specified workspace.
+reflex	POST	/workspaces/{workspaceId}/reflexes/{reflexId}/getDefinition	Items_GetReflexDefinition		definition	Returns the specified Reflex public definition.
+reflex	POST	/workspaces/{workspaceId}/reflexes/{reflexId}/queryActivations	Activations_QueryActivations		write	Executes a KQL query against the activation records of the specified Reflex.
+reflex	POST	/workspaces/{workspaceId}/reflexes/{reflexId}/updateDefinition	Items_UpdateReflexDefinition		definition	Overrides the definition for the specified Reflex.
+report	DELETE	/workspaces/{workspaceId}/reports/{reportId}	Items_DeleteReport		write	Deletes the specified report.
+report	GET	/workspaces/{workspaceId}/reports	Items_ListReports		read	Returns a list of reports from the specified workspace.
+report	GET	/workspaces/{workspaceId}/reports/{reportId}	Items_GetReport		read	Returns properties of the specified report.
+report	PATCH	/workspaces/{workspaceId}/reports/{reportId}	Items_UpdateReport		write	Updates the properties of the specified report.
+report	POST	/workspaces/{workspaceId}/reports	Items_CreateReport		write	Creates a report in the specified workspace.
+report	POST	/workspaces/{workspaceId}/reports/{reportId}/getDefinition	Items_GetReportDefinition		definition	Returns the specified report public definition.
+report	POST	/workspaces/{workspaceId}/reports/{reportId}/updateDefinition	Items_UpdateReportDefinition		definition	Overrides the definition for the specified report.
+semanticModel	DELETE	/workspaces/{workspaceId}/semanticModels/{semanticModelId}	Items_DeleteSemanticModel		write	Deletes the specified semantic model.
+semanticModel	GET	/workspaces/{workspaceId}/semanticModels	Items_ListSemanticModels		read	Returns a list of semantic models from the specified workspace.
+semanticModel	GET	/workspaces/{workspaceId}/semanticModels/{semanticModelId}	Items_GetSemanticModel		read	Returns properties of the specified semantic model.
+semanticModel	PATCH	/workspaces/{workspaceId}/semanticModels/{semanticModelId}	Items_UpdateSemanticModel		write	Updates the properties of the specified semantic model.
+semanticModel	POST	/workspaces/{workspaceId}/semanticModels	Items_CreateSemanticModel		write	Creates a semantic model in the specified workspace.
+semanticModel	POST	/workspaces/{workspaceId}/semanticModels/{semanticModelId}/bindConnection	Items_BindSemanticModelConnection		write	Binds a semantic model data source reference to a data connection.
+semanticModel	POST	/workspaces/{workspaceId}/semanticModels/{semanticModelId}/getDefinition	Items_GetSemanticModelDefinition		definition	Returns the specified semantic model public definition.
+semanticModel	POST	/workspaces/{workspaceId}/semanticModels/{semanticModelId}/updateDefinition	Items_UpdateSemanticModelDefinition		definition	Overrides the definition for the specified semantic model.
+share	DELETE	/workspaces/{workspaceId}/shares/{shareId}	Items_DeleteShare		write	Deletes the specified share.
+share	GET	/workspaces/{workspaceId}/shares	Items_ListShares		read	Lists shares in the specified workspace.
+share	GET	/workspaces/{workspaceId}/shares/{shareId}	Items_GetShare		read	Gets the specified share.
+share	PATCH	/workspaces/{workspaceId}/shares/{shareId}	Items_UpdateShare		write	Updates the specified share.
+share	POST	/workspaces/{workspaceId}/shares	Items_CreateShare		write	Creates a share in the specified workspace.
+share	POST	/workspaces/{workspaceId}/shares/{shareId}/getDefinition	Items_GetShareDefinition		definition	Gets the specified share public definition.
+share	POST	/workspaces/{workspaceId}/shares/{shareId}/updateDefinition	Items_UpdateShareDefinition		definition	Overrides the definition for the specified share.
+shareSubscription	DELETE	/workspaces/{workspaceId}/shareSubscriptions/{shareSubscriptionId}	Items_DeleteShareSubscription		write	Deletes the specified Share Subscription.
+shareSubscription	GET	/workspaces/{workspaceId}/shareSubscriptions	Items_ListShareSubscriptions		read	Lists Share Subscriptions in the specified workspace.
+shareSubscription	GET	/workspaces/{workspaceId}/shareSubscriptions/{shareSubscriptionId}	Items_GetShareSubscription		read	Gets the specified Share Subscription.
+shareSubscription	PATCH	/workspaces/{workspaceId}/shareSubscriptions/{shareSubscriptionId}	Items_UpdateShareSubscription		write	Updates the specified Share Subscription.
+shareSubscription	POST	/workspaces/{workspaceId}/shareSubscriptions	Items_CreateShareSubscription		write	Creates a Share Subscription in the specified workspace.
+snowflakeDatabase	DELETE	/workspaces/{workspaceId}/snowflakeDatabases/{snowflakeDatabaseId}	Items_DeleteSnowflakeDatabase		write	Deletes the specified Snowflake Database item.
+snowflakeDatabase	GET	/workspaces/{workspaceId}/snowflakeDatabases	Items_ListSnowflakeDatabases		read	Returns a list of SnowflakeDatabase items from the specified Fabric workspace.
+snowflakeDatabase	GET	/workspaces/{workspaceId}/snowflakeDatabases/{snowflakeDatabaseId}	Items_GetSnowflakeDatabase		read	Returns properties of the specified Snowflake Database item.
+snowflakeDatabase	PATCH	/workspaces/{workspaceId}/snowflakeDatabases/{snowflakeDatabaseId}	Items_UpdateSnowflakeDatabase		write	Update properties of the Snowflake Database item.
+snowflakeDatabase	POST	/workspaces/{workspaceId}/snowflakeDatabases	Items_CreateSnowflakeDatabase		write	Creates a Snowflake Database item in the specified Fabric workspace.
+snowflakeDatabase	POST	/workspaces/{workspaceId}/snowflakeDatabases/{snowflakeDatabaseId}/getDefinition	Items_GetSnowflakeDatabaseDefinition		definition	Returns the specified Snowflake Database public definition.
+snowflakeDatabase	POST	/workspaces/{workspaceId}/snowflakeDatabases/{snowflakeDatabaseId}/updateDefinition	Items_UpdateSnowflakeDatabaseDefinition		definition	Overrides the definition for the specified Snowflake Database.
+spark	DELETE	/capacities/{capacityId}/spark/pools/{poolId}?beta=true	CustomPools_DeleteCapacityCustomPool_(beta)	yes	write	Delete custom pool.
+spark	DELETE	/workspaces/{workspaceId}/spark/pools/{poolId}	CustomPools_DeleteWorkspaceCustomPool		write	Delete custom pool.
+spark	GET	/capacities/{capacityId}/spark/pools/{poolId}?beta=true	CustomPools_GetCapacityCustomPool_(beta)	yes	read	Get custom pool.
+spark	GET	/capacities/{capacityId}/spark/pools?beta=true	CustomPools_ListCapacityCustomPools_(beta)	yes	read	List custom pools.
+spark	GET	/capacities/{capacityId}/spark/settings?beta=true	CapacitySettings_GetSparkSettings_(beta)	yes	read	Get capacity spark settings.
+spark	GET	/workspaces/{workspaceId}/spark/livySessions	LivySessions_ListLivySessions		read	Returns a list of livy sessions from the specified workspace.
+spark	GET	/workspaces/{workspaceId}/spark/pools	CustomPools_ListWorkspaceCustomPools		read	List custom pools.
+spark	GET	/workspaces/{workspaceId}/spark/pools/{poolId}	CustomPools_GetWorkspaceCustomPool		read	Get custom pool.
+spark	GET	/workspaces/{workspaceId}/spark/settings	WorkspaceSettings_GetSparkSettings		read	Get workspace spark settings.
+spark	PATCH	/capacities/{capacityId}/spark/pools/{poolId}?beta=true	CustomPools_UpdateCapacityCustomPool_(beta)	yes	write	Update custom pool.
+spark	PATCH	/capacities/{capacityId}/spark/settings?beta=true	CapacitySettings_UpdateSparkSettings_(beta)	yes	write	Update capacity spark settings.
+spark	PATCH	/workspaces/{workspaceId}/spark/pools/{poolId}	CustomPools_UpdateWorkspaceCustomPool		write	Update custom pool.
+spark	PATCH	/workspaces/{workspaceId}/spark/settings	WorkspaceSettings_UpdateSparkSettings		write	Update workspace spark settings.
+spark	POST	/capacities/{capacityId}/spark/pools?beta=true	CustomPools_CreateCapacityCustomPool_(beta)	yes	write	Create custom pool.
+spark	POST	/workspaces/{workspaceId}/spark/pools	CustomPools_CreateWorkspaceCustomPool		write	Create custom pool.
+sparkjobdefinition	DELETE	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}	Items_DeleteSparkJobDefinition		definition	Deletes the specified spark job definition.
+sparkjobdefinition	GET	/workspaces/{workspaceId}/sparkJobDefinitions	Items_ListSparkJobDefinitions		definition	Returns a list of spark job definitions from the specified workspace.
+sparkjobdefinition	GET	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}	Items_GetSparkJobDefinition		definition	Returns properties of the specified spark job definition.
+sparkjobdefinition	GET	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}/livySessions	LivySessions_ListLivySessions		definition	Returns a list of livy sessions from the specified item identifier.
+sparkjobdefinition	GET	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}/livySessions/{livyId}	LivySessions_GetLivySession		definition	Returns properties of the specified livy session.
+sparkjobdefinition	PATCH	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}	Items_UpdateSparkJobDefinition		definition	Updates the properties of the specified spark job definition.
+sparkjobdefinition	POST	/workspaces/{workspaceId}/sparkJobDefinitions	Items_CreateSparkJobDefinition		definition	Creates a spark job definition in the specified workspace.
+sparkjobdefinition	POST	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}/getDefinition	Items_GetSparkJobDefinitionDefinition		definition	Returns the specified spark job definition public definition.
+sparkjobdefinition	POST	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}/jobs/sparkjob/instances	BackgroundJobs_RunOnDemandSparkJobDefinition		job	Run on-demand [Spark job definition](/fabric/data-engineering/run-spark-job-definition) job instance.
+sparkjobdefinition	POST	/workspaces/{workspaceId}/sparkJobDefinitions/{sparkJobDefinitionId}/updateDefinition	Items_UpdateSparkJobDefinitionDefinition		definition	Overrides the definition for the specified spark job definition.
+sqlDatabase	DELETE	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}	Items_DeleteSQLDatabase		write	Deletes the specified SQL database.
+sqlDatabase	GET	/workspaces/{workspaceId}/sqlDatabases	Items_ListSQLDatabases		read	Returns a list of SQL databases from the specified workspace.
+sqlDatabase	GET	/workspaces/{workspaceId}/sqlDatabases/restorableDeletedDatabases	Items_ListRestorableDeletedDatabases		read	Gets the list of restorable deleted databases in the workspace.
+sqlDatabase	GET	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}	Items_GetSQLDatabase		read	Returns properties of the specified SQL database.
+sqlDatabase	GET	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/settings/sqlAudit	SQLAuditSettings_GetSQLAuditSettings		read	Gets the auditing settings on the specified SQL database.
+sqlDatabase	PATCH	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}	Items_UpdateSQLDatabase		write	Updates the properties of the specified SQL database.
+sqlDatabase	PATCH	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/settings/sqlAudit	SQLAuditSettings_UpdateSQLAuditSettings		write	Updates the auditing settings on the specified SQL database.
+sqlDatabase	POST	/workspaces/{workspaceId}/sqlDatabases	Items_CreateSQLDatabase		write	Creates a SQL database in the specified workspace.
+sqlDatabase	POST	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/getDefinition	Items_GetSQLDatabaseDefinition		definition	Returns the specified SQL database public definition.
+sqlDatabase	POST	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/revalidateCMK	Items_RevalidateCMK		write	Revalidate Customer‑Managed Key (CMK) of the specified SQL database.
+sqlDatabase	POST	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/startMirroring	Mirroring_StartMirroring		write	Starts the mirroring of the specified SQL database..
+sqlDatabase	POST	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/stopMirroring	Mirroring_StopMirroring		write	Stops the mirroring of the specified SQL database.
+sqlDatabase	POST	/workspaces/{workspaceId}/sqlDatabases/{sqlDatabaseId}/updateDefinition	Items_UpdateSQLDatabaseDefinition		definition	Overrides the definition for the specified SQL database.
+sqlEndpoint	GET	/workspaces/{workspaceId}/sqlEndpoints	Items_ListSQLEndpoints		read	Returns a list of SQL endpoints from the specified workspace.
+sqlEndpoint	GET	/workspaces/{workspaceId}/sqlEndpoints/{itemId}/settings/sqlAudit	SQLAuditSettings_GetSQLAuditSettings		read	Returns the settings associated with the SQL endpoint.
+sqlEndpoint	GET	/workspaces/{workspaceId}/sqlEndpoints/{sqlEndpointId}/connectionString	Items_GetConnectionString		read	Returns the SQL connection string of the specified warehouse.
+sqlEndpoint	PATCH	/workspaces/{workspaceId}/sqlEndpoints/{itemId}/settings/sqlAudit	SQLAuditSettings_UpdateSQLAuditSettings		write	Update settings associated with the SQL endpoint.
+sqlEndpoint	POST	/workspaces/{workspaceId}/sqlEndpoints/{itemId}/settings/sqlAudit/setAuditActionsAndGroups	SQLAuditSettings_SetAuditActionsAndGroups		write	Update the audit actions and groups for this SQL endpoint.
+sqlEndpoint	POST	/workspaces/{workspaceId}/sqlEndpoints/{sqlEndpointId}/refreshMetadata	Items_RefreshSqlEndpointMetadata		write	Refreshes tables within a SQL analytics endpoint.
+userDataFunction	DELETE	/workspaces/{workspaceId}/userDataFunctions/{userDataFunctionId}	Items_DeleteUserDataFunction		write	Deletes the specified UserDataFunction.
+userDataFunction	GET	/workspaces/{workspaceId}/userDataFunctions	Items_ListUserDataFunctions		read	Returns a list of UserDataFunctions from the specified workspace.
+userDataFunction	GET	/workspaces/{workspaceId}/userDataFunctions/{userDataFunctionId}	Items_GetUserDataFunction		read	Returns properties of the specified UserDataFunction.
+userDataFunction	PATCH	/workspaces/{workspaceId}/userDataFunctions/{userDataFunctionId}	Items_UpdateUserDataFunction		write	Updates the properties of the specified UserDataFunction.
+userDataFunction	POST	/workspaces/{workspaceId}/userDataFunctions	Items_CreateUserDataFunction		write	Creates a UserDataFunction in the specified workspace.
+userDataFunction	POST	/workspaces/{workspaceId}/userDataFunctions/{userDataFunctionId}/getDefinition	Items_GetUserDataFunctionDefinition		definition	Returns the specified UserDataFunction public definition.
+userDataFunction	POST	/workspaces/{workspaceId}/userDataFunctions/{userDataFunctionId}/updateDefinition	Items_UpdateUserDataFunctionDefinition		definition	Overrides the definition for the specified UserDataFunction.
+variableLibrary	DELETE	/workspaces/{workspaceId}/variableLibraries/{variableLibraryId}	Items_DeleteVariableLibrary		write	Deletes the specified variable library.
+variableLibrary	GET	/workspaces/{workspaceId}/variableLibraries	Items_ListVariableLibraries		read	Returns a list of variable libraries from the specified workspace.
+variableLibrary	GET	/workspaces/{workspaceId}/variableLibraries/{variableLibraryId}	Items_GetVariableLibrary		read	Returns properties of the specified variable library.
+variableLibrary	PATCH	/workspaces/{workspaceId}/variableLibraries/{variableLibraryId}	Items_UpdateVariableLibrary		write	Updates the properties of the specified variable library.
+variableLibrary	POST	/workspaces/{workspaceId}/variableLibraries	Items_CreateVariableLibrary		write	Creates a variable library in the specified workspace.
+variableLibrary	POST	/workspaces/{workspaceId}/variableLibraries/{variableLibraryId}/getDefinition	Items_GetVariableLibraryDefinition		definition	Returns the specified variable library public definition.
+variableLibrary	POST	/workspaces/{workspaceId}/variableLibraries/{variableLibraryId}/updateDefinition	Items_UpdateVariableLibraryDefinition		definition	Overrides the definition for the specified variable library.
+warehouse	DELETE	/workspaces/{workspaceId}/warehouses/{warehouseId}	Items_DeleteWarehouse		write	Deletes the specified warehouse.
+warehouse	DELETE	/workspaces/{workspaceId}/warehouses/{warehouseId}/restorePoints/{restorePointId}	RestorePoints_DeleteRestorePoint		write	Deletes a restore point specified for a warehouse.
+warehouse	GET	/workspaces/{workspaceId}/warehouses	Items_ListWarehouses		read	Returns a list of warehouses from the specified workspace.
+warehouse	GET	/workspaces/{workspaceId}/warehouses/sqlPoolsConfiguration	SQLPools_GetSQLPoolsConfiguration		read	Gets the SQL Pools configuration in the specified workspace.
+warehouse	GET	/workspaces/{workspaceId}/warehouses/{itemId}/settings/sqlAudit	SQLAuditSettings_GetSQLAuditSettings		read	Returns the settings associated with the warehouse.
+warehouse	GET	/workspaces/{workspaceId}/warehouses/{warehouseId}	Items_GetWarehouse		read	Returns properties of the specified warehouse.
+warehouse	GET	/workspaces/{workspaceId}/warehouses/{warehouseId}/connectionString	Items_GetConnectionString		read	Returns the SQL connection string of the specified warehouse.
+warehouse	GET	/workspaces/{workspaceId}/warehouses/{warehouseId}/restorePoints	RestorePoints_ListRestorePoints		read	Returns all restore points for a warehouse.
+warehouse	GET	/workspaces/{workspaceId}/warehouses/{warehouseId}/restorePoints/{restorePointId}	RestorePoints_GetRestorePoint		read	Returns the properties of a restore point specified for a warehouse.
+warehouse	PATCH	/workspaces/{workspaceId}/warehouses/sqlPoolsConfiguration	SQLPools_UpdateSQLPoolsConfiguration		write	Updates the SQL Pools configuration in the specified workspace.
+warehouse	PATCH	/workspaces/{workspaceId}/warehouses/{itemId}/settings/sqlAudit	SQLAuditSettings_UpdateSQLAuditSettings		write	Update settings associated with the warehouse.
+warehouse	PATCH	/workspaces/{workspaceId}/warehouses/{warehouseId}	Items_UpdateWarehouse		write	Updates the properties of the specified warehouse.
+warehouse	PATCH	/workspaces/{workspaceId}/warehouses/{warehouseId}/restorePoints/{restorePointId}	RestorePoints_UpdateRestorePoint		write	Updates an existing restore point by renaming the name or description of it.
+warehouse	POST	/workspaces/{workspaceId}/warehouses	Items_CreateWarehouse		write	Creates a warehouse in the specified workspace.
+warehouse	POST	/workspaces/{workspaceId}/warehouses/{itemId}/settings/sqlAudit/setAuditActionsAndGroups	SQLAuditSettings_SetAuditActionsAndGroups		write	Update the audit actions and groups for this warehouse.
+warehouse	POST	/workspaces/{workspaceId}/warehouses/{warehouseId}/getDefinition	Items_GetWarehouseDefinition		definition	Returns the specified warehouse public definition.
+warehouse	POST	/workspaces/{workspaceId}/warehouses/{warehouseId}/restorePoints	RestorePoints_CreateRestorePoint		write	Creates a restore point for a warehouse at the current timestamp.
+warehouse	POST	/workspaces/{workspaceId}/warehouses/{warehouseId}/restorePoints/{restorePointId}/restore	RestorePoints_RestoreToRestorePoint		write	Restores a warehouse in-place to the restore point specified.
+warehouse	POST	/workspaces/{workspaceId}/warehouses/{warehouseId}/updateDefinition	Items_UpdateWarehouseDefinition		definition	Overrides the definition for the specified warehouse.
+warehouseSnapshot	DELETE	/workspaces/{workspaceId}/warehouseSnapshots/{warehouseSnapshotId}	Items_DeleteWarehouseSnapshot		write	Deletes the specified Warehouse snapshot.
+warehouseSnapshot	GET	/workspaces/{workspaceId}/warehouseSnapshots	Items_ListWarehouseSnapshots		read	Returns a list of Warehouse snapshots from the specified workspace.
+warehouseSnapshot	GET	/workspaces/{workspaceId}/warehouseSnapshots/{warehouseSnapshotId}	Items_GetWarehouseSnapshot		read	Returns properties of the specified Warehouse snapshot.
+warehouseSnapshot	PATCH	/workspaces/{workspaceId}/warehouseSnapshots/{warehouseSnapshotId}	Items_UpdateWarehouseSnapshot		write	Updates the properties of the specified Warehouse snapshot.
+warehouseSnapshot	POST	/workspaces/{workspaceId}/warehouseSnapshots	Items_CreateWarehouseSnapshot		write	Creates a Warehouse snapshot in the specified workspace.
