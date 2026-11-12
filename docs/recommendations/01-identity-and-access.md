@@ -88,7 +88,7 @@ Three sharp edges, all discovered in practice rather than in the docs:
 - **Contributors can create and edit pipelines by default.** Since the pipeline is authorised to use
   the service connections, editing YAML is equivalent to using the admin principal. Restrict
   "Edit build pipeline" (or approve changes to the pipeline file) or the two-principal split in
-  [ADR 0002](../../adr/0002-two-service-principals-federated.md) is a boundary on paper only.
+  [ADR 0002](../adr/0002-two-service-principals-federated.md) is a boundary on paper only.
 
 ## What it costs to get this wrong
 
