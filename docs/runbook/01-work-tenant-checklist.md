@@ -55,6 +55,17 @@ that outlives the person who made it is the main risk this pack carries.
   after the four above are the two Git export switches, the shareable-link setting, and
   `Publish to web`.
 
+- **Then the two that decide whether a human can create anything** ([ADR 0010](../adr/0010-delegation-and-administration-model.md)):
+
+  | Setting | Page | Expected |
+  | --- | --- | --- |
+  | `Create workspaces` | Workspace settings | **one named group, not `Everyone`** |
+  | `Users can create Fabric items` | Microsoft Fabric | on, or a capacity override makes it moot |
+
+  Both default to a value the index does not state, so read them rather than assuming. If
+  `Create workspaces` includes `Everyone`, a self-created workspace appears with no group, no
+  role assignment and no capacity discipline, and the access report cannot retro-fit it.
+
 ## 3. Capacity
 
 - **Check:** the F SKU exists, its SKU, region, and who is capacity Admin. Confirm whether a

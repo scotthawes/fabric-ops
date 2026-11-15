@@ -39,3 +39,4 @@ What becomes easy, what becomes hard, and what we are now committed to maintaini
 | [0007](0007-terraform-layout-and-pinning.md) | Two Terraform roots, and the provider pinned exactly | accepted |
 | [0008](0008-schema-is-state-based.md) | Schema is state-based, deployed after the items | accepted |
 | [0009](0009-observability-is-event-sourced.md) | Observability is event-sourced; monitoring gets its own capacity | proposed |
+| [0010](0010-delegation-and-administration-model.md) | Existence is centralised, operation is delegated | accepted |

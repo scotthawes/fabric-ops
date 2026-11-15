@@ -4,6 +4,8 @@
 - **Date:** 2026-11-11
 - **Deciders:** Scott
 - **Evidence:** [`identity-service-principal-and-tenant-settings.md`](../research/identity-service-principal-and-tenant-settings.md)
+- **Amended by:** [ADR 0010](0010-delegation-and-administration-model.md) — group ownership is assigned to a named
+  human, and the group-`Admin` consequence below becomes a check instead of a review
 
 ## Context
 
@@ -29,7 +31,10 @@ and can hand out access the pipeline never sees.
 - Offboarding happens in one place, and the pipeline does not need to know who works here.
 - The convention is not an enforcement: a **group can hold `Admin`**, and nested groups work, so
   nothing structural stops a group from becoming admin. The pipeline cannot tell the difference
-  between a group assignment and a person. Review is the control.
+  between a group assignment and a person. Review is the control. **Amended 2026-11-15:** the admin
+  API returns the principal `type` beside `workspaceRole`, so this is assertable rather than only
+  reviewable — see [ADR 0010](0010-delegation-and-administration-model.md) §4, with the same caveat
+  that the endpoint is Preview and the assertion is unverified in a tenant.
 - "Who can see what" is no longer a Fabric query: role assignments return a bare `Group`
   principal with no members, so the answer is Fabric's admin API joined to Entra group
   membership. Item sharing is visible through the admin APIs; OneLake security roles are partly
