@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric platform administration — architecture</title>
+<style>
+  :root {
+    --ink: #14181d;
+    --ink-2: #3d4855;
+    --ink-3: #6b7785;
+    --rule: #dde2e8;
+    --rule-2: #eef1f5;
+    --paper: #ffffff;
+    --wash: #f8fafb;
+    --accent: #0f6f6c;
+    --accent-wash: #e8f4f3;
+    --tf: #2b5f9e;
+    --tf-wash: #eaf0f8;
+    --pipe: #3f7d3a;
+    --pipe-wash: #ecf4ea;
+    --human: #9a5b12;
+    --human-wash: #fbf0e2;
+    --stop: #a3342c;
+    --stop-wash: #fbeceb;
+    --radius: 4px;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--wash);
+    color: var(--ink);
+    font: 16px/1.55 var(--sans);
+    font-feature-settings: "kern" 1;
+  }
+
+  .page { max-width: 1120px; margin: 0 auto; padding: 0 28px 96px; }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    margin: 0 -28px 40px;
+    padding: 44px 28px 32px;
+  }
+  .masthead > .inner { max-width: 1064px; margin: 0 auto; }
+
+  .kicker {
+    margin: 0 0 10px;
+    font: 600 11px/1.4 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0 0 14px;
+    font-size: 40px;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    font-weight: 650;
+    max-width: 22ch;
+  }
+
+  .lede {
+    margin: 0 0 22px;
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  .stamps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+  .stamp {
+    font: 500 12px/1 var(--mono);
+    padding: 6px 9px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    color: var(--ink-2);
+    background: var(--wash);
+  }
+  .stamp.strong { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+
+  /* ---------- layout ---------- */
+
+  .layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; align-items: start; }
+
+  nav.toc {
+    position: sticky;
+    top: 24px;
+    font-size: 13px;
+    line-height: 1.4;
+    border-left: 1px solid var(--rule);
+    padding-left: 16px;
+  }
+  nav.toc p {
+    margin: 0 0 10px;
+    font: 600 10px/1 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  nav.toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+  nav.toc li { margin: 0 0 9px; }
+  nav.toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  nav.toc a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ---------- sections ---------- */
+
+  section { margin: 0 0 56px; scroll-margin-top: 24px; }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    border-top: 2px solid var(--ink);
+    padding-top: 12px;
+    margin-bottom: 20px;
+  }
+  .sec-num {
+    font: 600 11px/1 var(--mono);
+    color: var(--accent);
+    letter-spacing: .08em;
+  }
+  h2 {
+    margin: 0;
+    font-size: 23px;
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    font-weight: 640;
+  }
+  h3 {
+    margin: 30px 0 10px;
+    font-size: 15px;
+    line-height: 1.3;
+    font-weight: 650;
+    letter-spacing: .01em;
+  }
+  h3:first-child { margin-top: 0; }
+
+  p { margin: 0 0 14px; max-width: 74ch; }
+  .tight p { max-width: none; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 20px; max-width: 76ch; }
+  ul.plain li { margin: 0 0 7px; }
+
+  strong { font-weight: 640; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  code, .mono { font-family: var(--mono); font-size: .88em; }
+  code {
+    background: var(--rule-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* ---------- figures ---------- */
+
+  figure {
+    margin: 0 0 26px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    border-top: 1px solid var(--rule-2);
+    padding: 10px 16px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-3);
+  }
+  figcaption b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- legend ---------- */
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 18px; padding: 0; list-style: none; font-size: 12.5px; }
+  .legend li { display: flex; align-items: center; gap: 7px; color: var(--ink-2); }
+  .chip { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+  .chip.tf { background: var(--tf); }
+  .chip.pipe { background: var(--pipe); }
+  .chip.human { background: var(--human); }
+  .chip.stop { background: var(--stop); }
+
+  /* ---------- cards ---------- */
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 0 0 22px; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 15px 16px 16px;
+  }
+  .card h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: .01em;
+  }
+  .card p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); max-width: none; }
+  .card .tag {
+    display: inline-block;
+    margin-bottom: 8px;
+    font: 600 10px/1 var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 4px 6px;
+    border-radius: 2px;
+  }
+  .card.tf { border-top: 3px solid var(--tf); }
+  .card.tf .tag { background: var(--tf-wash); color: var(--tf); }
+  .card.pipe { border-top: 3px solid var(--pipe); }
+  .card.pipe .tag { background: var(--pipe-wash); color: var(--pipe); }
+  .card.human { border-top: 3px solid var(--human); }
+  .card.human .tag { background: var(--human-wash); color: var(--human); }
+  .card.stop { border-top: 3px solid var(--stop); }
+  .card.stop .tag { background: var(--stop-wash); color: var(--stop); }
+
+  /* ---------- tables ---------- */
+
+  .table-wrap { overflow-x: auto; margin: 0 0 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; line-height: 1.45; }
+  caption {
+    caption-side: top;
+    text-align: left;
+    padding: 12px 16px 10px;
+    font: 600 11px/1.4 var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  th, td { text-align: left; vertical-align: top; padding: 9px 14px; border-bottom: 1px solid var(--rule-2); }
+  thead th {
+    font-size: 11.5px;
+    font-weight: 650;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: var(--wash);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+  td.yes { color: var(--pipe); font-weight: 600; }
+  td.no { color: var(--ink-3); }
+  td.warn { color: var(--human); font-weight: 600; }
+  .col-tight { white-space: nowrap; }
+  table td code { white-space: nowrap; }
+
+  /* ---------- callouts ---------- */
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--paper);
+    padding: 14px 18px;
+    margin: 0 0 22px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .callout.warn { border-left-color: var(--human); }
+  .callout.stop { border-left-color: var(--stop); }
+  .callout p { margin: 0; max-width: 74ch; }
+  .callout p + p { margin-top: 10px; }
+  .callout .label {
+    display: block;
+    font: 600 10.5px/1.2 var(--mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+
+  /* ---------- code block ---------- */
+
+  pre {
+    margin: 0 0 22px;
+    background: #182027;
+    color: #e6edf3;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font: 12.5px/1.7 var(--mono);
+  }
+  pre .c { color: #8b98a6; }
+  pre .k { color: #7fd3c9; }
+  pre .s { color: #e5c07b; }
+
+  /* ---------- invariants ---------- */
+
+  .invariants { margin: 0 0 22px; padding: 0; list-style: none; counter-reset: inv; }
+  .invariants li {
+    position: relative;
+    padding: 12px 16px 12px 46px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .invariants li::before {
+    counter-increment: inv;
+    content: counter(inv);
+    position: absolute;
+    left: 16px;
+    top: 12px;
+    font: 600 12px/18px var(--mono);
+    color: var(--accent);
+    background: var(--accent-wash);
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    border-radius: 50%;
+  }
+  .invariants b { display: block; margin-bottom: 2px; }
+  .invariants span { color: var(--ink-2); }
+
+  /* ---------- footer ---------- */
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 22px;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  footer h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); margin-bottom: 12px; }
+  footer ul { margin: 0; padding-left: 18px; }
+  footer li { margin-bottom: 5px; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 880px) {
+    .layout { grid-template-columns: 1fr; gap: 32px; }
+    nav.toc { position: static; border-left: 0; border-top: 1px solid var(--rule); padding: 14px 0 0; column-count: 2; column-gap: 24px; }
+    nav.toc p { column-span: all; }
+    h1 { font-size: 31px; }
+    .lede { font-size: 17px; }
+    .page { padding: 0 20px 72px; }
+    .masthead { margin: 0 -20px 32px; padding: 32px 20px 26px; }
+  }
+
+  @media (max-width: 560px) {
+    nav.toc { column-count: 1; }
+    h1 { font-size: 27px; }
+  }
+
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .page { max-width: none; padding: 0; }
+    nav.toc { display: none; }
+    .layout { display: block; }
+    .masthead { margin: 0 0 20px; border-bottom: 1px solid #000; }
+    section { break-inside: avoid-page; margin-bottom: 26px; }
+    figure, table, pre, .callout, .invariants li { break-inside: avoid; }
+    a { color: #000; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="inner">
+    <p class="kicker">fabric-ops · architecture sheet · 2026-11-15</p>
+    <h1>Administering a Fabric platform</h1>
+    <p class="lede">Who may create a workspace, who changes access, and what notices when the answer is
+      &ldquo;nobody&rdquo;. The design for launching a Microsoft Fabric estate and running it afterwards.</p>
+    <ul class="stamps">
+      <li class="stamp strong">ADR 0010 · accepted</li>
+      <li class="stamp">companion to ADR 0002, 0006</li>
+      <li class="stamp">illustrative, not deployable</li>
+      <li class="stamp">unverified in a tenant</li>
+    </ul>
+  </div>
+</header>
+
+<div class="page">
+<div class="layout">
+
+  <nav class="toc" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#shape">The shape</a></li>
+      <li><a href="#layers">Where the controls live</a></li>
+      <li><a href="#identity">Groups and roles</a></li>
+      <li><a href="#principals">Two principals</a></li>
+      <li><a href="#factory">The workspace factory</a></li>
+      <li><a href="#invariants">Seven invariants</a></li>
+      <li><a href="#duties">Steady state</a></li>
+      <li><a href="#exceptions">Break-glass</a></li>
+      <li><a href="#sideDoors">The side doors</a></li>
+      <li><a href="#open">What is not settled</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ============ 1. SHAPE ============ -->
+    <section id="shape">
+      <div class="sec-head"><span class="sec-num">01</span><h2>The shape, in one sentence</h2></div>
+
+      <p class="lede" style="font-size:18px">Existence is centralised, operation is delegated: the platform
+        creates workspaces and their groups, a named human runs each one, and anything that escapes that
+        becomes a failing check rather than a quarterly discovery.</p>
+
+      <p>Fabric gives you four workspace roles and a delegation primitive (domains) that
+        <strong>does not delegate access</strong> — &ldquo;domain assignment doesn&rsquo;t affect item
+        visibility or accessibility&rdquo;. So delegated administration has to be assembled from the three
+        things that do carry authority: group ownership in Entra, the workspace <code>Admin</code> role, and
+        the tenant settings that gate creation. Everything below follows from that.</p>
+
+      <div class="cards">
+        <div class="card tf">
+          <span class="tag">Terraform</span>
+          <h4>Owns existence</h4>
+          <p>Resource group, capacity, workspaces, capacity assignment, role assignments, the dev Git binding.
+             Anything that must exist before content lands, and must not be recreated by a deploy.</p>
+        </div>
+        <div class="card pipe">
+          <span class="tag">Pipeline</span>
+          <h4>Owns definitions</h4>
+          <p>Item definitions and warehouse schema, per environment, from a pinned commit. It never grants
+             access and never creates a container.</p>
+        </div>
+        <div class="card human">
+          <span class="tag">Human</span>
+          <h4>Owns relationships</h4>
+          <p>Groups and membership, credentials, connections and bindings, labels, item sharing, money settings,
+             and the prod approval. Credential-shaped or judgement-shaped work.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">The one-line test</span>
+        <p>Before promising automation, ask four questions: does a <em>write</em> operation exist, does it accept a
+          <em>definition</em>, will it accept a <em>service principal</em>, and is it out of <em>preview</em>? All
+          four, or it is manual. An endpoint existing is necessary and never sufficient.</p>
+      </div>
+    </section>
+
+    <!-- ============ 2. LAYERS ============ -->
+    <section id="layers">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Where the controls live</h2></div>
+
+      <p class="legend-label">Each layer is owned by exactly one mechanism. The right column is the reason the
+        layer cannot move.</p>
+
+      <ul class="legend">
+        <li><span class="chip tf"></span>Terraform</li>
+        <li><span class="chip pipe"></span>Content pipeline</li>
+        <li><span class="chip human"></span>Human, in the portal</li>
+      </ul>
+
+      <figure>
+        <svg viewBox="0 0 1000 430" role="img" aria-label="Six layers of a Fabric platform, from Entra identity down to the data plane, annotated with the mechanism that owns each one">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7785"/>
+            </marker>
+            <style>
+              .lyr { fill: #ffffff; stroke: #dde2e8; }
+              .lbl { font: 600 13px -apple-system, "Segoe UI", sans-serif; fill: #14181d; }
+              .sub { font: 12px ui-monospace, Menlo, monospace; fill: #6b7785; }
+              .own { font: 600 11px ui-monospace, Menlo, monospace; letter-spacing: .04em; }
+              .why { font: 11.5px -apple-system, "Segoe UI", sans-serif; fill: #6b7785; }
+            </style>
+          </defs>
+
+          <!-- column headers -->
+          <text class="sub" x="24" y="26">LAYER</text>
+          <text class="sub" x="300" y="26">WHAT LIVES THERE</text>
+          <text class="sub" x="700" y="26">WHO CHANGES IT</text>
+
+          <!-- row 1 -->
+          <rect class="lyr" x="16" y="40" width="968" height="52" rx="3"/>
+          <text class="lbl" x="32" y="64">Tenant</text>
+          <text class="sub" x="32" y="81">entra + fabric settings</text>
+          <text class="why" x="300" y="71">57 settings that gate creation, sharing and export</text>
+          <rect x="700" y="54" width="86" height="24" rx="2" fill="#fbf0e2"/>
+          <text class="own" x="708" y="70" fill="#9a5b12">HUMAN</text>
+          <text class="why" x="796" y="71">tenant admin; no API for every switch</text>
+
+          <!-- row 2 -->
+          <rect class="lyr" x="16" y="100" width="968" height="52" rx="3"/>
+          <text class="lbl" x="32" y="124">Capacity</text>
+          <text class="sub" x="32" y="141">Microsoft.Fabric/capacities</text>
+          <text class="why" x="300" y="131">one F SKU shared by dev, test and prod</text>
+          <rect x="700" y="114" width="86" height="24" rx="2" fill="#eaf0f8"/>
+          <text class="own" x="708" y="130" fill="#2b5f9e">TERRAFORM</text>
+          <text class="why" x="796" y="131">SKU only: overage and surge are portal</text>
+
+          <!-- row 3 -->
+          <rect class="lyr" x="16" y="160" width="968" height="52" rx="3"/>
+          <text class="lbl" x="32" y="184">Workspace</text>
+          <text class="sub" x="32" y="201">containers + role assignments</text>
+          <text class="why" x="300" y="191">fabric-sales-forecast-dev · -test · -prod</text>
+          <rect x="700" y="174" width="86" height="24" rx="2" fill="#eaf0f8"/>
+          <text class="own" x="708" y="190" fill="#2b5f9e">TERRAFORM</text>
+          <text class="why" x="796" y="191">must not be recreated by a deploy</text>
+
+          <!-- row 4 -->
+          <rect class="lyr" x="16" y="220" width="968" height="52" rx="3"/>
+          <text class="lbl" x="32" y="244">Items</text>
+          <text class="sub" x="32" y="261">23 deployable definitions</text>
+          <text class="why" x="300" y="251">what authors edit, promoted by pinned commit</text>
+          <rect x="700" y="234" width="86" height="24" rx="2" fill="#ecf4ea"/>
+          <text class="own" x="708" y="250" fill="#3f7d3a">PIPELINE</text>
+          <text class="why" x="796" y="251">7 more item types have no definition API</text>
+
+          <!-- row 5 -->
+          <rect class="lyr" x="16" y="280" width="968" height="52" rx="3"/>
+          <text class="lbl" x="32" y="304">Relationships</text>
+          <text class="sub" x="32" y="321">connections, labels, shares</text>
+          <text class="why" x="300" y="311">the bindings that make a green deploy actually work</text>
+          <rect x="700" y="294" width="86" height="24" rx="2" fill="#fbf0e2"/>
+          <text class="own" x="708" y="310" fill="#9a5b12">HUMAN</text>
+          <text class="why" x="796" y="311">not objects: relationships between objects</text>
+
+          <!-- row 6 -->
+          <rect class="lyr" x="16" y="340" width="968" height="52" rx="3"/>
+          <text class="lbl" x="32" y="364">Data plane</text>
+          <text class="sub" x="32" y="381">onelake · sql · kql</text>
+          <text class="why" x="300" y="371">where the grants no admin API can see are made</text>
+          <rect x="700" y="354" width="86" height="24" rx="2" fill="#fbf0e2"/>
+          <text class="own" x="708" y="370" fill="#9a5b12">HUMAN</text>
+          <text class="why" x="796" y="371">SQL GRANT and OneLake roles are per item</text>
+
+          <text class="why" x="16" y="416">Read downward: each layer can grant access the one below cannot revoke, which is why &ldquo;who can see this&rdquo; is a join and not a query.</text>
+        </svg>
+        <figcaption><b>Figure 1 — the six layers.</b> The mechanism split from
+          <code>guides/what-goes-where.md</code>. The count that matters: 6 Terraform resources, 23 deployable
+          item types, roughly a dozen operational steps that stay human.</figcaption>
+      </figure>
+
+      <h3>The launch order is not negotiable</h3>
+      <p>Two hard dependencies decide the sequence: a capacity must exist before a workspace can be assigned to
+        it, and a workspace must exist before items land. Everything else can move; these cannot.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Bootstrap sequence</caption>
+          <thead>
+            <tr><th class="col-tight">Phase</th><th>Step</th><th class="col-tight">Who</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="col-tight"><strong>0</strong></td><td>Consent the Graph application permissions; add the first principal to the ADO organisation</td><td class="col-tight">PRA / PCA</td></tr>
+            <tr><td class="col-tight"><strong>0</strong></td><td>Create one Entra security group per workspace; create the two principals and their federated service connections</td><td class="col-tight">human</td></tr>
+            <tr><td class="col-tight"><strong>0</strong></td><td>Turn on the four service-principal settings and scope <code>Create workspaces</code> to a group; confirm network posture</td><td class="col-tight">tenant admin</td></tr>
+            <tr><td class="col-tight"><strong>1</strong></td><td>Capacity root, then workspaces root with role assignments and the dev Git binding</td><td class="col-tight">Terraform</td></tr>
+            <tr><td class="col-tight"><strong>1</strong></td><td>Capacity admins, overage threshold, surge protection</td><td class="col-tight">portal</td></tr>
+            <tr><td class="col-tight"><strong>2</strong></td><td>First items, then the schema stage, then promotion to test and prod behind an approval</td><td class="col-tight">pipeline</td></tr>
+            <tr><td class="col-tight"><strong>3</strong></td><td>Connections and credentials, bindings per stage, labels, sharing, the five alerts</td><td class="col-tight">human</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="label">Two steps are other people&rsquo;s, and they block everything</span>
+        <p>A <strong>Privileged Role Administrator</strong> must consent to the Microsoft Graph app roles — Application
+          Administrator and Cloud Application Administrator are explicitly excluded. A <strong>Project Collection
+          Administrator</strong> must add the first principal to the ADO organisation. Request both before the build
+          starts, not on the morning of.</p>
+      </div>
+    </section>
+
+    <!-- ============ 3. IDENTITY ============ -->
+    <section id="identity">
+      <div class="sec-head"><span class="sec-num">03</span><h2>Groups and roles: two tiers, one naming scheme</h2></div>
+
+      <p>ADR 0006 spends one Entra group per workspace on access. ADR 0010 adds a second tier for the people who
+        run the platform itself, and the rule that keeps them apart: <strong>a platform group never holds a workspace
+        role, and a workspace group never holds <code>Admin</code></strong>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>The group catalogue</caption>
+          <thead>
+            <tr><th>Tier</th><th>Name pattern</th><th>Holds</th><th>Owner</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-tight">Workspace</td>
+              <td><code>fabric-&lt;domain&gt;-&lt;project&gt;-&lt;env&gt;-contributors</code></td>
+              <td>Contributor on that one workspace</td>
+              <td>the workspace&rsquo;s named Admin</td>
+            </tr>
+            <tr>
+              <td class="col-tight">Workspace</td>
+              <td><code>fabric-&lt;domain&gt;-&lt;project&gt;-&lt;env&gt;-viewers</code></td>
+              <td>Viewer on that one workspace</td>
+              <td>the workspace&rsquo;s named Admin</td>
+            </tr>
+            <tr>
+              <td class="col-tight">Platform</td>
+              <td><code>fabric-role-admin-api</code></td>
+              <td>admin API allow-list membership</td>
+              <td>security reviewer</td>
+            </tr>
+            <tr>
+              <td class="col-tight">Platform</td>
+              <td><code>fabric-role-platform-engineers</code></td>
+              <td>ADO pipeline edit rights, Terraform state</td>
+              <td>platform owner</td>
+            </tr>
+            <tr>
+              <td class="col-tight">Platform</td>
+              <td><code>fabric-role-workspace-creators</code></td>
+              <td>the <code>Create workspaces</code> tenant setting</td>
+              <td>tenant admin</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Naming is the cheap half; the audit boundary is the valuable half. Every workspace group starts with
+        <code>fabric-</code> and ends with a role word, so one Entra search finds the estate and
+        <code>fabric-role-</code> separates the platform tier from the 3N workspace groups.</p>
+
+      <h3>What a workspace role actually gets you</h3>
+      <p>Four roles, fully documented, and two rows worth reading twice: <strong>Viewer can read data through
+        T-SQL</strong> but not through OneLake or Spark, and <strong>Contributor cannot publish an app</strong>,
+        edit OneLake security, or connect the workspace to Git — which is why the deploy principal is Contributor
+        and nothing more.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Capability by role</caption>
+          <thead>
+            <tr><th>Capability</th><th>Admin</th><th>Member</th><th>Contrib</th><th>Viewer</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Add or remove people, including other admins</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td><td class="no">–</td></tr>
+            <tr><td>Reshare items / allow others to reshare</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td></tr>
+            <tr><td>Update or delete the workspace</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td><td class="no">–</td></tr>
+            <tr><td>Write pipelines, notebooks, shortcuts</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td></tr>
+            <tr><td>Read through OneLake and Spark (<code>ReadAll</code>)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td></tr>
+            <tr><td>Read through T-SQL (<code>ReadData</code>)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Create workspace identity / connect Git</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td><td class="no">–</td></tr>
+            <tr><td>Publish or unpublish an app</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td></tr>
+            <tr><td>Edit OneLake security roles</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="label">The role you grant is a purchase</span>
+        <p>At F64 and above, a <strong>Viewer</strong> reads Power BI content on a Fabric (Free) licence. Every other
+          role needs Pro or PPU regardless of SKU. So adding someone to a <code>-contributors</code> group is a
+          licensing decision, which is why the quarterly reconciliation has to read Entra membership rather than a
+          Fabric report.</p>
+      </div>
+    </section>
+
+    <!-- ============ 4. PRINCIPALS ============ -->
+    <section id="principals">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Two principals, split by what they can do</h2></div>
+
+      <p>The split exists for one reason: adding a role assignment needs <strong>Member or higher</strong>, so a
+        Contributor-only principal cannot grant access. That is the boundary. Everything else about the design
+        follows from keeping it real.</p>
+
+      <figure>
+        <svg viewBox="0 0 1000 400" role="img" aria-label="Azure DevOps pipeline reaching Fabric through two service connections and workload identity federation, with the deploy principal unable to assign roles and the admin principal gated to production">
+          <defs>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7785"/>
+            </marker>
+            <style>
+              .box { fill: #ffffff; stroke: #dde2e8; }
+              .box.gate { fill: #fbf0e2; stroke: #e3c9a3; }
+              .box.danger { fill: #fbeceb; stroke: #e7c2be; }
+              .box.ok { fill: #ecf4ea; stroke: #c3ddbe; }
+              .t { font: 600 12.5px -apple-system, "Segoe UI", sans-serif; fill: #14181d; }
+              .s { font: 11px ui-monospace, Menlo, monospace; fill: #6b7785; }
+              .line { stroke: #c3ccd6; stroke-width: 1.5; fill: none; }
+              .flow { stroke: #6b7785; stroke-width: 1.5; fill: none; marker-end: url(#arrow2); }
+              .tag { font: 600 10px ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+            </style>
+          </defs>
+
+          <!-- repo -->
+          <rect class="box" x="16" y="30" width="150" height="54" rx="3"/>
+          <text class="t" x="28" y="52">Repository</text>
+          <text class="s" x="28" y="70">main · pinned commit</text>
+
+          <!-- stages -->
+          <rect class="box" x="216" y="30" width="170" height="110" rx="3"/>
+          <text class="t" x="228" y="52">dev · test stages</text>
+          <text class="s" x="228" y="70">every merge</text>
+          <text class="s" x="228" y="88">no approval</text>
+          <text class="tag" x="228" y="118" fill="#3f7d3a">UNATTENDED</text>
+
+          <rect class="box gate" x="216" y="164" width="170" height="110" rx="3"/>
+          <text class="t" x="228" y="186">prod stage</text>
+          <text class="s" x="228" y="204">environment approval</text>
+          <text class="s" x="228" y="222">recorded on the run</text>
+          <text class="tag" x="228" y="252" fill="#9a5b12">HUMAN GATE</text>
+
+          <!-- connections -->
+          <rect class="box" x="436" y="58" width="120" height="54" rx="3"/>
+          <text class="s" x="448" y="80">service conn A</text>
+          <text class="s" x="448" y="96">WIF · no secret</text>
+
+          <rect class="box" x="436" y="192" width="120" height="54" rx="3"/>
+          <text class="s" x="448" y="214">service conn B</text>
+          <text class="s" x="448" y="230">WIF · no secret</text>
+
+          <!-- principals -->
+          <rect class="box ok" x="606" y="44" width="180" height="84" rx="3"/>
+          <text class="t" x="618" y="66">sp-fabric-deploy</text>
+          <text class="s" x="618" y="84">workspace Contributor</text>
+          <text class="s" x="618" y="100">no admin API</text>
+          <text class="tag" x="618" y="120" fill="#3f7d3a">CANNOT GRANT</text>
+
+          <rect class="box danger" x="606" y="178" width="180" height="84" rx="3"/>
+          <text class="t" x="618" y="200">sp-fabric-admin</text>
+          <text class="s" x="618" y="218">capacity Contributor</text>
+          <text class="s" x="618" y="234">admin API group</text>
+          <text class="tag" x="618" y="254" fill="#a3342c">CAN GRANT</text>
+
+          <!-- targets -->
+          <rect class="box" x="836" y="30" width="148" height="52" rx="3"/>
+          <text class="t" x="848" y="52">Item definitions</text>
+          <text class="s" x="848" y="68">fabric-cicd</text>
+
+          <rect class="box" x="836" y="96" width="148" height="52" rx="3"/>
+          <text class="t" x="848" y="118">Role assignments</text>
+          <text class="s" x="848" y="134">Terraform</text>
+
+          <rect class="box" x="836" y="200" width="148" height="52" rx="3"/>
+          <text class="t" x="848" y="222">Tenant settings</text>
+          <text class="s" x="848" y="238">admin APIs</text>
+
+          <rect class="box" x="836" y="266" width="148" height="52" rx="3"/>
+          <text class="t" x="848" y="288">Entra groups</text>
+          <text class="s" x="848" y="304">Graph</text>
+
+          <!-- flows -->
+          <path class="flow" d="M166 57 H216"/>
+          <path class="flow" d="M166 82 H196 V219 H216"/>
+          <path class="flow" d="M386 85 H436"/>
+          <path class="flow" d="M386 219 H436"/>
+          <path class="flow" d="M556 85 H606"/>
+          <path class="flow" d="M556 219 H606"/>
+          <path class="flow" d="M786 76 H811 V56 H836"/>
+          <path class="flow" d="M786 100 H811 V122 H836"/>
+          <path class="flow" d="M786 220 H836"/>
+          <path class="flow" d="M786 240 H811 V292 H836"/>
+
+          <text class="s" x="16" y="320">The approval lives on the ADO Environment, not on the stage — a stage that loses its</text>
+          <text class="s" x="16" y="337">environment: line deploys ungated, and a timed-out approval marks the stage skipped, not failed.</text>
+          <text class="s" x="16" y="368">Contributors can edit pipeline YAML by default, so editing the file is equivalent to using the admin principal.</text>
+        </svg>
+        <figcaption><b>Figure 2 — two principals.</b> Neither holds a secret: the federated credential is the
+          credential. The federated subject is bound to the organisation, project and connection names, so a rename
+          fails the token exchange with an error that looks like a permissions problem.</figcaption>
+      </figure>
+
+      <div class="cards">
+        <div class="card stop">
+          <span class="tag">Boundary</span>
+          <h4>Deploy cannot grant</h4>
+          <p>Contributor is below the line where a principal may add a role assignment. That is the point of the
+             split, not a limitation to work around.</p>
+        </div>
+        <div class="card stop">
+          <span class="tag">Boundary</span>
+          <h4>Deploy cannot delete</h4>
+          <p>Orphan items go to the recycle bin, because a hard delete would need workspace Admin — which the
+             deploy principal deliberately does not hold.</p>
+        </div>
+        <div class="card stop">
+          <span class="tag">Boundary</span>
+          <h4>Admin cannot deploy</h4>
+          <p>The admin principal runs only in the gated stage. If it appeared on every merge, the approval would
+             guard nothing.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5. FACTORY ============ -->
+    <section id="factory">
+      <div class="sec-head"><span class="sec-num">05</span><h2>The workspace factory</h2></div>
+
+      <p>One path creates a workspace, and it runs in a fixed order because the naming is the contract between two
+        systems. The group is created first; Terraform then resolves it <em>by name</em>, so the plan fails loudly
+        if the identity work has not happened.</p>
+
+      <figure>
+        <svg viewBox="0 0 1000 300" role="img" aria-label="Five-step workspace creation flow: create the Entra group, add the variables entry, terraform plan resolves the group by name, apply creates the workspace and role assignment, then hand Admin to a named human">
+          <defs>
+            <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7785"/>
+            </marker>
+            <style>
+              .st { fill: #ffffff; stroke: #dde2e8; }
+              .st.g { fill: #fbf0e2; stroke: #e3c9a3; }
+              .st.b { fill: #eaf0f8; stroke: #c3d0e4; }
+              .st.ok { fill: #ecf4ea; stroke: #c3ddbe; }
+              .n { font: 600 11px ui-monospace, Menlo, monospace; }
+              .t2 { font: 600 12.5px -apple-system, "Segoe UI", sans-serif; fill: #14181d; }
+              .s2 { font: 11px ui-monospace, Menlo, monospace; fill: #6b7785; }
+              .f { stroke: #6b7785; stroke-width: 1.5; fill: none; marker-end: url(#arrow3); }
+              .stopline { stroke: #a3342c; stroke-width: 1.2; fill: none; stroke-dasharray: 4 3; }
+            </style>
+          </defs>
+
+          <rect class="st g" x="14" y="46" width="168" height="76" rx="3"/>
+          <text class="n" x="26" y="68" fill="#9a5b12">1 · HUMAN</text>
+          <text class="t2" x="26" y="88">Create the group</text>
+          <text class="s2" x="26" y="106">named for the workspace</text>
+
+          <rect class="st b" x="214" y="46" width="168" height="76" rx="3"/>
+          <text class="n" x="226" y="68" fill="#2b5f9e">2 · PR</text>
+          <text class="t2" x="226" y="88">Variables entry</text>
+          <text class="s2" x="226" y="106">+ role assignment</text>
+
+          <rect class="st b" x="414" y="46" width="168" height="76" rx="3"/>
+          <text class="n" x="426" y="68" fill="#2b5f9e">3 · PLAN</text>
+          <text class="t2" x="426" y="88">Resolve by name</text>
+          <text class="s2" x="426" y="106">data source, not an ID</text>
+
+          <rect class="st b" x="614" y="46" width="168" height="76" rx="3"/>
+          <text class="n" x="626" y="68" fill="#2b5f9e">4 · APPLY</text>
+          <text class="t2" x="626" y="88">Workspace + assignment</text>
+          <text class="s2" x="626" y="106">+ capacity assignment</text>
+
+          <rect class="st ok" x="814" y="46" width="172" height="76" rx="3"/>
+          <text class="n" x="826" y="68" fill="#3f7d3a">5 · HUMAN</text>
+          <text class="t2" x="826" y="88">Hand over Admin</text>
+          <text class="s2" x="826" y="106">named human + deputy</text>
+
+          <path class="f" d="M182 84 H214"/>
+          <path class="f" d="M382 84 H414"/>
+          <path class="f" d="M582 84 H614"/>
+          <path class="f" d="M782 84 H814"/>
+
+          <!-- failure branch -->
+          <path class="stopline" d="M498 122 V166 H318"/>
+          <circle cx="318" cy="166" r="3.5" fill="#a3342c"/>
+          <text class="n" x="326" y="162" fill="#a3342c">PLAN FAILS</text>
+          <text class="s2" x="326" y="180">group missing, or named for a different workspace</text>
+
+          <!-- what apply writes -->
+          <text class="s2" x="14" y="222">What step 4 writes, and nothing else: the workspace, its capacity assignment, one role assignment per group,</text>
+          <text class="s2" x="14" y="239">and the dev Git binding. Membership is never written — it belongs to the group owner.</text>
+          <text class="s2" x="14" y="270">A workspace created through the portal instead has no group, no assignment and no capacity discipline,</text>
+          <text class="s2" x="14" y="287">and the access report can only report it, never retro-fit it.</text>
+        </svg>
+        <figcaption><b>Figure 3 — the creation path.</b> Group first, then a pull request. That ordering dependency is
+          a human step, which makes it the most likely place for the model to be abandoned under pressure — hence the
+          failing plan rather than a pasted object ID.</figcaption>
+      </figure>
+
+      <div class="cards">
+        <div class="card human">
+          <span class="tag">Delegated</span>
+          <h4>Membership</h4>
+          <p>The group owner adds people. Onboarding is a person on Monday morning, not a platform ticket. The
+             platform manages the assignment, never the people.</p>
+        </div>
+        <div class="card tf">
+          <span class="tag">Centralised</span>
+          <h4>Existence</h4>
+          <p>Every workspace is a Terraform object with a group and a capacity. No self-service creation, because
+             the invariants live in the creation path.</p>
+        </div>
+        <div class="card human">
+          <span class="tag">Named</span>
+          <h4>Admin</h4>
+          <p>Admin goes to a human and a named deputy. Capacity admin is the same, because the documentation
+             describes it for users only — a group cannot hold it.</p>
+        </div>
+      </div>
+
+      <div class="callout stop">
+        <span class="label">Refused by design</span>
+        <p><strong>Self-service workspace creation</strong> — turning on <code>Create workspaces</code> for
+          <em>Everyone</em> buys speed and deletes the model: an unmanaged workspace has no group, no role
+          assignment and no capacity discipline, and appears in every future access report as an object nobody owns.
+          Scope the setting to <code>fabric-role-workspace-creators</code> or leave it off.</p>
+        <p><strong>Groups created by Terraform</strong> — the AzureAD provider would put
+          <code>Directory.ReadWrite.All</code> on the platform principal to save one click. Group creation stays
+          manual.</p>
+      </div>
+    </section>
+
+    <!-- ============ 6. INVARIANTS ============ -->
+    <section id="invariants">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Seven invariants, each with something that fails</h2></div>
+
+      <p>A convention without a check is a comment. Each of these is cheap to state and, with the exception of the
+        last two, cheap to assert from an API the design already calls.</p>
+
+      <ol class="invariants">
+        <li><b>One group per workspace, carrying <code>Contributor</code> or <code>Viewer</code>.</b>
+          <span>Offboarding happens in Entra, and the pipeline does not need to know who works here.</span></li>
+        <li><b>No group carries <code>Admin</code>.</b>
+          <span>Assertable: the admin API returns the principal <code>type</code> beside <code>workspaceRole</code>,
+            so &ldquo;an Admin assignment whose principal is a group&rdquo; is a query — not a quarterly argument.</span></li>
+        <li><b>No direct per-user assignment without an unexpired exception.</b>
+          <span>Break-glass is a register entry with a mandatory expiry, not a memory.</span></li>
+        <li><b>The platform tier never holds a workspace role.</b>
+          <span>Otherwise the security reviewer can change what they review, and the audit ends.</span></li>
+        <li><b>Every workspace has a named Admin and a named deputy.</b>
+          <span>Prevention: a workspace with no admin is <em>Orphaned</em>, and the admin API still reports it
+            <em>Active</em>.</span></li>
+        <li><b>Every item that matters carries a label, applied by a named process.</b>
+          <span>Git does not export labels and defaults do not apply to service principals, so a deploy silently
+            produces unlabelled items. Check, do not automate.</span></li>
+        <li><b>No report counts as a control until something can be red.</b>
+          <span>The freshness check is the meta-control: if the nightly job stops, everything else looks calm.</span></li>
+      </ol>
+    </section>
+
+    <!-- ============ 7. DUTIES ============ -->
+    <section id="duties">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Steady state: four operations and three assertions</h2></div>
+
+      <p>Deliberately small. Every recurring operation earns its place by producing something that changes a decision
+        or catches a failure; anything that only produces reassurance is cut.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Recurring operations</caption>
+          <thead>
+            <tr><th>Operation</th><th class="col-tight">Cadence</th><th>Output</th><th class="col-tight">Owner</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Deploy on merge</strong></td>
+              <td class="col-tight">per merge</td>
+              <td>dev, then test, then prod behind an approval; the commit SHA per stage</td>
+              <td class="col-tight">pipeline</td>
+            </tr>
+            <tr>
+              <td><strong>Drift report</strong></td>
+              <td class="col-tight">nightly</td>
+              <td>items where deployed ≠ committed, per environment</td>
+              <td class="col-tight">platform engineer</td>
+            </tr>
+            <tr>
+              <td><strong>Access report</strong></td>
+              <td class="col-tight">weekly</td>
+              <td>principals per workspace with groups expanded, orphans flagged, blind spots stated</td>
+              <td class="col-tight">security reviewer</td>
+            </tr>
+            <tr>
+              <td><strong>Capacity review</strong></td>
+              <td class="col-tight">weekly</td>
+              <td>utilisation, throttling, overage headroom, alert-listener health</td>
+              <td class="col-tight">capacity owner</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>The assertions that turn a report into a control</h3>
+
+      <div class="table-wrap">
+        <table>
+          <caption>What must be able to fail</caption>
+          <thead>
+            <tr><th class="col-tight">Check</th><th>Fails when</th><th class="col-tight">Source</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-tight">Group-Admin</td>
+              <td>any <code>Admin</code> role assignment&rsquo;s principal is a group</td>
+              <td class="col-tight"><code>/v1/admin/workspaces/{id}/users</code></td>
+            </tr>
+            <tr>
+              <td class="col-tight">Exception</td>
+              <td>a direct assignment or share has no unexpired register entry</td>
+              <td class="col-tight">repo file ∪ admin API</td>
+            </tr>
+            <tr>
+              <td class="col-tight">Settings drift</td>
+              <td>a named tenant setting differs from the committed expectation</td>
+              <td class="col-tight">admin API, where readable</td>
+            </tr>
+            <tr>
+              <td class="col-tight">Orphan / no-capacity</td>
+              <td>a workspace has no admin, or sits on no capacity</td>
+              <td class="col-tight"><code>/v1/admin/workspaces</code></td>
+            </tr>
+            <tr>
+              <td class="col-tight">Freshness</td>
+              <td>any check above has not produced a report in 36 hours</td>
+              <td class="col-tight">the job, not Fabric</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="label">Two traps that make a report lie</span>
+        <p><strong>Role changes land at the member&rsquo;s next Fabric sign-in</strong>, so a removal verified as
+          complete may still be live in an open session. Item-permission revocation can take up to two hours.</p>
+        <p><strong>A drift report is a record, not a control.</strong> Every deployment converges the workspace to the
+          repo, so drift survives only between a change and the next merge — and an item the repo does not define is
+          not overwritten, it is deleted into the recycle bin by the standard orphan call.</p>
+      </div>
+    </section>
+
+    <!-- ============ 8. EXCEPTIONS ============ -->
+    <section id="exceptions">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Break-glass is an expiring entry</h2></div>
+
+      <p>Direct per-user role assignments and item sharing are permitted only where a register entry matches.
+        Expiry is mandatory, because &ldquo;recorded exception&rdquo; without a date decays into
+        &ldquo;permanent Contributor nobody remembers&rdquo; — which is exactly the finding a quarterly review is
+        supposed to produce, arriving three months late.</p>
+
+      <pre><span class="c"># docs/access-exceptions.yaml — illustrative</span>
+<span class="k">exceptions</span>:
+  - <span class="k">principal</span>: <span class="s">"a.person@example.com"</span>          <span class="c"># user object id preferred</span>
+    <span class="k">scope</span>:     <span class="s">"fabric-sales-forecast-prod"</span>
+    <span class="k">role</span>:      <span class="s">"Member"</span>                        <span class="c"># Member, not Admin</span>
+    <span class="k">kind</span>:      <span class="s">"workspace-role"</span>                <span class="c"># or "item-share"</span>
+    <span class="k">reason</span>:    <span class="s">"publish the Q3 app; group cannot publish"</span>
+    <span class="k">approver</span>:  <span class="s">"workspace owner"</span>
+    <span class="k">expires</span>:   <span class="s">"2027-02-01"</span>                   <span class="c"># mandatory; the report fails after this</span>
+
+  - <span class="k">principal</span>: <span class="s">"b.person@example.com"</span>
+    <span class="k">scope</span>:     <span class="s">"Sales Model.SemanticModel"</span>
+    <span class="k">role</span>:      <span class="s">"Read"</span>
+    <span class="k">kind</span>:      <span class="s">"item-share"</span>
+    <span class="k">owner</span>:     <span class="s">"workspace owner"</span>              <span class="c"># item sharing needs a human owner</span>
+    <span class="k">reason</span>:    <span class="s">"external audit, one report"</span>
+    <span class="k">approver</span>:  <span class="s">"security reviewer"</span>
+    <span class="k">expires</span>:   <span class="s">"2026-12-15"</span></pre>
+
+      <p>Item sharing gets the extra field because it is the one grant path a <strong>Viewer</strong> can create,
+        and the pipeline never sees it. Its reach is set by tenant settings rather than by roles: shareable links
+        that grant organisation-wide access, app audiences, and publish-to-web all bypass the workspace role model
+        entirely.</p>
+    </section>
+
+    <!-- ============ 9. SIDE DOORS ============ -->
+    <section id="sideDoors">
+      <div class="sec-head"><span class="sec-num">09</span><h2>The side doors, and which ones the report can see</h2></div>
+
+      <p>Workspace roles are the designed path. Six others grant access the pipeline never created, and two of them
+        are invisible to every admin API. This table belongs inside the access report, not in a separate document —
+        an incomplete answer presented as complete is worse than no answer.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Grant paths below the workspace role</caption>
+          <thead>
+            <tr><th>Path</th><th>Who can create it</th><th class="col-tight">Visible to admin APIs</th><th>Restrained by</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Item sharing</td>
+              <td>Admin/Member, or anyone holding <em>Reshare</em></td>
+              <td class="col-tight yes">yes</td>
+              <td>the shareable-link setting</td>
+            </tr>
+            <tr>
+              <td>Workspace app / audience</td>
+              <td>Admin/Member</td>
+              <td class="col-tight warn">partly</td>
+              <td>publish-apps settings</td>
+            </tr>
+            <tr>
+              <td>Publish to web</td>
+              <td>users named by the setting</td>
+              <td class="col-tight no">no</td>
+              <td>allow only existing embed codes</td>
+            </tr>
+            <tr>
+              <td>OneLake security roles</td>
+              <td>workspace Admin/Member</td>
+              <td class="col-tight warn">per-item only</td>
+              <td>no disabling setting found</td>
+            </tr>
+            <tr>
+              <td>SQL <code>GRANT</code> / RLS</td>
+              <td>sufficient rights in the item</td>
+              <td class="col-tight no">no</td>
+              <td>none — enforced per item</td>
+            </tr>
+            <tr>
+              <td>Shortcut and identity credentials</td>
+              <td>item owner / workspace Admin</td>
+              <td class="col-tight no">no</td>
+              <td>per-connection</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Fabric returns a role assignment whose principal is a bare <code>Group</code> with no members, so
+        &ldquo;who can see what&rdquo; is answered by joining three sources — Fabric&rsquo;s admin API, Entra group
+        membership, and the item&rsquo;s own security endpoint. No Fabric endpoint does that join for you. The admin
+        APIs are also rate-limited to roughly 200 requests per hour, so an estate of any size needs paging and
+        caching rather than a loop over workspaces.</p>
+
+      <div class="callout">
+        <span class="label">Cheap day-one switches</span>
+        <p>Turn off <em>Allow shareable links to grant access to everyone in your organisation</em>. Set
+          <em>Publish to web</em> to <em>Allow only existing embed codes</em>. Enable both admin API settings for the
+          admin principal, or the access report cannot exist at all.</p>
+      </div>
+    </section>
+
+    <!-- ============ 10. OPEN ============ -->
+    <section id="open">
+      <div class="sec-head"><span class="sec-num">10</span><h2>What this design does not settle</h2></div>
+
+      <p>Fabric changes monthly and previews graduate, so an undated claim is a liability. These are the gaps that
+        remain after the design, and the reason each one is honest rather than embarrassing.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Open, and what would close it</caption>
+          <thead>
+            <tr><th>Question</th><th>Needs</th><th>Why it matters here</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Does a service principal need a Fabric or Power BI licence?</td>
+              <td class="col-tight">tenant or billing</td>
+              <td>cost of the automation path</td>
+            </tr>
+            <tr>
+              <td>Can an SP hold capacity Contributor, directly or via a group?</td>
+              <td class="col-tight">tenant</td>
+              <td>the admin principal&rsquo;s ability to assign workspaces</td>
+            </tr>
+            <tr>
+              <td>Does a group of only service principals satisfy both admin API allow-lists?</td>
+              <td class="col-tight">tenant</td>
+              <td>the hinge of the whole admin path</td>
+            </tr>
+            <tr>
+              <td>Does the access-details endpoint return group principals in every configuration?</td>
+              <td class="col-tight">tenant</td>
+              <td>the group-Admin assertion is built on it</td>
+            </tr>
+            <tr>
+              <td>What does Fabric show for an assignment whose Entra group was purged?</td>
+              <td class="col-tight">tenant</td>
+              <td>30-day restore window, then unknown</td>
+            </tr>
+            <tr>
+              <td>What is the work tenant&rsquo;s <code>Create workspaces</code> setting?</td>
+              <td class="col-tight">portal</td>
+              <td>whether the factory is the only path</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout stop">
+        <span class="label">Read this before treating anything above as final</span>
+        <p>Nothing on this page was observed in a tenant. Every claim is documentation-derived and carries the date
+          it was checked; several would be settled only by performing a deployment, which this research pack will
+          never do. Read them as &ldquo;established by documentation, unverified in practice&rdquo;.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <h2>Sources, in this repository</h2>
+  <ul>
+    <li><a href="../adr/0010-delegation-and-administration-model.md">ADR 0010 — existence is centralised, operation is delegated</a> — this sheet in prose, with its consequences and refusals.</li>
+    <li><a href="../adr/0006-access-through-entra-groups.md">ADR 0006 — access through one Entra group per workspace</a>, amended by 0010.</li>
+    <li><a href="../adr/0002-two-service-principals-federated.md">ADR 0002 — two service principals, federated</a> — the split in figure 2.</li>
+    <li><a href="../guides/what-goes-where.md">What goes where</a> — the mechanism split and the launch order.</li>
+    <li><a href="../reference/role-and-permission-matrix.md">Role and permission matrix</a> — §3 and §9, in full.</li>
+    <li><a href="../research/governance-access-and-workspace-roles.md">Research — who can see what, and what sits below the workspace role</a> — the citations behind the access claims.</li>
+    <li><a href="../research/entra-and-ado-operations.md">Research — Entra and ADO operations</a> — which Graph calls are app-only capable.</li>
+    <li><a href="../research/workspace-and-item-lifecycle.md">Research — workspace and item lifecycle</a> — retention, restore, and what a restore loses.</li>
+    <li><a href="../runbook/02-steady-state.md">Run-book 02 — steady state</a> — the operations as procedures.</li>
+  </ul>
+  <p style="margin-top:16px">Dated 2026-11-15 · one project&rsquo;s research record, written for its own context ·
+    not official guidance · not affiliated with Microsoft · illustrative, nothing here deploys.</p>
+</footer>
+
+</div>
+</body>
+</html>

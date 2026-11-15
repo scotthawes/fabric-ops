@@ -10,6 +10,8 @@
   [`what-goes-where.md`](../guides/what-goes-where.md)
 - **Amends:** [ADR 0006](0006-access-through-entra-groups.md) — its "review is the control" consequence is
   replaceable by an assertion (§4), and its group-per-workspace rule gains an owner (§3)
+- **Drawn up as:** [`maps/platform-administration-architecture.html`](../maps/platform-administration-architecture.html)
+  — the same design as one page, for someone who will not read an ADR
 
 ## Context
 
