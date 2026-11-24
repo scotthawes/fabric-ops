@@ -38,6 +38,10 @@ docs.
 | [`real-time-intelligence-what-can-be-retained-and-deployed.md`](real-time-intelligence-what-can-be-retained-and-deployed.md) | What can be retained and deployed as code in Real-Time Intelligence, and what does a capacity-observability store actually require? | answered 2026-11-12 |
 | [`mirroring-which-sources-latency-and-cost.md`](mirroring-which-sources-latency-and-cost.md) | Which sources can Fabric mirror, how fast, and what does it cost per mirrored item? | answered 2026-11-12 |
 | [`business-continuity-what-does-fabric-guarantee.md`](business-continuity-what-does-fabric-guarantee.md) | What does Microsoft actually document about business continuity and disaster recovery for a Fabric estate, and what can a builder promise? | answered 2026-11-12 |
+| [`data-stack-which-layers-exist-and-what-replaces-each.md`](data-stack-which-layers-exist-and-what-replaces-each.md) | What layers does a modern Microsoft-centric data platform have, what do Fabric and Azure Databricks provide at each, and what motion does moving from an Azure SQL/ADF/sqlproj estate require? | answered 2026-11-24 |
+| [`tooling-which-specialists-earn-their-place-beside-fabric.md`](tooling-which-specialists-earn-their-place-beside-fabric.md) | Which specialist tools earn their place beside Fabric for a six-person team? | answered 2026-11-24 |
+| [`ingestion-what-is-the-lowest-maintenance-route-from-an-app-database.md`](ingestion-what-is-the-lowest-maintenance-route-from-an-app-database.md) | Which route from the on-premises application database into analytics is lowest-maintenance, and what does each cost on both sides? | answered 2026-11-24 |
+| [`landscape-what-other-technologies-make-up-the-modern-data-stack.md`](landscape-what-other-technologies-make-up-the-modern-data-stack.md) | What other technologies make up a modern data stack, and which artefacts outlive the platform choice? | answered 2026-11-24 |
 
 ## Adding a note
 

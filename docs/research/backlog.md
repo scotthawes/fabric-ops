@@ -98,6 +98,29 @@ Ordered by how much they would change what the team does.
     stays human. _(done 2026-11-12)_
 22. **Platform taxonomy.** The official component names and workload grouping, so the system map
     uses Microsoft's vocabulary rather than invented layers. _(done 2026-11-12)_
+23. **Data-stack layer map and migration motion.** The ten capability layers, what Fabric and
+    Azure Databricks provide at each, and the rehost/refactor/rebuild/retire motion from the
+    Azure SQL + ADF + `sqlproj` estate — including the shared rebuild-everything deployment
+    pipeline and the ARM-export dead end. _(done 2026-11-24 —
+    `data-stack-which-layers-exist-and-what-replaces-each.md`; Fabric is the lower-motion
+    destination, Databricks is a rebuild, and Purview data governance is retiring into Fabric)_
+
+24. **Specialist tooling beside Fabric.** Whether dbt, a connector vendor, an external BI or
+    semantic layer, or a catalog/quality/observability product earns its place for a six-person
+    T-SQL/ADF team. _(done 2026-11-24 —
+    `tooling-which-specialists-earn-their-place-beside-fabric.md`; keep `.sqlproj`, keep Power BI
+    with no second semantic layer, native ingestion, and defer the vendor categories)_
+
+25. **Lowest-maintenance route from the application database.** Mirroring versus a scheduled copy
+    over a reporting schema versus federation, with the schema-change frequency as the deciding
+    input and the cost shape on both sides. _(done 2026-11-24 —
+    `ingestion-what-is-the-lowest-maintenance-route-from-an-app-database.md`; mirroring is
+    lowest-build but fragile to DDL, so a reporting schema is the maintenance boundary)_
+
+26. **Modern-stack landscape.** The composable-versus-suite shapes, one row per layer with
+    purpose and representative technologies, and the specifications that outlive a vendor choice.
+    _(done 2026-11-24 — `landscape-what-other-technologies-make-up-the-modern-data-stack.md`;
+    81 technologies, 71 verified on a page that states their purpose, and four specifications)_
 
 ## C. How an item gets done
 
