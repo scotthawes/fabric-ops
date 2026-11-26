@@ -43,6 +43,7 @@ docs.
 | [`ingestion-what-is-the-lowest-maintenance-route-from-an-app-database.md`](ingestion-what-is-the-lowest-maintenance-route-from-an-app-database.md) | Which route from the on-premises application database into analytics is lowest-maintenance, and what does each cost on both sides? | answered 2026-11-24 |
 | [`landscape-what-other-technologies-make-up-the-modern-data-stack.md`](landscape-what-other-technologies-make-up-the-modern-data-stack.md) | What other technologies make up a modern data stack, and which artefacts outlive the platform choice? | answered 2026-11-24 |
 | [`deployment-what-does-a-unified-terraform-pipeline-look-like.md`](deployment-what-does-a-unified-terraform-pipeline-look-like.md) | What does one Terraform pipeline deploy — groups, capacity, workspaces, identity — in what order, and what promotes to production? | answered 2026-11-26 |
+| [`git-integration-can-two-workspaces-share-a-repository.md`](git-integration-can-two-workspaces-share-a-repository.md) | Can several workspaces bind to one Azure DevOps repository, and what breaks when two share a branch or folder? | answered 2026-11-26 |
 
 ## Adding a note
 
