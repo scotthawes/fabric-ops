@@ -6,6 +6,7 @@
 - **Evidence:** [`identity-service-principal-and-tenant-settings.md`](../research/identity-service-principal-and-tenant-settings.md)
 - **Amended by:** [ADR 0010](0010-delegation-and-administration-model.md) — group ownership is assigned to a named
   human, and the group-`Admin` consequence below becomes a check instead of a review
+- **Amended:** 2026-11-26 — three groups per workspace (Viewer, Contributor, Member); Admin stays a named human
 
 ## Context
 
@@ -57,3 +58,20 @@ and can hand out access the pipeline never sees.
   even though this repo does not manage them — see the run-book.
 - Not established: whether a group containing only a service principal is accepted by both
   Admin API toggles. Verify before relying on it.
+
+## Amendment 2026-11-26 — three groups, not one
+
+The corporate design wants three groups on every workspace: **Viewer, Contributor and Member**.
+Admin remains with a named human with a deputy, so the "never Admin" rule is unchanged; the new group
+is the role one below it.
+
+- **Decision.** Three `azuread_group` resources per workspace, named `<workspace>-viewers`,
+  `-contributors` and `-members`, each granted the matching workspace role by
+  `fabric_workspace_role_assignment`. Each group is owned by that workspace's Admin human.
+- **Why Member is different.** Member can add members and publish apps. It is therefore an
+  access-administration path, not ordinary membership, and the access report must separate a
+  group-Member from a person-Member and fail on direct per-user grants made below Admin.
+- **What does not change.** Admin is still human-only, and the group-Admin assertion still fails on
+  any group holding it. Role assignments are still made by `sp-fabric-admin` through Terraform.
+- **Cost.** 2N workspaces × 3 groups = 6N groups to own and review, and every one of them is a
+  Pro/PPU licensing decision for its members.
