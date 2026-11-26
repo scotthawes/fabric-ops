@@ -1,0 +1,515 @@
+#!/usr/bin/env python3
+# Pack: 2026-11-26.2 — illustrative skeleton; see spec/0002-contract.md.
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never run from fabric-ops (ADR 0001).
+# Contract: docs/reference/corporate-pack/spec/0004-assumptions.md ("What the pipeline probes").
+#
+# Rename to probe.py in the corporate work repo. READ-ONLY: every call is a GET. Nothing here
+# creates, updates, assigns or deletes, because a probe that writes an object is a deployment
+# (0004, "What is deliberately not probed"). It runs before any stage that holds an environment
+# or a state blob, so a missing prerequisite costs a red run rather than half an apply.
+#
+#   python3 scripts/probe.py --out probe.json
+#   python3 scripts/probe.py --out probe.json --domains-optional --graph-optional
+#
+# Requires: azure-identity (already in the agent image). Nothing else.
+#
+# CREDENTIAL — the federated values, never a secret:
+#   AZURE_TENANT_ID / AZURE_CLIENT_ID   (ARM_TENANT_ID / ARM_CLIENT_ID also accepted)
+#   AZURE_OIDC_TOKEN                    (ARM_OIDC_TOKEN, then AZURE_FEDERATED_TOKEN)
+#   AZURE_SUBSCRIPTION_ID               (ARM_SUBSCRIPTION_ID) for PROBE-PROVIDER
+# One assertion, three audiences: ARM (management.azure.com), Fabric (api.fabric.microsoft.com)
+# and Graph (graph.microsoft.com). azure-identity exchanges it per scope and caches per scope.
+#
+# CODES AND EXIT: one check per code from 0004.
+#   PROBE-AUTH      required — ARM token and a subscription read
+#   PROBE-FABRIC    required — GET /v1/capacities
+#   PROBE-DOMAINS   required unless --domains-optional — GET /v1/domains
+#   PROBE-GRAPH     required unless --graph-optional   — GET /groups
+#   PROBE-PROVIDER  required — Microsoft.Fabric registration state
+#   PROBE-ADMIN     never required — GET /v1/admin/domains selects the domain path
+# A 401 and a 403 are reported differently and name the code 0004 assigns them: a 401 on
+# /v1/capacities is PROBE-LICENCE (A1), a 403 there is PROBE-CAPACITY (A2). Both still sit on the
+# PROBE-FABRIC check, so a log grep finds either name.
+# Exit 0 when every required check passed, 1 when any failed. An optional check that fails is
+# reported and does not change the exit code.
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+PACK_VERSION = "2026-11-26.2"
+
+ARM_SCOPE = "https://management.azure.com/.default"
+FABRIC_SCOPE = "https://api.fabric.microsoft.com/.default"
+GRAPH_SCOPE = "https://graph.microsoft.com/.default"
+
+ARM_ENDPOINT = "https://management.azure.com"
+FABRIC_ENDPOINT = "https://api.fabric.microsoft.com"
+GRAPH_ENDPOINT = "https://graph.microsoft.com"
+
+DEFAULT_TIMEOUT = 30.0
+
+STATUS_OK = "ok"
+STATUS_EXPECTED = "expected"  # the documented non-success that selects a path (admin 403)
+STATUS_FAIL = "fail"
+STATUS_UNEXPECTED = "unexpected"  # a non-success the pack does not model
+
+LABELS = {
+    STATUS_OK: "PASS",
+    STATUS_EXPECTED: "INFO",
+    STATUS_FAIL: "FAIL",
+    STATUS_UNEXPECTED: "WARN",
+}
+
+
+class Check:
+    """One probe result. The four serialised keys are fixed by 0004."""
+
+    def __init__(self, code: str, required: bool = True):
+        self.code = code
+        self.required = required
+        self.status = STATUS_FAIL
+        self.http = None
+        self.detail = ""
+
+    def set(self, status: str, http, detail: str = "") -> "Check":
+        self.status = status
+        self.http = http
+        # One line per check: collapse whitespace so a multi-line API message cannot break the log.
+        self.detail = " ".join(str(detail).split())[:300]
+        return self
+
+    @property
+    def failed(self) -> bool:
+        return self.status == STATUS_FAIL and self.required
+
+    @property
+    def optional_failure(self) -> bool:
+        return self.status in (STATUS_FAIL, STATUS_UNEXPECTED) and not self.required
+
+    def as_dict(self) -> dict:
+        return {
+            "code": self.code,
+            "status": self.status,
+            "http": self.http,
+            "detail": self.detail,
+        }
+
+
+class FederatedCredential:
+    """ClientAssertionCredential for three audiences, cached per scope."""
+
+    def __init__(self, tenant_id: str, client_id: str, assertion: str):
+        from azure.identity import ClientAssertionCredential
+
+        self._credential = ClientAssertionCredential(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            func=lambda: assertion,
+        )
+        self._tokens: dict[str, tuple] = {}
+
+    def token(self, scope: str):
+        """Return (token, error). A probe reports; it does not traceback."""
+        if scope not in self._tokens:
+            try:
+                self._tokens[scope] = (self._credential.get_token(scope).token, "")
+            except Exception as exc:  # azure-identity raises several types; all are reported alike
+                self._tokens[scope] = (None, f"{type(exc).__name__}: {exc}")
+        return self._tokens[scope]
+
+
+class Context:
+    def __init__(self, credential: FederatedCredential, timeout: float):
+        self.credential = credential
+        self.timeout = timeout
+
+    def token(self, scope: str):
+        return self.credential.token(scope)
+
+    def get(self, url: str, token: str):
+        return http_get(url, token, self.timeout)
+
+
+def credential_inputs():
+    tenant_id = os.environ.get("AZURE_TENANT_ID") or os.environ.get("ARM_TENANT_ID") or ""
+    client_id = os.environ.get("AZURE_CLIENT_ID") or os.environ.get("ARM_CLIENT_ID") or ""
+    assertion = (
+        os.environ.get("AZURE_OIDC_TOKEN")
+        or os.environ.get("ARM_OIDC_TOKEN")
+        or os.environ.get("AZURE_FEDERATED_TOKEN")
+        or ""
+    )
+    subscription_id = os.environ.get("AZURE_SUBSCRIPTION_ID") or os.environ.get("ARM_SUBSCRIPTION_ID") or ""
+
+    missing = [
+        name
+        for name, value in (
+            ("AZURE_TENANT_ID/ARM_TENANT_ID", tenant_id),
+            ("AZURE_CLIENT_ID/ARM_CLIENT_ID", client_id),
+            ("AZURE_OIDC_TOKEN/ARM_OIDC_TOKEN", assertion),
+        )
+        if not value
+    ]
+    return tenant_id, client_id, assertion, subscription_id, missing
+
+
+def http_get(url: str, token: str, timeout: float):
+    """GET with a bearer token. Returns (status, payload); status None means transport failure."""
+    request = urllib.request.Request(
+        url,
+        method="GET",
+        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.status, _decode(response.read())
+    except urllib.error.HTTPError as exc:  # a subclass of URLError: must come first
+        return exc.code, _decode(exc.read() if exc.fp else b"")
+    except (urllib.error.URLError, OSError) as exc:
+        # Includes socket.timeout: a timed-out check is a failure, not a hang.
+        return None, {"transport": str(getattr(exc, "reason", exc))}
+
+
+def _decode(body: bytes):
+    if not body:
+        return {}
+    text = body.decode("utf-8", "replace")
+    try:
+        return json.loads(text)
+    except ValueError:
+        return {"raw": text[:300]}
+
+
+def _message(payload) -> str:
+    """Pull one short human sentence out of an ARM, Fabric or Graph error body."""
+    if not isinstance(payload, dict):
+        return str(payload)[:200]
+    for key in ("message", "error_description"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value[:200]
+    error = payload.get("error")
+    if isinstance(error, dict):
+        code = error.get("code")
+        message = error.get("message")
+        if code and message:
+            return f"{code}: {message}"[:200]
+        if message or code:
+            return str(message or code)[:200]
+    if isinstance(error, str) and error.strip():
+        return error[:200]
+    if "transport" in payload:
+        return f"transport: {payload['transport']}"
+    if "raw" in payload:
+        return str(payload["raw"])[:200]
+    return ""
+
+
+def _describe(status, payload) -> str:
+    if status is None:
+        # A timeout, DNS failure or refusal: no status at all is a failure, not "unknown".
+        return _message(payload) or "transport failure with no response"
+    if status == 401:
+        return f"401 token rejected: {_message(payload) or 'no body'}"
+    if status == 403:
+        return f"403 permission or policy denied: {_message(payload) or 'no body'}"
+    return f"{status}: {_message(payload) or 'no body'}"
+
+
+def _items(payload) -> list:
+    if isinstance(payload, dict):
+        rows = payload.get("value")
+        if isinstance(rows, list):
+            return [row for row in rows if isinstance(row, dict)]
+    return []
+
+
+def _names(payload) -> str:
+    names = []
+    for row in _items(payload):
+        name = row.get("displayName") or row.get("name") or "?"
+        names.append(str(name))
+    return ", ".join(sorted(names)) or "none yet"
+
+
+def check_auth(ctx: Context, subscription_id: str) -> Check:
+    """PROBE-AUTH — the ARM token works and it can read a subscription."""
+    check = Check("PROBE-AUTH")
+    token, error = ctx.token(ARM_SCOPE)
+    if not token:
+        return check.set(STATUS_FAIL, None, f"ARM token: {error or 'not acquired'}")
+
+    if subscription_id:
+        url = f"{ARM_ENDPOINT}/subscriptions/{subscription_id}?api-version=2022-12-01"
+        status, payload = ctx.get(url, token)
+        if status == 200:
+            state = payload.get("state") if isinstance(payload, dict) else None
+            return check.set(STATUS_OK, status, f"subscription {subscription_id} state={state or 'unknown'}")
+        return check.set(STATUS_FAIL, status, f"subscription read: {_describe(status, payload)}")
+
+    # No subscription id: listing is enough to prove the token, and the id is not needed to
+    # diagnose. It IS needed for PROBE-PROVIDER, which says so itself.
+    status, payload = ctx.get(f"{ARM_ENDPOINT}/subscriptions?api-version=2022-12-01", token)
+    if status == 200:
+        rows = _items(payload)
+        if not rows:
+            return check.set(
+                STATUS_FAIL,
+                status,
+                "token accepted but no subscription is visible; set AZURE_SUBSCRIPTION_ID",
+            )
+        return check.set(STATUS_OK, status, f"token accepted; {len(rows)} subscription(s) visible; AZURE_SUBSCRIPTION_ID unset")
+    return check.set(STATUS_FAIL, status, f"subscription list: {_describe(status, payload)}")
+
+
+def check_fabric(ctx: Context) -> Check:
+    """PROBE-FABRIC — the Fabric API answers at all (0004 A1/A2 ride on this one call)."""
+    check = Check("PROBE-FABRIC")
+    token, error = ctx.token(FABRIC_SCOPE)
+    if not token:
+        return check.set(STATUS_FAIL, None, f"Fabric token: {error or 'not acquired'}")
+
+    status, payload = ctx.get(f"{FABRIC_ENDPOINT}/v1/capacities", token)
+    if status == 200:
+        rows = _items(payload)
+        return check.set(
+            STATUS_OK,
+            status,
+            f"GET /v1/capacities ok; {len(rows)} visible ({_names(payload)}); Platform creates the two",
+        )
+    if status == 401:
+        return check.set(
+            STATUS_FAIL,
+            status,
+            "PROBE-LICENCE 401 from /v1/capacities: assign Pro/PPU to the service principal (0004 A1), then rerun",
+        )
+    if status == 403:
+        return check.set(
+            STATUS_FAIL,
+            status,
+            "PROBE-CAPACITY 403 from /v1/capacities: check the SP in each capacity's administration_members (0004 A2)",
+        )
+    return check.set(STATUS_FAIL, status, _describe(status, payload))
+
+
+def check_domains(ctx: Context, required: bool) -> Check:
+    """PROBE-DOMAINS — the Core domains API the assignment job will call."""
+    check = Check("PROBE-DOMAINS", required=required)
+    token, error = ctx.token(FABRIC_SCOPE)
+    if not token:
+        return check.set(STATUS_FAIL, None, f"Fabric token: {error or 'not acquired'}")
+
+    status, payload = ctx.get(f"{FABRIC_ENDPOINT}/v1/domains", token)
+    if status == 200:
+        return check.set(STATUS_OK, status, f"GET /v1/domains ok; {len(_items(payload))} visible ({_names(payload)})")
+    if status == 404:
+        return check.set(
+            STATUS_FAIL,
+            status,
+            "404 from /v1/domains: the domains API is absent for this tenant; the assignment job cannot resolve a domain id",
+        )
+    return check.set(STATUS_FAIL, status, _describe(status, payload))
+
+
+def check_admin(ctx: Context) -> Check:
+    """PROBE-ADMIN — informational: a 403 is the answer the pack assumes (0004 A6)."""
+    check = Check("PROBE-ADMIN", required=False)
+    token, error = ctx.token(FABRIC_SCOPE)
+    if not token:
+        return check.set(STATUS_UNEXPECTED, None, f"Fabric token: {error or 'not acquired'}")
+
+    # VERIFY: the admin domain listing path (/v1/admin/domains) is unconfirmed. List Domains is
+    # GET /v1/domains; the admin surface uses /v1/admin/* for workspaces and items, but this exact
+    # path was not checked against a tenant. Only a 200 flips the reported domain path, so a 404
+    # (wrong path, or not an admin) is reported as `unexpected` and the Core assignment path is
+    # kept — nothing downstream depends on this check either way.
+    status, payload = ctx.get(f"{FABRIC_ENDPOINT}/v1/admin/domains", token)
+    if status == 403:
+        return check.set(
+            STATUS_EXPECTED,
+            status,
+            "403 as assumed (0004 A6): the SP is not a Fabric administrator; domains stay human-created, assignment uses the Core API",
+        )
+    if status == 200:
+        return check.set(
+            STATUS_OK,
+            status,
+            "200: the SP holds Fabric administrator; the optional Terraform domains root may be enabled (createDomains=true)",
+        )
+    if status == 401:
+        return check.set(STATUS_UNEXPECTED, status, "401 from the admin API: the token was rejected; nothing depends on this check")
+    return check.set(STATUS_UNEXPECTED, status, f"neither 403 nor 200: {_describe(status, payload)}")
+
+
+def check_graph(ctx: Context, required: bool) -> Check:
+    """PROBE-GRAPH — read access proves the consent the group creates will need (0004 A8)."""
+    check = Check("PROBE-GRAPH", required=required)
+    token, error = ctx.token(GRAPH_SCOPE)
+    if not token:
+        return check.set(STATUS_FAIL, None, f"Graph token: {error or 'not acquired'}")
+
+    status, payload = ctx.get(f"{GRAPH_ENDPOINT}/v1.0/groups?$top=1", token)
+    if status == 200:
+        return check.set(STATUS_OK, status, f"GET /groups ok; {len(_items(payload))} group(s) readable")
+    if status == 403:
+        return check.set(
+            STATUS_FAIL,
+            status,
+            "PROBE-GRAPH consent incomplete: group creation will 403 (0004 A8); finish the bootstrap consent step",
+        )
+    return check.set(STATUS_FAIL, status, _describe(status, payload))
+
+
+def check_provider(ctx: Context, subscription_id: str) -> Check:
+    """PROBE-PROVIDER — Microsoft.Fabric must be Registered before Platform can create a capacity."""
+    check = Check("PROBE-PROVIDER")
+    if not subscription_id:
+        return check.set(
+            STATUS_FAIL,
+            None,
+            "AZURE_SUBSCRIPTION_ID/ARM_SUBSCRIPTION_ID is unset; the provider registration cannot be read",
+        )
+    token, error = ctx.token(ARM_SCOPE)
+    if not token:
+        return check.set(STATUS_FAIL, None, f"ARM token: {error or 'not acquired'}")
+
+    url = f"{ARM_ENDPOINT}/subscriptions/{subscription_id}/providers/Microsoft.Fabric?api-version=2021-04-01"
+    status, payload = ctx.get(url, token)
+    if status == 200:
+        state = payload.get("registrationState") if isinstance(payload, dict) else None
+        if state == "Registered":
+            return check.set(STATUS_OK, status, "Microsoft.Fabric is Registered")
+        return check.set(
+            STATUS_FAIL,
+            status,
+            f"Microsoft.Fabric registrationState={state or 'unknown'}; register it (az provider register --namespace Microsoft.Fabric) and rerun",
+        )
+    if status == 404:
+        return check.set(STATUS_FAIL, status, "provider namespace not found in this subscription; check the subscription id")
+    return check.set(STATUS_FAIL, status, _describe(status, payload))
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Read-only prerequisite probes for the corporate pack (0004).")
+    parser.add_argument("--out", type=Path, default=Path("probe.json"), help="where to write the JSON report")
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT,
+        help=f"per-request timeout in seconds (default {DEFAULT_TIMEOUT:g})",
+    )
+    # Required by default, because the assignment job and the group creates depend on them; a run
+    # that does neither can demote them without editing the pipeline.
+    parser.add_argument(
+        "--require-domains",
+        dest="domains_required",
+        action="store_true",
+        default=True,
+        help="PROBE-DOMAINS blocks on failure (default)",
+    )
+    parser.add_argument(
+        "--domains-optional",
+        dest="domains_required",
+        action="store_false",
+        help="report PROBE-DOMAINS but do not fail the run",
+    )
+    parser.add_argument(
+        "--require-graph",
+        dest="graph_required",
+        action="store_true",
+        default=True,
+        help="PROBE-GRAPH blocks on failure (default)",
+    )
+    parser.add_argument(
+        "--graph-optional",
+        dest="graph_required",
+        action="store_false",
+        help="report PROBE-GRAPH but do not fail the run",
+    )
+    return parser.parse_args(argv)
+
+
+def print_line(check: Check) -> None:
+    http = "-" if check.http is None else str(check.http)
+    print(f"{LABELS[check.status]} probe {check.code} status={check.status} http={http} detail={check.detail}")
+
+
+def write_report(args, checks):
+    """Write the artifact even when the run fails: the report is the diagnosis."""
+    failures = [check for check in checks if check.failed]
+    optional = [check for check in checks if check.optional_failure]
+    admin = next((check for check in checks if check.code == "PROBE-ADMIN"), None)
+    domain_path = "terraform-available" if admin is not None and admin.http == 200 else "core"
+
+    payload = {
+        "pack": PACK_VERSION,
+        "result": "fail" if failures else "ok",
+        "domain_path": domain_path,
+        "checks": [check.as_dict() for check in checks],
+    }
+    try:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    except OSError as exc:
+        print(f"FAIL probe write out={args.out} error={exc}")
+        return 1
+
+    print(
+        f"{'FAIL' if failures else 'PASS'} probe result={'fail' if failures else 'ok'} "
+        f"checks={len(checks)} required_failures={len(failures)} optional_failures={len(optional)} "
+        f"domain_path={domain_path} out={args.out}"
+    )
+    return 1 if failures else 0
+
+
+def main(argv=None) -> int:
+    args = parse_args(argv)
+    tenant_id, client_id, assertion, subscription_id, missing = credential_inputs()
+
+    checks: list[Check] = []
+    fatal = ""
+    credential = None
+    if missing:
+        fatal = (
+            "missing credential inputs: "
+            + ", ".join(missing)
+            + ". In AzureCLI@2, set addSpnToEnvironment: true and export the three values from "
+            "$tenantId/$servicePrincipalId/$idToken."
+        )
+    else:
+        try:
+            credential = FederatedCredential(tenant_id, client_id, assertion)
+        except ImportError:
+            fatal = "azure-identity is not installed: pip install azure-identity in the agent image"
+        except Exception as exc:
+            fatal = f"{type(exc).__name__}: {exc}"
+
+    if fatal:
+        # Nothing downstream can work without a credential, so report one check rather than six
+        # identical failures.
+        checks.append(Check("PROBE-AUTH").set(STATUS_FAIL, None, fatal))
+        print_line(checks[0])
+        return write_report(args, checks)
+
+    ctx = Context(credential, args.timeout)
+    checks.append(check_auth(ctx, subscription_id))
+    checks.append(check_fabric(ctx))
+    checks.append(check_domains(ctx, args.domains_required))
+    checks.append(check_admin(ctx))
+    checks.append(check_graph(ctx, args.graph_required))
+    checks.append(check_provider(ctx, subscription_id))
+
+    for check in checks:
+        print_line(check)
+    return write_report(args, checks)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

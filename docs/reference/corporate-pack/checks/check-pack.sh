@@ -13,6 +13,12 @@
 #   5. no secret-shaped string, unless the file defines or detects it
 #   6. every relative Markdown link resolves
 #   7. every file is indexed in README.md
+#   8. every OQ id in spec/0003 appears in spec/0004
+#   9. every contract stage (§6) is named in runbook/troubleshooting.md
+#  10. every skeletons/scripts/*.py.tmpl is wired into cicd.yml.tmpl or README.md
+#
+# Rules 8–10 are completeness, not formatting: a stage with no entry, a question with no
+# absorption and a script nothing calls are all silent gaps the tenant cannot report back.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -127,6 +133,59 @@ while IFS= read -r f; do
   fi
 done < <(files)
 [ "$unindexed" -eq 0 ] && ok "every file is indexed in README.md"
+
+echo "questions"
+# Each open question is absorbed by an assumption row: an id named nowhere is an unhandled fact.
+if [ ! -f spec/0003-open-questions.md ]; then
+  bad "spec/0003-open-questions.md" "missing; cannot check that open questions are absorbed"
+elif [ ! -f spec/0004-assumptions.md ]; then
+  bad "spec/0004-assumptions.md" "missing; cannot absorb the open questions"
+else
+  oq_missing=0
+  while IFS= read -r id; do
+    [ -z "$id" ] && continue
+    if ! grep -Fq "$id" spec/0004-assumptions.md; then
+      bad "spec/0004-assumptions.md" "open question $id from spec/0003 is not absorbed"
+      oq_missing=1
+    fi
+  done < <(grep -Eo 'OQ-[0-9]+' spec/0003-open-questions.md | sort -u)
+  [ "$oq_missing" -eq 0 ] && ok "every open question is absorbed in spec/0004-assumptions.md"
+fi
+
+echo "stages"
+# The stage names are the contract's (§6), matched as whole words. A runbook that calls a
+# stage something else is reported, not accommodated: two names for one stage are two causes.
+if [ ! -f runbook/troubleshooting.md ]; then
+  bad "runbook/troubleshooting.md" "missing; every stage must be diagnosable"
+else
+  stage_missing=0
+  for stage in Build Probe Platform Domains Nonprod PlanProd Prod; do
+    if ! grep -qw "$stage" runbook/troubleshooting.md; then
+      bad "runbook/troubleshooting.md" "contract stage '$stage' has no troubleshooting entry"
+      stage_missing=1
+    fi
+  done
+  [ "$stage_missing" -eq 0 ] && ok "every contract stage is diagnosable in runbook/troubleshooting.md"
+fi
+
+echo "scripts"
+# A script nothing invokes is dead weight. The pipeline names the deployed file, README the template.
+unwired=0
+for script in skeletons/scripts/probe.py.tmpl \
+              skeletons/scripts/assert_plan.py.tmpl \
+              skeletons/scripts/preflight.py.tmpl \
+              skeletons/scripts/deploy_items.py.tmpl; do
+  name=${script##*/}
+  deployed=${name%.tmpl}
+  if grep -Fq "$name" skeletons/pipeline/cicd.yml.tmpl README.md 2>/dev/null ||
+     grep -Fq "$deployed" skeletons/pipeline/cicd.yml.tmpl README.md 2>/dev/null; then
+    :
+  else
+    bad "$script" "not referenced by skeletons/pipeline/cicd.yml.tmpl or README.md"
+    unwired=1
+  fi
+done
+[ "$unwired" -eq 0 ] && ok "every script is wired into the pipeline or README.md"
 
 echo
 if [ "$fail" -ne 0 ]; then

@@ -5,7 +5,7 @@
 ## What this pack is
 
 A build-ready pack for the corporate work repo: four Terraform roots as `.tmpl` skeletons, one
-Azure DevOps pipeline as `.tmpl`, three Python scripts as `.tmpl`, a spec, an operator run-book, four
+Azure DevOps pipeline as `.tmpl`, four Python scripts as `.tmpl`, a spec, an operator run-book, four
 agent briefs and a checker.
 
 It describes **one estate**: N domains, two environments (`nonprod`, `prod`), one capacity each,
@@ -40,16 +40,17 @@ place the pack version is written; every file's header repeats it for greppabili
 | 4 | `spec/0001-decisions.md` | why each decision was taken |
 | 5 | `spec/0003-open-questions.md` | tenant facts still unverified — each VERIFY, date, owner |
 | 6 | `spec/0004-assumptions.md` | how each unknown is absorbed: assume, probe, fallback |
-| 6 | `runbook/00-bootstrap.md` | the human steps before the first run |
-| 7 | `runbook/01-first-run.md` | stage order, checks after each, and the stop conditions |
-| 8 | `runbook/troubleshooting.md` | keep open during the first run |
-| 9 | `agents/AGENTS.md` | authority order and the invariants an agent works under |
-| 10 | `agents/<role>.md` | the brief for the role you are acting as |
-| 11 | `skeletons/terraform/README.md` | the module contract: inputs, outputs, what not to rename |
-| 12 | `skeletons/pipeline/cicd.yml.tmpl`, `skeletons/scripts/*.tmpl` | the mechanism |
-| 13 | `checks/check-pack.sh` | what the pack checks about itself |
+| 7 | `runbook/00-bootstrap.md` | the human steps before the first run |
+| 8 | `runbook/01-first-run.md` | stage order, checks after each, and the stop conditions; read 02 before you queue |
+| 9 | `runbook/02-readiness.md` | the pre-run gate: every row is a repo file or a `Probe` output |
+| 10 | `runbook/troubleshooting.md` | keep open during the first run |
+| 11 | `agents/AGENTS.md` | authority order and the invariants an agent works under |
+| 12 | `agents/<role>.md` | the brief for the role you are acting as |
+| 13 | `skeletons/terraform/README.md` | the module contract: inputs, outputs, what not to rename |
+| 14 | `skeletons/pipeline/cicd.yml.tmpl`, `skeletons/scripts/*.tmpl` | the mechanism |
+| 15 | `checks/check-pack.sh` | what the pack checks about itself |
 
-`forbid.md` outranks every runbook. Steps 3–5 outrank 6–13: if a runbook step and the contract
+`forbid.md` outranks every runbook. Steps 3–5 outrank 6–15: if a runbook step and the contract
 disagree, the contract wins and the runbook is wrong.
 
 ## Index
@@ -68,9 +69,11 @@ disagree, the contract wins and the runbook is wrong.
 | `skeletons/pipeline/parameter.yml.tmpl` | `fabric-cicd` parameter file |
 | `skeletons/scripts/assert_plan.py.tmpl` | the fail-closed plan gate |
 | `skeletons/scripts/preflight.py.tmpl` | parameter ↔ YAML parity, placeholder refusal |
+| `skeletons/scripts/probe.py.tmpl` | read-only tenant probes; writes `probe.json`, fails `PROBE-*` |
 | `skeletons/scripts/deploy_items.py.tmpl` | content deployment with `fabric-cicd` |
 | `runbook/00-bootstrap.md` | the human steps before the first run |
 | `runbook/01-first-run.md` | stage order, checks, stop conditions, half-states |
+| `runbook/02-readiness.md` | the pre-run checklist: repository, Probe, people, stop conditions |
 | `runbook/troubleshooting.md` | symptom → cause → action, keyed by error and stage |
 | `agents/AGENTS.md` | invariants and authority order for every agent |
 | `agents/architect.md` | chooses the pipeline row; may propose a pack change |

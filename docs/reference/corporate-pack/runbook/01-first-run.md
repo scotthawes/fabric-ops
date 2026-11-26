@@ -6,14 +6,15 @@ The stage order, the check after each stage, the stop conditions, and the half-s
 behind. Read `../spec/0002-contract.md` §6 first; the graph is fixed there and this page only adds
 the checks.
 
-**Before the first run:** every verify in [runbook 00](00-bootstrap.md) has passed, the capacity
-GUID for each environment is written down, and the pipeline's plan stage exists as a separate stage
-(never inside `Prod-<domain>`, or the approval would fire before the plan exists).
+**Before the first run:** every verify in [runbook 00](00-bootstrap.md) has passed,
+[runbook 02](02-readiness.md) is green, the capacity GUID for each environment is written down, and
+the pipeline's plan stage exists as a separate stage (never inside `Prod-<domain>`, or the approval
+would fire before the plan exists).
 
 ## The order
 
 ```
-Build ──▶ Platform ──▶ Domains ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain>  (one per domain)
+Build ──▶ Probe ──▶ Platform ──▶ Domains ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain>  (one per domain)
 ```
 
 `Domains` exists only when `sp-fabric-admin` holds Fabric administrator and `domains.tfstate` is in
@@ -22,6 +23,7 @@ use (contract §4). If it does not, the stage is absent, not empty.
 | Stage | Environment | Jobs | Gate |
 | --- | --- | --- | --- |
 | Build | none | bundle content, `fmt -check`, `validate`, parameter ↔ YAML parity | none — no connection, no backend |
+| Probe | none | read-only checks; writes `probe.json`; fails `PROBE-*` | none — a probe that writes is a deployment |
 | Platform | `fabric-platform` | `capacity-nonprod` ∥ `capacity-prod` | optional approval |
 | Domains | `fabric-platform` | one apply against `domains.tfstate` | same optional approval |
 | Nonprod | `fabric-nonprod` | one job per domain: control apply → content | none, or a reviewer |
@@ -38,6 +40,21 @@ use (contract §4). If it does not, the stage is absent, not empty.
   found a domain with a tfvars entry and no YAML row (or the reverse).
 - **Half-state.** Nothing applied, no state touched. Safe to fix and re-run; the run's artifact dies
   with the run.
+
+## Probe
+
+- **Runs.** Before any stage that holds state: ARM token and `az account show`, `GET
+  /v1/capacities`, `Microsoft.Fabric` registration, `GET /v1/domains`, `GET /groups?$top=1`, and
+  the admin read whose 403 selects the domain path. No environment, no state, no write in the
+  tenant; it writes `probe.json` and publishes it.
+- **Check after.** `probe.json` is attached to the run and shows AUTH, FABRIC and PROVIDER green;
+  DOMAINS green if the domains root or the assign job exists; GRAPH green if the workspaces root
+  creates groups; ADMIN 403 (Core path) or 200 (optional root), with the branch it selected.
+- **Stop if.** Any of those is red, ADMIN is 401/5xx, or the job wrote anything in the tenant beyond
+  `probe.json`. A red probe is re-run once with a new fact, never repeatedly.
+- **Half-state.** Nothing exists to half-apply. `probe.json` belongs to the run; a fix is a tenant
+  setting or a YAML change, then a new run. A token cached before the fix can repeat the answer for
+  minutes to an hour.
 
 ## Platform
 
@@ -118,17 +135,19 @@ use (contract §4). If it does not, the stage is absent, not empty.
 
 Stop the run, do not retry, and carry the finding out, when any of these is true:
 
-1. `assert_plan` exits non-zero — read its verdict line and the addresses; never bypass it.
-2. A plan proposes replacement of a workspace, capacity or domain; or a destroy of a group,
+1. `probe.json` carries a red code — `PROBE-ADMIN` 403 is not red, it selects the Core path; an
+   ADMIN 401/5xx is red.
+2. `assert_plan` exits non-zero — read its verdict line and the addresses; never bypass it.
+3. A plan proposes replacement of a workspace, capacity or domain; or a destroy of a group,
    workspace or capacity.
-3. A workspace plan has fewer than three role assignments, or an environment count differs from
+4. A workspace plan has fewer than three role assignments, or an environment count differs from
    another environment with no tfvars difference.
-4. A capacity is paused, or `data.fabric_capacity`'s postcondition did not evaluate.
-5. A stage is **skipped** for any reason — read skipped as "did not run".
-6. The plan is stale, or the artifact differs from what the approver read.
-7. A value is still `PLACEHOLDER-…` or an all-zero GUID on a path that reaches an apply.
+5. A capacity is paused, or `data.fabric_capacity`'s postcondition did not evaluate.
+6. A stage is **skipped** for any reason — read skipped as "did not run".
+7. The plan is stale, or the artifact differs from what the approver read.
+8. A value is still `PLACEHOLDER-…` or an all-zero GUID on a path that reaches an apply.
 
-Condition 7 is the one a weak model misses: a placeholder that survived to an apply is not a
+Condition 8 is the one a weak model misses: a placeholder that survived to an apply is not a
 cosmetic problem, it is a resource named after a placeholder. Stop and ask for the real value.
 
 ## Approval discipline

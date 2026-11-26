@@ -8,8 +8,9 @@
 # Contract: spec/0002-contract.md §6. Names, state keys, environments and the stage graph are fixed
 # there; where this file and that document disagree, the document wins.
 #
-# STAGE GRAPH: Build -> Platform (capacity-nonprod ∥ capacity-prod, then domains) -> Nonprod (per
-# domain: control, then content) -> PlanProd (per domain: plan only, no environment) -> Prod-<domain>
+# STAGE GRAPH: Build -> Probe (read-only prerequisites, writes probe.json) -> Platform
+# (capacity-nonprod ∥ capacity-prod, then optional domains) -> Nonprod (per domain: control, then
+# content) -> PlanProd (per domain: plan only, no environment) -> Prod-<domain>
 # (per domain: assert_plan -> apply saved plan -> content -> assign). `assert_plan` runs before every
 # apply, not only in prod: the same rules refuse a capacity replacement in the platform band, so the
 # check is inline where the plan is made in the same job and a separate credential-free job in prod,
@@ -96,6 +97,17 @@ parameters:
         display_name: Sales
         project: forecast
         repo: fabric-sales-nonprod
+
+  # The optional Terraform domain root (contract §4, §6). OFF by default: a human creates the
+  # Fabric domains and the pipeline assigns workspaces through the Core API (spec/0004, "What
+  # changed to absorb the unknowns"). Enable it only when PROBE-ADMIN returned 200 — i.e.
+  # sc-fabric-admin holds Fabric administrator — otherwise the `domains` job fails mid-run after
+  # the Platform approval has already been given. A boolean, not a string: the job's condition
+  # compares it to `true`.
+  - name: createDomains
+    displayName: Create Fabric domains with Terraform (requires PROBE-ADMIN 200)
+    type: boolean
+    default: false
 
 variables:
   - name: TF_IN_AUTOMATION
@@ -220,6 +232,51 @@ stages:
               PIPELINE_MATRIX: ${{ convertToJson(parameters.matrix) }}
 
   # =============================================================================================
+  # Probe — read-only prerequisites, before anything that carries an environment or a state key.
+  #
+  # No `environment:`, no backend, no apply: it reads and writes one artifact. Nothing here may
+  # write to the tenant, because a probe that creates an object is a deployment (spec/0004). The
+  # value is ordering: a missing ARM token, an unregistered Microsoft.Fabric provider or a Fabric
+  # API that refuses the service principal fails HERE with a PROBE-* code, instead of half-way
+  # through a capacity apply that has already taken the platform approval.
+  #
+  # The per-request timeout lives in probe.py (30 s default, --timeout); timeoutInMinutes bounds
+  # the stage. A timed-out check is reported as a failed check, not as a hang: the script writes
+  # probe.json, prints FAIL and exits non-zero, so Platform never starts.
+  # =============================================================================================
+  - stage: Probe
+    displayName: Probe — read-only prerequisites, writes probe.json
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: probe
+        displayName: Read-only probe
+        timeoutInMinutes: 15
+        steps:
+          - checkout: self
+          # One connection, the admin track: the probe proves what sc-fabric-admin can do, which is
+          # what the Platform band will need. The federated values exist only inside the step, so
+          # the three exports are here and not in a job-level env block.
+          - task: AzureCLI@2
+            displayName: probe.py — ARM, Fabric, Graph, provider registration
+            inputs:
+              azureSubscription: sc-fabric-admin
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                set -euo pipefail
+                export AZURE_TENANT_ID="$tenantId"
+                export AZURE_CLIENT_ID="$servicePrincipalId"
+                export AZURE_OIDC_TOKEN="$idToken"
+                # AZURE_SUBSCRIPTION_ID is exported by this task already; probe.py reads it for
+                # PROBE-PROVIDER. Pack source: skeletons/scripts/probe.py.tmpl.
+                python3 scripts/probe.py --out probe.json
+          - publish: probe.json
+            artifact: probe
+            displayName: Publish probe.json as probe
+
+  # =============================================================================================
   # Platform — the resource group and both capacities, then the tenant-level Fabric domains.
   #
   # The two capacities are separate jobs against separate state keys on purpose: destroying the
@@ -230,7 +287,7 @@ stages:
   # =============================================================================================
   - stage: Platform
     displayName: Platform — capacities (parallel), then Fabric domains
-    dependsOn: Build
+    dependsOn: Probe
     condition: succeeded()
     jobs:
       - deployment: capacity_nonprod
@@ -332,13 +389,24 @@ stages:
       # Contract §6 draws Domains as its own node in the graph. It is a job inside Platform, not a
       # stage: it shares this band's approval, its authority (the SP must hold the Fabric
       # administrator role) and its lifetime, and a separate stage would buy a second approval for
-      # one apply. Delete this job in the corporate copy where sc-fabric-admin does not hold
-      # Fabric administrator; do not leave it to fail mid-run (contract §4 makes the root optional).
+      # one apply.
+      #
+      # IT IS OFF BY DEFAULT (`createDomains: false`). The default path is the one spec/0004
+      # adopted: a human creates the domains and the pipeline assigns workspaces through the Core
+      # API (`scripts/assign_domains.py`), which needs only workspace admin plus domain contributor
+      # or admin. Terraform domain creation waits for a run that sets createDomains=true, which
+      # should only happen after PROBE-ADMIN returned 200 (the artifact records the answer).
+      #
+      # The condition is not a convenience. A skipped job leaves domains.tfstate untouched, so
+      # turning the flag back off cannot destroy a domain a human now owns; and a run that forgets
+      # the flag skips rather than applying without a human having confirmed the role. Note that a
+      # skipped job is green in the run view, exactly like an approver timeout: read the stage.
       - deployment: domains
-        displayName: Fabric domains — tenant grouping
+        displayName: Fabric domains — tenant grouping (optional)
         dependsOn:
           - capacity_nonprod
           - capacity_prod
+        condition: and(succeeded(), eq(parameters.createDomains, true))
         environment: fabric-platform
         download: none
         strategy:
