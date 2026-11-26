@@ -11,6 +11,7 @@ names are placeholders.
 
 | File | What it demonstrates |
 | --- | --- |
+| `pipeline-contract.md` | The interface the reference artefacts share: names, state keys, root variables, stage graph. |
 | `naming.md` | One naming pattern for workspaces, capacity, groups, state and pipelines, and why. |
 | `repo-layout.md` | The work repo's top-level folders and what each owns. |
 | `ado-pipeline.yml` | Build + Dev/Test/Prod stages, two federated connections, prod approval. |
