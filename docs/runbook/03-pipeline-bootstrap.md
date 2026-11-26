@@ -322,6 +322,9 @@ it produces a connection whose `Verify` fails with a message that looks like a w
 
 ## 8. First run order
 
+The phase-by-phase form of this table — commands, expected plan contents and stop conditions — is
+[run-book 04](04-terraform-deployment-plan.md).
+
 Nothing before **Platform** may reference a service connection. Credentials start at Platform and change
 hands once per environment, so each stage's check is also a check that the *right* principal ran it.
 
