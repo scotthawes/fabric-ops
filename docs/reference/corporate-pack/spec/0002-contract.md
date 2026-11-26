@@ -1,5 +1,7 @@
 # 0002 — Corporate pack contract
 
+**Pack:** 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
+
 **Dated 2026-11-26.** The interface every file in this pack composes against. Fixed names, state keys,
 parameters and stage graph. A file that disagrees with this document is wrong, however plausible it
 looks.
@@ -18,6 +20,9 @@ credential on the corporate laptop, and no report channel back: the pack must di
 
 ## 2. Directory tree
 
+Four **roots**; the platform root is applied twice, once per capacity, so root and state are not the
+same thing.
+
 ```
 corporate-pack/
 ├── README.md                     # index, reading order, what the pack does not decide
@@ -30,6 +35,7 @@ corporate-pack/
 ├── skeletons/
 │   ├── terraform/platform/{main,capacity,variables,outputs,versions}.tf.tmpl
 │   ├── terraform/domains/{main,variables,outputs,versions}.tf.tmpl
+│   ├── terraform/domains/env/domains.tfvars
 │   ├── terraform/workspaces/{main,groups,workspace,variables,outputs,versions}.tf.tmpl
 │   ├── terraform/domain-assignments/{main,variables,outputs,versions}.tf.tmpl
 │   ├── terraform/README.md       # module contract: inputs, outputs, what not to rename
@@ -62,7 +68,9 @@ domain matrix, copied from `skeletons/terraform/README.md`'s example.
 | Groups | `fabric-<domain>-<env>-viewers` · `-contributors` · `-members` |
 | Capacities | `fabric-capacity-nonprod` · `fabric-capacity-prod` |
 | Resource group | `rg-fabric-corporate` |
+| State resource group | `rg-fabric-tfstate` — separate from the platform root's group |
 | State account / container | `stfabriccorp` · `tfstate` |
+| Ops repository | `PLACEHOLDER-ops-repo` — holds `pipelines/cicd.yml` and `config/domains.yaml` |
 | Repositories | `fabric-<domain>-nonprod` (one per nonprod workspace) |
 | ADO project | one; environments `fabric-platform`, `fabric-nonprod`, `fabric-prod` |
 | Connections | `sc-fabric-admin`, `sc-fabric-deploy` |
@@ -123,8 +131,8 @@ Build ──▶ Platform ──▶ Domains ──▶ Nonprod ──▶ PlanProd 
 | Stage | Jobs | Environment | Gate |
 | --- | --- | --- | --- |
 | Build | bundle content, `fmt -check`, `validate` per root, assert parameter↔YAML parity | none | none |
-| Platform | `capacity-nonprod` ∥ `capacity-prod`, then `domains` | `fabric-platform` | optional approval |
-| Nonprod | one job per domain: control apply → content | `fabric-nonprod` | none, or a reviewer |
+| Platform | two capacity jobs in parallel (`capacity-nonprod`, `capacity-prod`), then a `domains` job in the same stage | `fabric-platform` | optional approval |
+| Nonprod | one job per domain: control apply → content | `fabric-nonprod` | none — the environment carries the lock and the deployment record |
 | PlanProd | one plan job per domain, artifact `tfplan-<domain>` | **none** | none (read-only) |
 | Prod-`<domain>` | `assert_plan` → apply saved plan → content → assign | `fabric-prod` | **human approval** |
 
@@ -135,6 +143,10 @@ Rules that are not negotiable:
 - `assert_plan` runs before every apply and fails closed (§7).
 - `isSkippable: false` on every prod stage; a timed-out approval marks a stage *skipped*, not failed.
 - `-refresh=false` and `-target` are forbidden.
+- **No local plan.** There is no read-only `terraform plan` on the corporate laptop; the pipeline's
+  plan is the only plan, and the saved artifact is the thing approved.
+- **Monitoring is out of this pack.** Adopting ADR 0009's event-sourced store adds a third capacity
+  (F4) with its own root and state; it is not one of the two.
 
 ## 7. `assert_plan` rules
 
