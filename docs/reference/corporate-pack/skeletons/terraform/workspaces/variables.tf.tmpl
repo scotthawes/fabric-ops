@@ -1,0 +1,140 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+# All values come from env/<domain>/<environment>.tfvars. No real ID is committed.
+
+variable "domain" {
+  type        = string
+  description = "Lowercase hyphenated domain key, e.g. sales. Matches config/domains.yaml."
+
+  validation {
+    condition     = can(regex("^[a-z0-9]+(-[a-z0-9]+)*$", var.domain))
+    error_message = "domain must be lowercase hyphenated words (contract §3)."
+  }
+}
+
+variable "environment" {
+  type        = string
+  description = "nonprod or prod. Selects the state key and forbids a prod Git binding."
+
+  validation {
+    condition     = contains(["nonprod", "prod"], var.environment)
+    error_message = "environment must be exactly nonprod or prod (contract §3)."
+  }
+}
+
+variable "workspace_name" {
+  type        = string
+  description = "fabric-<domain>-<env>, fixed by contract §3."
+
+  # Shape only. The exact domain/environment pairing is a cross-field check done by
+  # preflight.py, so this condition stays on the variable itself (Terraform 1.8 compatible).
+  validation {
+    condition     = can(regex("^fabric-[a-z0-9]+(-[a-z0-9]+)*-(nonprod|prod)$", var.workspace_name))
+    error_message = "workspace_name must look like fabric-<lowercase-domain>-<nonprod|prod>."
+  }
+}
+
+variable "workspace_description" {
+  type        = string
+  default     = "Container from Terraform; items deployed by fabric-cicd."
+  description = "Describe the container, not the items."
+}
+
+variable "capacity_name" {
+  type        = string
+  description = "fabric-capacity-<env>; read back by data.fabric_capacity."
+
+  validation {
+    condition     = can(regex("^fabric-capacity-(nonprod|prod)$", var.capacity_name))
+    error_message = "capacity_name must be fabric-capacity-nonprod or fabric-capacity-prod."
+  }
+}
+
+variable "groups" {
+  type = map(object({
+    role   = string
+    owners = list(string) # Entra object IDs; an empty list falls back to the applying SP
+  }))
+  description = "Exactly viewers, contributors, members. Key becomes the group-name suffix."
+
+  validation {
+    condition = (
+      length(var.groups) == 3 &&
+      alltrue([for key in ["viewers", "contributors", "members"] : contains(keys(var.groups), key)]) &&
+      try(var.groups["viewers"].role == "Viewer", false) &&
+      try(var.groups["contributors"].role == "Contributor", false) &&
+      try(var.groups["members"].role == "Member", false)
+    )
+    error_message = "groups must be exactly { viewers = Viewer, contributors = Contributor, members = Member }."
+  }
+}
+
+variable "enable_workspace_identity" {
+  type        = bool
+  default     = true
+  description = "System-assigned workspace identity. Restore from soft delete does not bring it back."
+}
+
+variable "identity_storage_account_id" {
+  type        = string
+  default     = ""
+  description = "ARM ID of a firewall-enabled storage account; empty when there is none."
+
+  validation {
+    condition     = var.identity_storage_account_id == "" || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Storage/storageAccounts/[^/]+$", var.identity_storage_account_id))
+    error_message = "identity_storage_account_id must be empty or a storage-account ARM ID (account scope, not a folder)."
+  }
+}
+
+variable "bind_git" {
+  type        = bool
+  default     = false
+  description = "true only in nonprod (ADR 0005). The Git binding both binds and syncs."
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "Entra tenant ID. Guid; not a secret."
+}
+
+variable "subscription_id" {
+  type        = string
+  description = "Subscription used only for the optional storage RBAC grant."
+}
+
+variable "admin_client_id" {
+  type        = string
+  description = "Application (client) ID of sp-fabric-admin — not the deploy principal."
+}
+
+variable "ado_service_connection_id" {
+  type        = string
+  description = "GUID of sc-fabric-admin, not its display name."
+}
+
+variable "ado_organization" {
+  type        = string
+  description = "Azure DevOps organisation for the nonprod Git binding. PLACEHOLDER until bootstrap."
+}
+
+variable "ado_project" {
+  type        = string
+  description = "Azure DevOps project for the nonprod Git binding. PLACEHOLDER until bootstrap."
+}
+
+variable "git_branch" {
+  type        = string
+  default     = "main"
+  description = "Branch the nonprod workspace is bound to. Authors commit here, not to a throwaway."
+}
+
+variable "git_connection_id" {
+  type        = string
+  description = "ADO connection GUID for ConfiguredConnection. PLACEHOLDER until the connection exists."
+
+  validation {
+    condition     = can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.git_connection_id))
+    error_message = "git_connection_id must be a GUID (the service connection ID, not its name)."
+  }
+}

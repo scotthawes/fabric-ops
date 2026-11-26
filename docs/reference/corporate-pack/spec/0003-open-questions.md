@@ -1,6 +1,6 @@
 # 0003 — Open questions
 
-**Pack:** 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 Eleven tenant facts this design assumes but has not verified. Every row is **VERIFY** on 2026-11-26 and
 stays open until someone produces output. None can be closed from `fabric-ops`: the tracker holds the

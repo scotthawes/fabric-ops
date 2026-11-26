@@ -255,7 +255,7 @@ stages:
                       set -euo pipefail
                       # One connection, four spellings. azurerm and the azurerm backend read ARM_*;
                       # the Fabric provider reads FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID and
-                      # FABRIC_OIDC_REQUEST_TOKEN (the system access token, not a PAT). AzureCLI@2
+                      # FABRIC_OIDC_REQUEST_TOKEN (the system access token, not a personal access token). AzureCLI@2
                       # exports $servicePrincipalId/$tenantId/$idToken *inside* the step, so these
                       # exports live here and cannot be a job-level env block. `env:` on the task is
                       # a task property, not an input: nested under `inputs:` it is silently dropped.
@@ -281,7 +281,7 @@ stages:
                       # stages assert in a separate, credential-free job because their plan arrives
                       # as an artifact. Phase names select checks/known-good/<phase>.json.
                       terraform -chdir=terraform/platform show -json nonprod.tfplan > plan.json
-                      python3 scripts/assert_plan.py plan.json --phase platform
+                      python3 scripts/assert_plan.py plan.json --root platform --phase platform
 
                       # Applying a saved plan IS the confirmation; -auto-approve is irrelevant once
                       # a plan file is passed.
@@ -322,7 +322,7 @@ stages:
                         -lock-timeout=5m -var-file=env/prod.tfvars -out=prod.tfplan
 
                       terraform -chdir=terraform/platform show -json prod.tfplan > plan.json
-                      python3 scripts/assert_plan.py plan.json --phase platform
+                      python3 scripts/assert_plan.py plan.json --root platform --phase platform
 
                       terraform -chdir=terraform/platform apply -input=false \
                         -lock-timeout=5m prod.tfplan
@@ -369,7 +369,7 @@ stages:
                         -lock-timeout=5m -var-file=env/domains.tfvars -out=domains.tfplan
 
                       terraform -chdir=terraform/domains show -json domains.tfplan > plan.json
-                      python3 scripts/assert_plan.py plan.json --phase domains
+                      python3 scripts/assert_plan.py plan.json --root domains --phase domains
 
                       terraform -chdir=terraform/domains apply -input=false \
                         -lock-timeout=5m domains.tfplan
@@ -437,12 +437,20 @@ stages:
                         # assignment still costs a re-onboarded group owner, so it is refused here
                         # too. --phase selects the known-good baseline for this root.
                         terraform -chdir=terraform/workspaces show -json nonprod.tfplan > plan.json
-                        python3 scripts/assert_plan.py plan.json --phase nonprod
+                        python3 scripts/assert_plan.py plan.json --root workspaces --phase nonprod
 
                         terraform -chdir=terraform/workspaces apply -input=false \
                           -lock-timeout=5m nonprod.tfplan
+
+                        # The content job never resolves the workspace by name: a renamed display
+                        # name would silently deploy into a workspace that does not exist. The id
+                        # crosses jobs as an artifact.
+                        terraform -chdir=terraform/workspaces output -raw workspace_id \
+                          > "$(Build.ArtifactStagingDirectory)/workspace-id.txt"
                     env:
                       FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                  - publish: $(Build.ArtifactStagingDirectory)/workspace-id.txt
+                    artifact: workspace-${{ domain }}-nonprod
 
         - deployment: content_${{ replace(domain, '-', '_') }}
           displayName: Items — ${{ domain }} nonprod
@@ -456,6 +464,8 @@ stages:
                   - checkout: self
                   - download: current
                     artifact: fabric-content
+                  - download: current
+                    artifact: workspace-${{ domain }}-nonprod
                   - task: AzureCLI@2
                     displayName: deploy_items.py — ${{ domain }} nonprod
                     inputs:
@@ -471,8 +481,9 @@ stages:
                         # this job takes no Terraform lock; only the environment lock can keep it
                         # from colliding with an admin run.
                         python3 scripts/deploy_items.py \
-                          --env nonprod \
-                          --workspace fabric-${{ domain }}-nonprod \
+                          --environment nonprod \
+                          --domain ${{ domain }} \
+                          --workspace-id-file "$(Pipeline.Workspace)/workspace-${{ domain }}-nonprod/workspace-id.txt" \
                           --content-dir "$(Pipeline.Workspace)/fabric-content" \
                           --parameter-file "$(parameterFile)"
 
@@ -570,7 +581,7 @@ stages:
                 # Pack source: skeletons/scripts/assert_plan.py.tmpl (unit B). It prints a one-line
                 # verdict plus offending addresses and exits non-zero to block the apply; the phase
                 # selects the expected-address baseline under checks/known-good/.
-                python3 scripts/assert_plan.py plan.json --phase prod
+                python3 scripts/assert_plan.py plan.json --root workspaces --phase prod
               displayName: assert_plan — ${{ domain }}
 
         # An apply long enough to outlive the federated assertion fails with AADSTS700024 (the
@@ -617,8 +628,13 @@ stages:
                         terraform -chdir=terraform/workspaces apply -input=false \
                           -lock-timeout=5m \
                           "$(Pipeline.Workspace)/tfplan-${{ domain }}/${{ domain }}.tfplan"
+
+                        terraform -chdir=terraform/workspaces output -raw workspace_id \
+                          > "$(Build.ArtifactStagingDirectory)/workspace-id.txt"
                     env:
                       FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                  - publish: $(Build.ArtifactStagingDirectory)/workspace-id.txt
+                    artifact: workspace-${{ domain }}-prod
 
         # A second deployment job on the same environment. Checks are evaluated per job targeting
         # fabric-prod, so this may ask for the approval again — the reason Exclusive lock is worth
@@ -635,6 +651,8 @@ stages:
                   - checkout: self
                   - download: current
                     artifact: fabric-content
+                  - download: current
+                    artifact: workspace-${{ domain }}-prod
                   - task: AzureCLI@2
                     displayName: deploy_items.py — ${{ domain }} prod
                     inputs:
@@ -651,8 +669,9 @@ stages:
                         # is one-way, which is why content runs after the control plane and never
                         # before it, and why this stage cannot be re-run casually.
                         python3 scripts/deploy_items.py \
-                          --env prod \
-                          --workspace fabric-${{ domain }}-prod \
+                          --environment prod \
+                          --domain ${{ domain }} \
+                          --workspace-id-file "$(Pipeline.Workspace)/workspace-${{ domain }}-prod/workspace-id.txt" \
                           --content-dir "$(Pipeline.Workspace)/fabric-content" \
                           --parameter-file "$(parameterFile)"
 
@@ -696,7 +715,7 @@ stages:
                         # A role assignment deleted here removes a human's access, which rule 2
                         # refuses; assert runs before the apply, as in every other band.
                         terraform -chdir=terraform/domain-assignments show -json assignments.tfplan > plan.json
-                        python3 scripts/assert_plan.py plan.json --phase assignments
+                        python3 scripts/assert_plan.py plan.json --root domain-assignments --phase assignments
 
                         terraform -chdir=terraform/domain-assignments apply -input=false \
                           -lock-timeout=5m assignments.tfplan

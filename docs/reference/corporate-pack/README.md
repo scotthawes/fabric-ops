@@ -85,20 +85,26 @@ skeletons/terraform/platform/capacity.tf.tmpl
 skeletons/terraform/platform/variables.tf.tmpl
 skeletons/terraform/platform/outputs.tf.tmpl
 skeletons/terraform/platform/versions.tf.tmpl
+skeletons/terraform/platform/env/nonprod.tfvars
+skeletons/terraform/platform/env/prod.tfvars
 skeletons/terraform/domains/main.tf.tmpl
 skeletons/terraform/domains/variables.tf.tmpl
 skeletons/terraform/domains/outputs.tf.tmpl
 skeletons/terraform/domains/versions.tf.tmpl
+skeletons/terraform/domains/env/domains.tfvars
 skeletons/terraform/workspaces/main.tf.tmpl
 skeletons/terraform/workspaces/groups.tf.tmpl
 skeletons/terraform/workspaces/workspace.tf.tmpl
 skeletons/terraform/workspaces/variables.tf.tmpl
 skeletons/terraform/workspaces/outputs.tf.tmpl
 skeletons/terraform/workspaces/versions.tf.tmpl
+skeletons/terraform/workspaces/env/sales/nonprod.tfvars
+skeletons/terraform/workspaces/env/sales/prod.tfvars
 skeletons/terraform/domain-assignments/main.tf.tmpl
 skeletons/terraform/domain-assignments/variables.tf.tmpl
 skeletons/terraform/domain-assignments/outputs.tf.tmpl
 skeletons/terraform/domain-assignments/versions.tf.tmpl
+skeletons/terraform/domain-assignments/env/sales.tfvars
 ```
 
 ## What this pack does not decide

@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+# Pack: 2026-11-26.1 — illustrative skeleton; see spec/0002-contract.md.
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never run from fabric-ops (ADR 0001).
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §7.
+#
+# Rename to assert_plan.py in the corporate work repo. Reads the JSON produced by
+#   terraform show -json tfplan > plan.json
+# and implements the six rules. No tenant access, no provider, no `terraform` call.
+#
+#   python assert_plan.py plan.json --root workspaces --phase nonprod
+#   python assert_plan.py plan.json --root platform   --phase prod
+#
+# Exit 0 pass, 1 rule failure, 2 unreadable/malformed plan. A non-zero exit blocks the apply.
+#
+# Rule 5 needs a baseline: checks/known-good/<phase>.json. Rules 1-4 and 6 fail closed on every
+# run. When the baseline is absent — only possible on the first run — the counts are printed as
+# BASELINE-MISSING so a human can record them; from the next run the count check is exact. A human
+# may also create one with --write-baseline after reviewing a plan by hand.
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+
+REPLACE_FORBIDDEN = {"fabric_workspace", "azurerm_fabric_capacity", "fabric_domain"}
+DELETE_FORBIDDEN = {"azuread_group", "fabric_workspace", "azurerm_fabric_capacity"}
+
+# Rule 6: the expected address set for each root. `[key]` and `[0]` are the only variable parts;
+# for_each keys must be lowercase hyphenated domain keys. A resource not matching one of these is
+# an unexpected address, even if it is a no-op.
+EXPECTED_ADDRESSES = {
+    "platform": [
+        r"data\.azurerm_client_config\.current",
+        r"data\.azurerm_resource_group\.capacity",
+        r"azurerm_fabric_capacity\.this",
+    ],
+    "domains": [
+        r"terraform_data\.fabric_admin_guard",
+        r'fabric_domain\.this\["[a-z0-9]+(?:-[a-z0-9]+)*"\]',
+        r'fabric_domain_role_assignments\.(?:admins|contributors)\["[a-z0-9]+(?:-[a-z0-9]+)*"\]',
+    ],
+    "workspaces": [
+        r"data\.azuread_client_config\.current",
+        r"data\.fabric_capacity\.shared",
+        r"azuread_group\.(?:viewers|contributors|members)",
+        r"fabric_workspace\.this",
+        r"fabric_workspace_role_assignment\.(?:viewers|contributors|members)",
+        r"fabric_workspace_role_assignment\.identity(?:\[0\])?",
+        r"azurerm_role_assignment\.identity_storage(?:\[0\])?",
+        r"fabric_workspace_git\.nonprod(?:\[0\])?",
+    ],
+    "domain-assignments": [
+        r"data\.fabric_domains\.all",
+        r"fabric_domain_workspace_assignments\.this",
+    ],
+}
+
+
+class PlanError(ValueError):
+    pass
+
+
+def load_plan(path: Path):
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise PlanError(f"cannot read {path}: {exc}") from exc
+    try:
+        plan = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise PlanError(f"{path} is not JSON: {exc}") from exc
+    if not isinstance(plan, dict):
+        raise PlanError(f"{path} does not contain a JSON object")
+    if "resource_changes" not in plan:
+        hint = " (this looks like a state file; pass the output of `terraform show -json <plan>`)"
+        raise PlanError(f"{path} has no resource_changes{hint}")
+    return plan
+
+
+def each_change(plan):
+    for change in plan.get("resource_changes", []):
+        actions = change.get("change", {}).get("actions") or []
+        yield {
+            "address": change.get("address", ""),
+            "mode": change.get("mode", "managed"),
+            "type": change.get("type", ""),
+            "actions": list(actions),
+            "after": change.get("change", {}).get("after"),
+            "after_unknown": change.get("change", {}).get("after_unknown") or {},
+        }
+
+
+def is_replace(actions):
+    return set(actions) == {"create", "delete"}
+
+
+def is_delete(actions):
+    return actions == ["delete"]
+
+
+def planned_counts(changes):
+    counts = Counter()
+    for change in changes:
+        if change["mode"] != "managed":
+            continue
+        if is_delete(change["actions"]):
+            continue
+        counts[change["type"]] += 1
+    return dict(sorted(counts.items()))
+
+
+def check_rules(root, phase, plan, known_good_dir, write_baseline):
+    changes = list(each_change(plan))
+    violations = []
+
+    def fail(rule, address, detail):
+        violations.append((rule, address, detail))
+
+    # 1. Replace on the objects whose identity everything downstream references.
+    for change in changes:
+        if change["type"] in REPLACE_FORBIDDEN and is_replace(change["actions"]):
+            fail(1, change["address"], f"replace of {change['type']} is forbidden")
+
+    # 2. Delete on the objects that hold workspace or directory identity.
+    for change in changes:
+        if change["type"] in DELETE_FORBIDDEN and is_delete(change["actions"]):
+            fail(2, change["address"], f"delete of {change['type']} is forbidden")
+
+    # 3. A workspace plan must carry at least three group role assignments.
+    if root == "workspaces":
+        assignments = [
+            change
+            for change in changes
+            if change["mode"] == "managed"
+            and change["type"] == "fabric_workspace_role_assignment"
+            and not is_delete(change["actions"])
+        ]
+        if len(assignments) < 3:
+            fail(
+                3,
+                "fabric_workspace_role_assignment",
+                f"found {len(assignments)} planned role assignments; at least three are required",
+            )
+
+        # 4. The capacity data source's postcondition must have evaluated to Active.
+        capacities = [
+            change
+            for change in changes
+            if change["mode"] == "data" and change["type"] == "fabric_capacity"
+        ]
+        if not capacities:
+            fail(4, "data.fabric_capacity.shared", "no capacity data source in a workspace plan")
+        for change in capacities:
+            state = (change["after"] or {}).get("state")
+            if "state" in change["after_unknown"] or state is None:
+                fail(4, change["address"], "postcondition did not evaluate (capacity state unknown)")
+            elif state != "Active":
+                fail(4, change["address"], f"capacity state is {state!r}, not 'Active'")
+
+    # 5. Resource counts must match the reviewed baseline.
+    observed_counts = planned_counts(changes)
+    baseline_path = known_good_dir / f"{phase}.json"
+
+    if write_baseline and violations:
+        fail(5, str(baseline_path), "refusing to write a baseline while another rule fails")
+    elif write_baseline:
+        baseline = {
+            "root": root,
+            "phase": phase,
+            "counts": observed_counts,
+            "addresses": sorted(change["address"] for change in changes),
+        }
+        baseline_path.parent.mkdir(parents=True, exist_ok=True)
+        baseline_path.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(f"BASELINE root={root} phase={phase} file={baseline_path}")
+    elif not baseline_path.exists():
+        # First run: no reviewed baseline can exist yet. Rules 1-4 and 6 still fail closed; the
+        # counts are printed so a human can record them for the next run.
+        print(f"BASELINE-MISSING root={root} phase={phase} counts={json.dumps(observed_counts, sort_keys=True)}")
+    else:
+        try:
+            baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            fail(5, str(baseline_path), f"cannot read known-good baseline: {exc}")
+            baseline = None
+        if isinstance(baseline, dict):
+            expected_counts = baseline.get("counts")
+            if not isinstance(expected_counts, dict):
+                fail(5, str(baseline_path), "baseline has no counts object")
+            elif expected_counts != observed_counts:
+                for resource_type in sorted(set(expected_counts) | set(observed_counts)):
+                    expected = expected_counts.get(resource_type, 0)
+                    observed = observed_counts.get(resource_type, 0)
+                    if expected != observed:
+                        fail(5, resource_type, f"expected {expected} resources, observed {observed}")
+
+    # 6. Every address must belong to the root.
+    patterns = [re.compile(pattern) for pattern in EXPECTED_ADDRESSES[root]]
+    for change in changes:
+        address = change["address"]
+        if not any(pattern.fullmatch(address) for pattern in patterns):
+            fail(6, address, f"address is not in the expected set for root {root!r}")
+
+    return violations, observed_counts
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Assert the corporate-pack plan rules (contract §7).")
+    parser.add_argument("plan", type=Path, help="JSON from `terraform show -json <plan>`")
+    parser.add_argument("--root", required=True, choices=sorted(EXPECTED_ADDRESSES))
+    parser.add_argument("--phase", required=True, help="baseline key: nonprod | prod | domains | <domain>")
+    parser.add_argument(
+        "--known-good-dir",
+        type=Path,
+        default=Path("checks/known-good"),
+        help="directory holding <phase>.json baselines (default: checks/known-good)",
+    )
+    parser.add_argument(
+        "--write-baseline",
+        action="store_true",
+        help="human-only: write the observed counts as the known-good baseline, then continue",
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        plan = load_plan(args.plan)
+    except PlanError as exc:
+        print(f"FAIL root={args.root} phase={args.phase} error={exc}")
+        return 2
+
+    violations, counts = check_rules(
+        args.root, args.phase, plan, args.known_good_dir, args.write_baseline
+    )
+    total_resources = sum(counts.values())
+
+    if violations:
+        failed_rules = sorted({rule for rule, _, _ in violations})
+        print(
+            f"FAIL root={args.root} phase={args.phase} "
+            f"resources={total_resources} rules_failed={len(failed_rules)} "
+            f"violations={len(violations)}"
+        )
+        for rule, address, detail in sorted(violations):
+            print(f"  rule {rule}: {address} ({detail})")
+        return 1
+
+    print(f"PASS root={args.root} phase={args.phase} resources={total_resources} rules=6")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

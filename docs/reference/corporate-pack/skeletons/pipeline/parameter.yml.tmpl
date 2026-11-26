@@ -20,7 +20,7 @@
 #
 # NO REAL VALUES, AND NO SECRETS. A parameter file is not a secret store: it is committed, and
 # every value in it is copied into an item definition. Replace the placeholders with IDs and names
-# only — never a client secret, PAT, storage key, connection string or SQL password.
+# only — never a client credential, personal access token, storage key, connection string or SQL password.
 #
 # VERIFY (fabric-cicd moves quickly; check its parameterisation docs before the first run):
 #   - the accepted file path (`.deploy/parameter.yml` is the documented default, and a non-default
@@ -90,7 +90,7 @@ find_replace:
       prod: "<prod-workspace-id-of-<domain>>"
     is_regex: "false"
 
-  - find_value: "00000000-0000-0000-0000-000000000001"
+  - find_value: "00000000-0000-0000-0000-000000000000"
     replace_value:
       nonprod: "<nonprod-lakehouse-id-of-<domain>>"
       prod: "<prod-lakehouse-id-of-<domain>>"
@@ -99,7 +99,7 @@ find_replace:
   # A connection or gateway ID, when an item definition names one. Both keys may hold the same value
   # if the connection is shared across environments — that is a legitimate sameness, and writing it
   # twice is how the reviewer sees that it is deliberate.
-  - find_value: "00000000-0000-0000-0000-000000000002"
+  - find_value: "00000000-0000-0000-0000-000000000000"
     replace_value:
       nonprod: "<nonprod-connection-id>"
       prod: "<prod-connection-id>"

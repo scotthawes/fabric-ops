@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+# Pack: 2026-11-26.1 — illustrative skeleton; see spec/0002-contract.md.
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never run from fabric-ops (ADR 0001).
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §6 (content stage), §5.
+#
+# One entry point for the content stage. It is stateless: fabric-cicd deploys every item every
+# run and holds no applied-state ledger. Terraform owns the workspace; this script only fills it.
+#
+#   python deploy_items.py \
+#     --environment nonprod --domain sales \
+#     --workspace-id "$(terraform -chdir=... output -raw workspace_id)" \
+#     --content-dir build/content --parameter-file build/content/parameter.yml
+#
+# Requires: pip install fabric-cicd azure-identity
+#
+# CREDENTIAL. The pipeline's federated values, not a secret:
+#   AZURE_TENANT_ID / AZURE_CLIENT_ID  (or ARM_TENANT_ID / ARM_CLIENT_ID)
+#   AZURE_FEDERATED_TOKEN              = $idToken from AzureCLI@2 addSpnToEnvironment
+#                                        (ARM_OIDC_TOKEN and SYSTEM_OIDCE_TOKEN are also accepted)
+# azure-identity turns that assertion into a Fabric-audience token per request. No client secret,
+# no interactive fallback: if the values are missing, this fails rather than borrowing a login.
+#
+# The assertion expires (AADSTS700024 after ~1 hour). Keep this step under that, or re-run it;
+# do not try to make one credential span a long orchestration.
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+DEFAULT_GUID = "00000000-0000-0000-0000-000000000000"
+
+# These strings are also the keys in parameter.yml. fabric-cicd skips replacement when the
+# environment is not present there, so an unlisted key must fail here rather than deploy with
+# un-substituted IDs.
+ENVIRONMENT_KEYS = {"nonprod": "nonprod", "prod": "prod"}
+
+DOMAIN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+GUID_RE = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+
+
+class DeployError(RuntimeError):
+    pass
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Deploy Fabric item definitions with fabric-cicd.")
+    parser.add_argument("--environment", required=True, help="nonprod | prod (must be a parameter.yml key)")
+    parser.add_argument("--domain", required=True, help="lowercase hyphenated domain key, e.g. sales")
+    parser.add_argument("--content-dir", required=True, type=Path, help="repository directory fabric-cicd reads")
+    parser.add_argument("--parameter-file", required=True, type=Path, help="parameter.yml to apply")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--workspace-id", help="Fabric workspace GUID from the control apply")
+    source.add_argument(
+        "--workspace-id-file",
+        type=Path,
+        help="file containing the GUID as text or as JSON with a workspace_id key",
+    )
+    parser.add_argument(
+        "--item-type",
+        action="append",
+        metavar="TYPE",
+        help="restrict deployment to an item type; repeatable. Omit to deploy every supported type.",
+    )
+    parser.add_argument(
+        "--remove-orphans",
+        action="store_true",
+        help="also unpublish deployed items of the in-scope types that are absent from the repo",
+    )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="validate arguments and files without importing fabric-cicd or contacting Fabric",
+    )
+    return parser.parse_args(argv)
+
+
+def resolve_workspace_id(args) -> str:
+    if args.workspace_id:
+        workspace_id = args.workspace_id.strip()
+    else:
+        try:
+            text = args.workspace_id_file.read_text(encoding="utf-8").strip()
+        except OSError as exc:
+            raise DeployError(f"cannot read --workspace-id-file: {exc}") from exc
+        workspace_id = text
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            payload = None
+        if isinstance(payload, dict):
+            workspace_id = next(
+                (payload[key] for key in ("workspace_id", "workspaceId", "value") if isinstance(payload.get(key), str)),
+                "",
+            )
+        elif isinstance(payload, str):
+            workspace_id = payload
+
+    if not GUID_RE.fullmatch(workspace_id) or workspace_id == DEFAULT_GUID:
+        raise DeployError(f"workspace id must be a real Fabric GUID, got {workspace_id!r}")
+    return workspace_id
+
+
+def pipeline_credential():
+    tenant_id = os.environ.get("AZURE_TENANT_ID") or os.environ.get("ARM_TENANT_ID")
+    client_id = os.environ.get("AZURE_CLIENT_ID") or os.environ.get("ARM_CLIENT_ID")
+    assertion = (
+        os.environ.get("AZURE_FEDERATED_TOKEN")
+        or os.environ.get("ARM_OIDC_TOKEN")
+        or os.environ.get("SYSTEM_OIDCE_TOKEN")
+        or os.environ.get("ID_TOKEN")
+    )
+
+    missing = [
+        name
+        for name, value in (
+            ("AZURE_TENANT_ID/ARM_TENANT_ID", tenant_id),
+            ("AZURE_CLIENT_ID/ARM_CLIENT_ID", client_id),
+            ("AZURE_FEDERATED_TOKEN (or ARM_OIDC_TOKEN)", assertion),
+        )
+        if not value
+    ]
+    if missing:
+        raise DeployError(
+            "missing federated credential inputs: "
+            + ", ".join(missing)
+            + ". In AzureCLI@2, export AZURE_FEDERATED_TOKEN=\"$idToken\" with addSpnToEnvironment: true."
+        )
+
+    from azure.identity import ClientAssertionCredential
+
+    # The callable returns the assertion as-is. azure-identity exchanges it for a token for
+    # https://api.fabric.microsoft.com/.default on each request.
+    return ClientAssertionCredential(
+        tenant_id=tenant_id,
+        client_id=client_id,
+        func=lambda: assertion,
+    )
+
+
+def main(argv=None):
+    args = parse_args(argv)
+
+    environment = ENVIRONMENT_KEYS.get(args.environment)
+    if environment is None:
+        print(
+            f"FAIL deploy environment={args.environment!r} "
+            f"error=unknown environment key; expected one of {', '.join(sorted(ENVIRONMENT_KEYS))}"
+        )
+        return 2
+
+    if not DOMAIN_RE.fullmatch(args.domain):
+        print(f"FAIL deploy environment={environment} domain={args.domain!r} error=domain must be lowercase hyphenated")
+        return 2
+
+    if not args.content_dir.is_dir():
+        print(f"FAIL deploy environment={environment} domain={args.domain} error=content dir not found: {args.content_dir}")
+        return 2
+    if not args.parameter_file.is_file():
+        print(
+            f"FAIL deploy environment={environment} domain={args.domain} "
+            f"error=parameter file not found: {args.parameter_file}"
+        )
+        return 2
+
+    summary = (
+        f"environment={environment} domain={args.domain} content={args.content_dir} "
+        f"parameter={args.parameter_file} remove_orphans={str(args.remove_orphans).lower()}"
+    )
+
+    try:
+        workspace_id = resolve_workspace_id(args)
+    except DeployError as exc:
+        print(f"FAIL deploy {summary} error={exc}")
+        return 2
+
+    if args.check_only:
+        print(f"PASS check {summary} workspace={workspace_id} (no Fabric contact)")
+        return 0
+
+    try:
+        from fabric_cicd import FabricWorkspace, publish_all_items, unpublish_all_orphan_items
+    except ImportError as exc:
+        print(f"FAIL deploy {summary} error=missing dependency: {exc}; pip install fabric-cicd azure-identity")
+        return 2
+
+    try:
+        token_credential = pipeline_credential()
+
+        print(f"deploy {summary} workspace={workspace_id}")
+
+        target = FabricWorkspace(
+            workspace_id=workspace_id,
+            environment=environment,  # must match a key in parameter.yml
+            repository_directory=str(args.content_dir),
+            item_type_in_scope=args.item_type or None,
+            parameter_file_path=str(args.parameter_file),
+            token_credential=token_credential,
+        )
+
+        publish_all_items(target)
+        if args.remove_orphans:
+            unpublish_all_orphan_items(target)
+
+    except Exception as exc:  # fabric-cicd raises its own hierarchy; keep the verdict one line
+        print(f"FAIL deploy {summary} workspace={workspace_id} error={type(exc).__name__}: {exc}")
+        if os.environ.get("DEPLOY_DEBUG"):
+            import traceback
+
+            traceback.print_exc()
+        return 1
+
+    print(f"PASS deploy {summary} workspace={workspace_id}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

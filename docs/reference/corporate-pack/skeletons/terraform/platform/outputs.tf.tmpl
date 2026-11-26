@@ -1,0 +1,27 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+#
+# The workspaces root joins on capacity_name, not on capacity_id. azurerm_fabric_capacity.id is
+# the ARM resource ID (/subscriptions/.../Microsoft.Fabric/capacities/<name>); Fabric's
+# capacity_id is a different GUID and the provider rejects the ARM form at plan time.
+
+output "capacity_name" {
+  value       = azurerm_fabric_capacity.this.name
+  description = "Display name consumed by data \"fabric_capacity\" in the workspaces root."
+}
+
+output "capacity_id" {
+  value       = azurerm_fabric_capacity.this.id
+  description = "ARM resource ID. Informational only; never pass this to fabric_workspace.capacity_id."
+}
+
+output "capacity_sku" {
+  value       = var.capacity_sku
+  description = "SKU applied by this state. A mismatch between states is a finding, not a default."
+}
+
+output "resource_group_name" {
+  value       = data.azurerm_resource_group.capacity.name
+  description = "Resource group that holds both capacities."
+}

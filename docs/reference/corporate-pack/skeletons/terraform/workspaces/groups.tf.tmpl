@@ -1,0 +1,64 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §3, §5.
+#
+# Three groups per workspace, one per role, named from the workspace name so one Entra search
+# finds them: fabric-<domain>-<env>-viewers | -contributors | -members.
+#
+# These are explicit resources, not for_each: the addresses stay stable for assert_plan rule 3/6,
+# and a missing group fails at plan (the role assignment references it) rather than at apply.
+#
+# WHO OWNS THEM: this is the code-as-groups destination. It amends ADR 0010 §2 and costs the
+# platform principal Group.ReadWrite.All (plus User.Read.All when a human is an owner). If the
+# corporate decision is manual groups, delete this file and replace the assignments' principal
+# IDs with data sources — do not leave half the lifecycle in Terraform.
+
+resource "azuread_group" "viewers" {
+  display_name = "${var.workspace_name}-viewers"
+  description  = "Viewer group for ${var.workspace_name} (ADR 0006)."
+  owners = (
+    length(var.groups["viewers"].owners) > 0
+    ? toset(var.groups["viewers"].owners)
+    : toset([data.azuread_client_config.current.object_id])
+  )
+  security_enabled        = true
+  prevent_duplicate_names = true
+
+  lifecycle {
+    # The group outlives a workspace rebuild. Destroying it churns the object ID every access
+    # review, data source and downstream grant points at.
+    prevent_destroy = true
+  }
+}
+
+resource "azuread_group" "contributors" {
+  display_name = "${var.workspace_name}-contributors"
+  description  = "Contributor group for ${var.workspace_name} (ADR 0006)."
+  owners = (
+    length(var.groups["contributors"].owners) > 0
+    ? toset(var.groups["contributors"].owners)
+    : toset([data.azuread_client_config.current.object_id])
+  )
+  security_enabled        = true
+  prevent_duplicate_names = true
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azuread_group" "members" {
+  display_name = "${var.workspace_name}-members"
+  description  = "Member group for ${var.workspace_name} (ADR 0006)."
+  owners = (
+    length(var.groups["members"].owners) > 0
+    ? toset(var.groups["members"].owners)
+    : toset([data.azuread_client_config.current.object_id])
+  )
+  security_enabled        = true
+  prevent_duplicate_names = true
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}

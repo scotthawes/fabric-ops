@@ -1,0 +1,48 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §3, §4, §6.
+#
+# THE PLATFORM ROOT IS APPLIED TWICE. Same code, one state key and one tfvars file per environment:
+#   platform/nonprod.tfstate + env/nonprod.tfvars -> fabric-capacity-nonprod (F2)
+#   platform/prod.tfstate    + env/prod.tfvars    -> fabric-capacity-prod    (F64)
+# The split is deliberate: destroying the nonprod capacity cannot reach the prod state.
+# There is no CLI workspace and no for_each over environments.
+#
+# Why this root holds only Azure objects: a Fabric capacity is an Azure resource
+# (Microsoft.Fabric/capacities). microsoft/fabric has no capacity resource at all — fabric_capacity
+# is a data source. The workspaces root reads this capacity back by display name.
+
+provider "azurerm" {
+  features {}
+
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+
+  # Workload identity federation. The pipeline sets ARM_CLIENT_ID, ARM_TENANT_ID,
+  # ARM_SUBSCRIPTION_ID and ARM_OIDC_TOKEN (the $idToken from AzureCLI@2). No secret on disk.
+  use_oidc = true
+}
+
+data "azurerm_client_config" "current" {}
+
+# The resource group is a ONE-TIME BOOTSTRAP object, not owned by either platform state.
+# Both capacity states are planned/applied in parallel by the Platform stage (contract §6); if
+# each declared azurerm_resource_group "rg-fabric-corporate", one would win the create and the
+# other would fail "already exists", or a destroy of nonprod would take prod's resource group.
+# runbook/00-bootstrap.md creates it once. Terraform reads it, and the name is fixed by §3.
+data "azurerm_resource_group" "capacity" {
+  name = local.resource_group_name
+}
+
+locals {
+  resource_group_name = "rg-fabric-corporate" # contract §3 — do not rename
+
+  # Tags make a capacity attribution question answerable from the portal. Environment is an
+  # explicit input rather than inferred from the capacity name, so a typo fails validation
+  # instead of silently tagging prod as nonprod.
+  common_tags = {
+    environment = var.environment
+    managed_by  = "terraform"
+    pack        = "corporate-pack-2026-11-26"
+  }
+}

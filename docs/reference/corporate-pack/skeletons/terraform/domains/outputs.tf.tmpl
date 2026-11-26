@@ -1,0 +1,13 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+
+output "domain_ids" {
+  value       = { for key, domain in fabric_domain.this : key => domain.id }
+  description = "Domain key -> Fabric domain GUID, for any stage that needs an ID directly."
+}
+
+output "domain_display_names" {
+  value       = { for key, domain in fabric_domain.this : key => domain.display_name }
+  description = "Domain key -> display name, for review and name-based lookups."
+}

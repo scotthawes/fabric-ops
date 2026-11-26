@@ -1,6 +1,6 @@
 # 0002 — Corporate pack contract
 
-**Pack:** 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 **Dated 2026-11-26.** The interface every file in this pack composes against. Fixed names, state keys,
 parameters and stage graph. A file that disagrees with this document is wrong, however plausible it
@@ -156,7 +156,9 @@ Given `terraform show -json <plan>`, fail on any of:
 2. `delete` on `azuread_group`, `fabric_workspace` or `azurerm_fabric_capacity`.
 3. A workspace plan with fewer than three `fabric_workspace_role_assignment` resources.
 4. `data.fabric_capacity` whose postcondition did not evaluate (`Active`).
-5. A resource count that differs from `checks/known-good/<phase>.json`.
+5. A resource count that differs from `checks/known-good/<phase>.json`, **when that baseline
+   exists**. The first run has none: it prints `BASELINE-MISSING root=… phase=… counts=…` for a
+   human to record, and rules 1–4 and 6 still fail closed on that run.
 6. Any resource whose address is not in the expected set for that root.
 
 The script prints a one-line verdict and the offending addresses; exit non-zero blocks the apply.

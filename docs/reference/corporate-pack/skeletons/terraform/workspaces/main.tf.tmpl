@@ -1,0 +1,64 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4–§6.
+#
+# Order inside this root is forced by references, not taste:
+#   capacity (data) -> groups -> workspace + identity -> group assignments
+#   -> identity workspace grant -> storage RBAC -> [resource instance rule] -> [nonprod Git binding]
+
+provider "fabric" {
+  tenant_id = var.tenant_id
+  client_id = var.admin_client_id # sp-fabric-admin; not the deploy principal
+
+  use_oidc = true
+
+  # The Fabric provider performs the ADO federated exchange itself: pass the service connection
+  # GUID (not the display name), and the pipeline supplies FABRIC_OIDC_REQUEST_TOKEN /
+  # FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID as documented in the provider's auth guide.
+  azure_devops_service_connection_id = var.ado_service_connection_id
+
+  # preview is NOT set. Nothing in this root is preview, and the flag is provider-wide: turning
+  # it on here would also unlock preview resources in the state that holds production workspaces.
+}
+
+provider "azuread" {
+  tenant_id = var.tenant_id
+  client_id = var.admin_client_id
+
+  # azuread v3.1.0 has no service-connection argument (checked docs, 2026-11-26); it consumes
+  # ARM_OIDC_TOKEN, which the pipeline must export from the same $idToken assertion. Do not copy
+  # an `ado_pipeline_service_connection_id`-style argument here: it is not in the schema.
+  use_oidc = true
+}
+
+provider "azurerm" {
+  features {}
+
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+  use_oidc        = true
+}
+
+# ---------------------------------------------------------------------------------------------
+# 1. The shared capacity, read back as a Fabric GUID. Never the ARM resource ID.
+# ---------------------------------------------------------------------------------------------
+
+data "fabric_capacity" "shared" {
+  display_name = var.capacity_name # must match an output of platform/<env>.tfstate
+
+  # A paused or inactive capacity is the drift the provider says it cannot see: applying against
+  # it can remove state entries. Fail at plan, before touching the workspace. assert_plan rule 4
+  # checks that this postcondition evaluated to Active.
+  postcondition {
+    condition     = self.state == "Active"
+    error_message = "Capacity '${self.display_name}' is ${self.state}; resume it before applying (ADR 0004)."
+  }
+}
+
+data "azuread_client_config" "current" {}
+
+locals {
+  # The identity grant is conditional on the identity existing; keep the boolean in one place so
+  # workspace.tf.tmpl cannot disagree with itself.
+  identity_enabled = var.enable_workspace_identity
+}

@@ -1,0 +1,13 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+
+output "domain_id" {
+  value       = fabric_domain_workspace_assignments.this.domain_id
+  description = "Resolved Fabric domain GUID."
+}
+
+output "workspace_ids" {
+  value       = fabric_domain_workspace_assignments.this.workspace_ids
+  description = "Workspace GUIDs assigned to the domain."
+}

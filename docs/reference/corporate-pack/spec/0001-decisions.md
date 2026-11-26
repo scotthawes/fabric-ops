@@ -1,6 +1,6 @@
 # 0001 — Closed decisions
 
-**Pack:** 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 Thirteen decisions, each closed on 2026-11-26 against wayfinder map
 [#41](https://github.com/scotthawes/fabric-ops/issues/41). One section per decision: what was
@@ -341,8 +341,9 @@ triggering the ADO YAML pipeline, which runs Terraform and `fabric-cicd`. **Ther
 apply, fails closed, and blocks on any of: replacement of a workspace, capacity or domain; deletion
 of a group, workspace or capacity; fewer than three role assignments in a workspace plan; a capacity
 data source whose `Active` postcondition did not evaluate; a count that differs from
-`checks/known-good/`; or an address outside the expected set for that root. The agent selects the
-pipeline and its parameters, reads stage results, and stops on a named condition.
+`checks/known-good/` when a baseline exists (the first run prints its counts for a human to record);
+or an address outside the expected set for that root. The agent selects the pipeline and its
+parameters, reads stage results, and stops on a named condition.
 
 **Why.** There is no review loop and no report channel back: whatever protects production must live
 inside the pack. The gate is mechanical, so agent judgement is not the control. Reducing the agent's

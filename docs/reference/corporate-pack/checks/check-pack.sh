@@ -24,7 +24,8 @@ ok()  { printf 'ok    %s\n' "$1"; }
 bad() { printf 'FAIL  %s — %s\n' "$1" "$2"; fail=1; }
 
 files() {
-  find . -type f ! -path './.git/*' | sed 's|^\./||' | sort
+  # __pycache__/*.pyc are local by-products, not pack content.
+  find . -type f ! -path './.git/*' ! -path '*/__pycache__/*' ! -name '*.pyc' | sed 's|^\./||' | sort
 }
 
 echo "version"
