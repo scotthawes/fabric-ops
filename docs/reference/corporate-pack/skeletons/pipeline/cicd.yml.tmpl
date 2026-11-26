@@ -1,0 +1,704 @@
+# Illustrative Azure DevOps pipeline — corporate pack, unit C.
+#
+# Pack: 2026-11-26.1
+# Dated 2026-11-26. Illustrative only. This repository is a research artefact (ADR 0001): nothing
+# here runs from fabric-ops and no tenant was contacted while writing it. Copy to the corporate
+# work repo as `pipelines/cicd.yml` and edit there; this template is never edited to match a copy.
+#
+# Contract: spec/0002-contract.md §6. Names, state keys, environments and the stage graph are fixed
+# there; where this file and that document disagree, the document wins.
+#
+# STAGE GRAPH: Build -> Platform (capacity-nonprod ∥ capacity-prod, then domains) -> Nonprod (per
+# domain: control, then content) -> PlanProd (per domain: plan only, no environment) -> Prod-<domain>
+# (per domain: assert_plan -> apply saved plan -> content -> assign). `assert_plan` runs before every
+# apply, not only in prod: the same rules refuse a capacity replacement in the platform band, so the
+# check is inline where the plan is made in the same job and a separate credential-free job in prod,
+# where the plan arrives as an artifact.
+#
+# THE GATE IS THE `environment:` LINE, not anything inside a stage. Approvals and checks attach to
+# the ADO environment resource, never to YAML, and an environment name cannot be a variable. A
+# stage that loses its `environment:` — or is pointed at a new, auto-created one — deploys ungated
+# and silently. Diff `environment:` per stage on every YAML change.
+#
+# AN APPROVAL THAT TIMES OUT MARKS THE STAGE *SKIPPED*, NOT FAILED. A run can look nearly green
+# while prod never ran. Read the stage result, not the run colour; a skipped prod stage is a
+# conversation with the approver, not a retry.
+#
+# WHY THE PROD PLANS ARE MADE IN PlanProd: ADO evaluates an environment's checks when a *stage*
+# starts, not when a job inside it starts. A plan produced inside a prod stage would be approved
+# before anyone had seen it. So PlanProd runs with no `environment:` at all, plans against each
+# domain's prod state, and publishes `tfplan-<domain>`; the prod stages apply that file and never
+# re-plan. A saved plan is bound to the state snapshot it was made against: if prod state moves
+# between plan and apply the apply fails stale, and the answer is a new PlanProd run and a fresh
+# approval — never a forced refresh of a plan the approver did not see.
+#
+# NO SECRETS: no variable group, no Key Vault link, no secret variable. Both connections use
+# workload identity federation, Terraform reaches state with ARM_USE_OIDC (no storage key), and
+# fabric-cicd uses the same assertion. A stored value would buy nothing and cost rotation.
+#
+# CONTROLS THIS FILE ASSUMES AND CANNOT EXPRESS:
+#   - branch policy on `main`, and "Edit build pipeline" denied to Contributors, because one
+#     authorised pipeline can reach either connection;
+#   - per-pipeline authorisation on sc-fabric-admin AND sc-fabric-deploy (never "grant access to
+#     all pipelines" — a connection carries standing access to what it connects to);
+#   - an Approvals check with a named approver list, instructions and a Timeout on `fabric-prod`
+#     (and optionally `fabric-platform`, `fabric-nonprod`);
+#   - an Exclusive lock on each environment if an admin run and a content run must not overlap.
+#     Terraform locks per state blob; Fabric items have no lock at all.
+
+trigger:
+  branches:
+    include:
+      - main
+
+# A pull request must not reach a band either. Build alone would be harmless (it holds no
+# connection) but the stages below cannot be partially run, so PR validation stays out of this
+# pipeline and belongs to a separate, credential-free definition.
+pr: none
+
+parameters:
+  # Domain names, in deployment order. ADO has no scalar list type, so a list is `object`.
+  # This default exists so the file compiles; the corporate copy sets its real matrix.
+  - name: domains
+    displayName: Domains this run expands to
+    type: object
+    default:
+      - sales
+
+  # Environment this run was triggered for. The push trigger on `main` is the nonprod path, so the
+  # value the trigger supplies is `nonprod`. ADO expands parameters before variables, so a default
+  # cannot read `$(Build.SourceBranchName)` — the literal below IS the trigger's environment, and
+  # a prod-only run is queued with `environment=prod`.
+  #
+  # It is deliberately inert: no state key, tfvars file or parameter.yml key is derived from it.
+  # Every band uses literals (`nonprod`, `prod`), so a mis-queued value cannot redirect a deploy.
+  # It labels the run, and nothing else.
+  - name: environment
+    displayName: Environment label for this run
+    type: string
+    default: nonprod
+    values:
+      - nonprod
+      - prod
+
+  # The domain matrix, keyed by the names in `domains`. It duplicates the non-secret columns of
+  # `config/domains.yaml` because `${{ each }}` needs the list at compile time, while
+  # `config/domains.yaml` is the runtime truth the Terraform roots read. The Build stage asserts the
+  # two agree, so the duplication cannot drift silently.
+  #
+  # Owner object IDs are NOT copied here: they are principal identifiers, they belong in
+  # `config/domains.yaml` only, and a pipeline YAML is not a place to accumulate them.
+  - name: matrix
+    displayName: Domain matrix (must match config/domains.yaml)
+    type: object
+    default:
+      sales:
+        display_name: Sales
+        project: forecast
+        repo: fabric-sales-nonprod
+
+variables:
+  - name: TF_IN_AUTOMATION
+    value: "true"
+  # The fabric-cicd parameter file. Pack source: skeletons/pipeline/parameter.yml.tmpl. It lives
+  # beside the pipeline because its keys are wired by this file; the older reference layout names
+  # `config/parameter.yml`, so one variable holds the path and a move is a one-line edit.
+  - name: parameterFile
+    value: config/parameter.yml
+
+pool:
+  name: fabric-self-hosted # image carries terraform, python3 + pip (and PyYAML), az CLI >= 2.30, git >= 2.9.0
+
+stages:
+  # =============================================================================================
+  # Build — bundle, format, validate, matrix parity. No connection, no backend: nothing here can
+  # reach the tenant, so a poisoned commit cannot do more than fail.
+  # =============================================================================================
+  - stage: Build
+    displayName: Build — bundle content, fmt, validate, matrix parity
+    jobs:
+      - job: build
+        displayName: Bundle and validate
+        steps:
+          - checkout: self
+
+          # Published once, from the commit under test. Every deploy stage consumes these bytes and
+          # no deploy stage rebuilds. Published before validation on purpose: a broken run still
+          # leaves an artifact, which is harmless because every later stage depends on this one
+          # succeeding. The artifact belongs to the run, and retention counts only succeeded runs,
+          # so a failed prod run's content can expire before the post-mortem — keep the commit.
+          - publish: content
+            artifact: fabric-content
+            displayName: Publish content as fabric-content
+
+          # Recursive from the repo root, so a root added later is covered without editing this.
+          - script: terraform fmt -check -recursive
+            displayName: terraform fmt -check -recursive
+
+          # `terraform validate` needs providers and module sources, hence `init` — but not the
+          # backend. Without `-backend=false`, init would demand the state storage account and the
+          # OIDC variables this stage deliberately does not have. Every root is listed here because
+          # a root that is never validated is a root whose first apply is its first parse.
+          - script: |
+              set -euo pipefail
+              for root in terraform/platform terraform/domains terraform/workspaces terraform/domain-assignments; do
+                echo "--- validate ${root}"
+                terraform -chdir="${root}" init -backend=false -input=false
+                terraform -chdir="${root}" validate
+              done
+            displayName: terraform validate per root (no backend, no credentials)
+
+          # The compile-time list and the runtime truth must agree, or a job deploys a domain the
+          # Terraform roots do not know about. Compared on the non-secret columns only; owner IDs
+          # stay in config/domains.yaml.
+          #
+          # Needs PyYAML in the agent image: install it there (`pip install pyyaml` at image build),
+          # not here — a network install mid-run is neither reproducible nor proxied for free.
+          - script: |
+              set -euo pipefail
+              python3 - <<'PY'
+              import json
+              import os
+              import sys
+
+              import yaml
+
+              declared = json.loads(os.environ["PIPELINE_DOMAINS"])
+              matrix = json.loads(os.environ["PIPELINE_MATRIX"])
+
+              problems = []
+              try:
+                  config = yaml.safe_load(open("config/domains.yaml", encoding="utf-8")) or {}
+                  rows = config.get("domains") or []
+              except FileNotFoundError:
+                  print("config/domains.yaml is missing: the matrix truth lives in the corporate repo")
+                  sys.exit(1)
+              if not rows:
+                  problems.append("config/domains.yaml declares no domains")
+
+              if not declared:
+                  problems.append("parameters.domains is empty")
+              if len(set(declared)) != len(declared):
+                  problems.append("parameters.domains has duplicates: %s" % declared)
+
+              names = sorted(row.get("name") for row in rows)
+              if names != sorted(declared):
+                  problems.append(
+                      "config/domains.yaml names %s != parameters.domains %s"
+                      % (names, sorted(declared))
+                  )
+              if sorted(matrix) != sorted(declared):
+                  problems.append(
+                      "parameters.matrix keys %s != parameters.domains %s"
+                      % (sorted(matrix), sorted(declared))
+                  )
+
+              for row in rows:
+                  name = row.get("name")
+                  entry = matrix.get(name) or {}
+                  for key in ("display_name", "project", "repo"):
+                      if entry.get(key) != row.get(key):
+                          problems.append(
+                              "%s.%s: matrix=%r config=%r"
+                              % (name, key, entry.get(key), row.get(key))
+                          )
+
+              if problems:
+                  print("domain matrix parity FAILED")
+                  for problem in problems:
+                      print("  - %s" % problem)
+                  sys.exit(1)
+              print(
+                  "domain matrix parity OK for %d domain(s): %s"
+                  % (len(declared), ", ".join(declared))
+              )
+              PY
+            displayName: Assert parameters.domains ↔ config/domains.yaml parity
+            env:
+              # convertToJson is the only way to hand a list parameter to a shell step.
+              PIPELINE_DOMAINS: ${{ convertToJson(parameters.domains) }}
+              PIPELINE_MATRIX: ${{ convertToJson(parameters.matrix) }}
+
+  # =============================================================================================
+  # Platform — the resource group and both capacities, then the tenant-level Fabric domains.
+  #
+  # The two capacities are separate jobs against separate state keys on purpose: destroying the
+  # nonprod capacity cannot reach the prod state, so a rehearsal mistake costs a rebuild rather
+  # than an outage. The cost is two applies that share nothing except the environment, which is
+  # why an Exclusive lock on `fabric-platform` serialises them if the project enables one —
+  # they are declared as siblings, not as a race.
+  # =============================================================================================
+  - stage: Platform
+    displayName: Platform — capacities (parallel), then Fabric domains
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: capacity_nonprod
+        displayName: Capacity — nonprod
+        # Gate carrier. The approval here is optional: this band changes yearly. The environment
+        # still gives the run a deployment record and a place for the lock.
+        environment: fabric-platform
+        download: none # a control-plane job never consumes the content artifact
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: terraform init/plan/apply — platform nonprod
+                  inputs:
+                    azureSubscription: sc-fabric-admin # admin track: capacity and resource group
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      # One connection, four spellings. azurerm and the azurerm backend read ARM_*;
+                      # the Fabric provider reads FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID and
+                      # FABRIC_OIDC_REQUEST_TOKEN (the system access token, not a PAT). AzureCLI@2
+                      # exports $servicePrincipalId/$tenantId/$idToken *inside* the step, so these
+                      # exports live here and cannot be a job-level env block. `env:` on the task is
+                      # a task property, not an input: nested under `inputs:` it is silently dropped.
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      # The rest of the backend block (resource group, storage account, container,
+                      # use_azuread_auth, use_oidc) lives in the root's .tf; only the key differs.
+                      # One container, one blob per state key, one lock per blob.
+                      terraform -chdir=terraform/platform init -input=false \
+                        -backend-config="key=platform/nonprod.tfstate"
+
+                      terraform -chdir=terraform/platform plan -input=false \
+                        -lock-timeout=5m -var-file=env/nonprod.tfvars -out=nonprod.tfplan
+
+                      # Contract §6 rule 3: assert_plan runs before EVERY apply, not only in prod. A
+                      # capacity replaced by this band is an outage, so the check is not a prod
+                      # privilege. Inline here because the plan was made in this job; the prod
+                      # stages assert in a separate, credential-free job because their plan arrives
+                      # as an artifact. Phase names select checks/known-good/<phase>.json.
+                      terraform -chdir=terraform/platform show -json nonprod.tfplan > plan.json
+                      python3 scripts/assert_plan.py plan.json --phase platform
+
+                      # Applying a saved plan IS the confirmation; -auto-approve is irrelevant once
+                      # a plan file is passed.
+                      terraform -chdir=terraform/platform apply -input=false \
+                        -lock-timeout=5m nonprod.tfplan
+                  env:
+                    FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+
+      - deployment: capacity_prod
+        displayName: Capacity — prod
+        environment: fabric-platform
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: terraform init/plan/apply — platform prod
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      terraform -chdir=terraform/platform init -input=false \
+                        -backend-config="key=platform/prod.tfstate"
+
+                      terraform -chdir=terraform/platform plan -input=false \
+                        -lock-timeout=5m -var-file=env/prod.tfvars -out=prod.tfplan
+
+                      terraform -chdir=terraform/platform show -json prod.tfplan > plan.json
+                      python3 scripts/assert_plan.py plan.json --phase platform
+
+                      terraform -chdir=terraform/platform apply -input=false \
+                        -lock-timeout=5m prod.tfplan
+                  env:
+                    FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+
+      # Contract §6 draws Domains as its own node in the graph. It is a job inside Platform, not a
+      # stage: it shares this band's approval, its authority (the SP must hold the Fabric
+      # administrator role) and its lifetime, and a separate stage would buy a second approval for
+      # one apply. Delete this job in the corporate copy where sc-fabric-admin does not hold
+      # Fabric administrator; do not leave it to fail mid-run (contract §4 makes the root optional).
+      - deployment: domains
+        displayName: Fabric domains — tenant grouping
+        dependsOn:
+          - capacity_nonprod
+          - capacity_prod
+        environment: fabric-platform
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: terraform init/plan/apply — domains
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      terraform -chdir=terraform/domains init -input=false \
+                        -backend-config="key=domains.tfstate"
+
+                      terraform -chdir=terraform/domains plan -input=false \
+                        -lock-timeout=5m -var-file=env/domains.tfvars -out=domains.tfplan
+
+                      terraform -chdir=terraform/domains show -json domains.tfplan > plan.json
+                      python3 scripts/assert_plan.py plan.json --phase domains
+
+                      terraform -chdir=terraform/domains apply -input=false \
+                        -lock-timeout=5m domains.tfplan
+                  env:
+                    FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+
+  # =============================================================================================
+  # Nonprod — one chain per domain: control plane, then content. The workspace, its identity and
+  # its role assignments must exist before any item lands, so `content` dependsOn its own
+  # `control` and on nothing from another domain: one domain's bad definitions cannot hold the
+  # rest of the estate, and a domain that fails leaves its own chain blocked.
+  #
+  # `parameters.environment` is a label only; every key below is a literal `nonprod`.
+  #
+  # THE IDS SUBSTITUTE `-` FOR `_` IN THE DOMAIN, the display names do not. ADO allows only
+  # alphanumerics and underscores in a stage or job id (so `sales-ops` would make `Prod_sales-ops`
+  # an invalid name), while state keys and workspace names keep the real hyphenated domain because
+  # they are blob names and Fabric names, not ADO identifiers. `replace()` is the documented way to
+  # do that at compile time.
+  # =============================================================================================
+  - stage: Nonprod
+    displayName: Nonprod — workspaces, then items (${{ parameters.environment }} run)
+    dependsOn: Platform
+    condition: succeeded()
+    jobs:
+      - ${{ each domain in parameters.domains }}:
+        - deployment: control_${{ replace(domain, '-', '_') }}
+          displayName: Workspaces — ${{ domain }} nonprod
+          environment: fabric-nonprod
+          download: none
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - checkout: self
+                  - task: AzureCLI@2
+                    displayName: terraform init/plan/apply — workspaces/${{ domain }} nonprod
+                    inputs:
+                      azureSubscription: sc-fabric-admin # control plane: admin principal
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      addSpnToEnvironment: true
+                      inlineScript: |
+                        set -euo pipefail
+                        export ARM_USE_OIDC=true
+                        export ARM_CLIENT_ID="$servicePrincipalId"
+                        export ARM_TENANT_ID="$tenantId"
+                        export ARM_OIDC_TOKEN="$idToken"
+                        export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                        export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                        terraform -chdir=terraform/workspaces init -input=false \
+                          -backend-config="key=workspaces/${{ domain }}/nonprod.tfstate"
+
+                        # bind_git is true only in nonprod (ADR 0005): the workspace is the branch's
+                        # sync target for authors, and prod is never Git-connected. It is set here
+                        # as well as in the tfvars so the binding is visible in the pipeline diff.
+                        terraform -chdir=terraform/workspaces plan -input=false \
+                          -lock-timeout=5m \
+                          -var-file=env/${{ domain }}/nonprod.tfvars \
+                          -var 'bind_git=true' \
+                          -out=nonprod.tfplan
+
+                        # Rule 3 again: a nonprod workspace that would be replaced or lose a role
+                        # assignment still costs a re-onboarded group owner, so it is refused here
+                        # too. --phase selects the known-good baseline for this root.
+                        terraform -chdir=terraform/workspaces show -json nonprod.tfplan > plan.json
+                        python3 scripts/assert_plan.py plan.json --phase nonprod
+
+                        terraform -chdir=terraform/workspaces apply -input=false \
+                          -lock-timeout=5m nonprod.tfplan
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+
+        - deployment: content_${{ replace(domain, '-', '_') }}
+          displayName: Items — ${{ domain }} nonprod
+          dependsOn: control_${{ replace(domain, '-', '_') }}
+          environment: fabric-nonprod
+          download: none # explicit download below, rather than the auto-injected task
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - checkout: self
+                  - download: current
+                    artifact: fabric-content
+                  - task: AzureCLI@2
+                    displayName: deploy_items.py — ${{ domain }} nonprod
+                    inputs:
+                      azureSubscription: sc-fabric-deploy # content track: items only, no state
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      addSpnToEnvironment: true
+                      inlineScript: |
+                        set -euo pipefail
+                        # No ARM_* export on purpose: this job never calls Terraform. The script
+                        # builds an azure-identity credential from $servicePrincipalId, $tenantId
+                        # and $idToken and hands it to fabric-cicd. fabric-cicd is stateless, so
+                        # this job takes no Terraform lock; only the environment lock can keep it
+                        # from colliding with an admin run.
+                        python3 scripts/deploy_items.py \
+                          --env nonprod \
+                          --workspace fabric-${{ domain }}-nonprod \
+                          --content-dir "$(Pipeline.Workspace)/fabric-content" \
+                          --parameter-file "$(parameterFile)"
+
+  # =============================================================================================
+  # PlanProd — one plain job per domain. NOT a deployment job, and no `environment:` anywhere in
+  # this stage: a check on fabric-prod would be evaluated when the job started, which is before
+  # the plan exists. Planning is not a deployment — no target, no deployment record, no gate.
+  #
+  # It READS prod state and changes nothing: plan only, never an apply; nothing is targeted and
+  # nothing forces a stale refresh.
+  # The plan file is opaque, holds variable values in cleartext and means nothing against another
+  # state, so it is published as an artifact of THIS run and never reused.
+  # =============================================================================================
+  - stage: PlanProd
+    displayName: PlanProd — read-only prod plans, one per domain
+    dependsOn: Nonprod
+    condition: succeeded()
+    jobs:
+      - ${{ each domain in parameters.domains }}:
+        - job: plan_${{ replace(domain, '-', '_') }}
+          displayName: Plan prod — ${{ domain }}
+          steps:
+            - checkout: self
+            - task: AzureCLI@2
+              displayName: terraform plan — workspaces/${{ domain }} prod
+              inputs:
+                azureSubscription: sc-fabric-admin
+                scriptType: bash
+                scriptLocation: inlineScript
+                addSpnToEnvironment: true
+                inlineScript: |
+                  set -euo pipefail
+                  export ARM_USE_OIDC=true
+                  export ARM_CLIENT_ID="$servicePrincipalId"
+                  export ARM_TENANT_ID="$tenantId"
+                  export ARM_OIDC_TOKEN="$idToken"
+                  export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                  export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                  terraform -chdir=terraform/workspaces init -input=false \
+                    -backend-config="key=workspaces/${{ domain }}/prod.tfstate"
+
+                  # bind_git=false matches the prod apply exactly: the plan file carries the
+                  # variables, so the apply cannot disagree with what the approver read.
+                  terraform -chdir=terraform/workspaces plan -input=false \
+                    -lock-timeout=5m \
+                    -var-file=env/${{ domain }}/prod.tfvars \
+                    -var 'bind_git=false' \
+                    -out=${{ domain }}.tfplan
+              env:
+                FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+            - publish: terraform/workspaces/${{ domain }}.tfplan
+              artifact: tfplan-${{ domain }}
+              displayName: Publish ${{ domain }}.tfplan as tfplan-${{ domain }}
+
+  # =============================================================================================
+  # Prod — one STAGE per domain, each gated by fabric-prod. `isSkippable: false` removes the stage
+  # from "Stages to run", so an operator cannot deselect the stage that carries the approval while
+  # the content stage still runs. `condition: succeeded()` keeps the default success semantics
+  # explicit — a custom condition would otherwise drop them.
+  #
+  # Order inside a stage: assert_plan -> apply saved plan -> content -> assign.
+  #
+  # With more than one domain this is one approval per domain, because checks re-evaluate per stage
+  # execution and per job targeting the environment. That is a nuisance, not a hole: queue prod
+  # runs with a single domain (`parameters.domains`), and let the tenant's Exclusive lock keep two
+  # prod runs apart.
+  # =============================================================================================
+  - ${{ each domain in parameters.domains }}:
+    - stage: Prod_${{ replace(domain, '-', '_') }}
+      displayName: Prod — ${{ domain }}
+      dependsOn: PlanProd
+      condition: succeeded()
+      isSkippable: false
+      jobs:
+        # Ordinary job, no environment and no service connection: the gate for this stage is the
+        # environment on the jobs below, and asserting a plan needs no credentials — only the
+        # providers, to decode the saved file into JSON. Fails closed: a non-zero exit stops the
+        # stage before any prod credential is used.
+        - job: assert_plan
+          displayName: assert_plan — refuse replacements, destroys and count drift
+          steps:
+            - checkout: self
+            - download: current
+              artifact: tfplan-${{ domain }}
+            - script: |
+                set -euo pipefail
+                # -backend=false: this reads the saved plan, never state.
+                terraform -chdir=terraform/workspaces init -backend=false -input=false
+                terraform -chdir=terraform/workspaces show -json \
+                  "$(Pipeline.Workspace)/tfplan-${{ domain }}/${{ domain }}.tfplan" > plan.json
+              displayName: terraform show -json — ${{ domain }} prod plan
+            - script: |
+                set -euo pipefail
+                # Pack source: skeletons/scripts/assert_plan.py.tmpl (unit B). It prints a one-line
+                # verdict plus offending addresses and exits non-zero to block the apply; the phase
+                # selects the expected-address baseline under checks/known-good/.
+                python3 scripts/assert_plan.py plan.json --phase prod
+              displayName: assert_plan — ${{ domain }}
+
+        # An apply long enough to outlive the federated assertion fails with AADSTS700024 (the
+        # assertion expires around an hour, not the access token). Keeping apply alone in its own
+        # job, with no plan and no content competing for that hour, is the only lever this file has.
+        - deployment: apply
+          displayName: Apply approved plan — ${{ domain }}
+          dependsOn: assert_plan
+          environment: fabric-prod # Approvals check lives here; a Timeout => stage skipped
+          download: none
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - checkout: self
+                  - download: current
+                    artifact: tfplan-${{ domain }}
+                  - task: AzureCLI@2
+                    displayName: terraform apply — approved plan, ${{ domain }}
+                    inputs:
+                      azureSubscription: sc-fabric-admin
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      addSpnToEnvironment: true
+                      inlineScript: |
+                        set -euo pipefail
+                        export ARM_USE_OIDC=true
+                        export ARM_CLIENT_ID="$servicePrincipalId"
+                        export ARM_TENANT_ID="$tenantId"
+                        export ARM_OIDC_TOKEN="$idToken"
+                        export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                        export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                        # A saved plan still needs providers and the backend initialised. init
+                        # against the same key reads that state; it does not re-plan and cannot
+                        # change what the approved file will do.
+                        terraform -chdir=terraform/workspaces init -input=false \
+                          -backend-config="key=workspaces/${{ domain }}/prod.tfstate"
+
+                        # No plan, no -var-file: the file holds its variables and is bound to the
+                        # snapshot it was made against. Applying it IS the approval. A stale-plan
+                        # failure means a new PlanProd run and a new approval — never a forced
+                        # refresh, which would push through a plan nobody saw.
+                        terraform -chdir=terraform/workspaces apply -input=false \
+                          -lock-timeout=5m \
+                          "$(Pipeline.Workspace)/tfplan-${{ domain }}/${{ domain }}.tfplan"
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+
+        # A second deployment job on the same environment. Checks are evaluated per job targeting
+        # fabric-prod, so this may ask for the approval again — the reason Exclusive lock is worth
+        # enabling, so the apply and the content deploy cannot interleave with another run.
+        - deployment: content
+          displayName: Items — ${{ domain }} prod
+          dependsOn: apply
+          environment: fabric-prod
+          download: none
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - checkout: self
+                  - download: current
+                    artifact: fabric-content
+                  - task: AzureCLI@2
+                    displayName: deploy_items.py — ${{ domain }} prod
+                    inputs:
+                      azureSubscription: sc-fabric-deploy # items only; never the control plane
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      addSpnToEnvironment: true
+                      inlineScript: |
+                        set -euo pipefail
+                        # No ARM_* export: items get a Fabric token from this connection and this
+                        # job has no Terraform state to reach.
+                        #
+                        # Same bytes as nonprod; only the parameter.yml keys differ. Orphan removal
+                        # is one-way, which is why content runs after the control plane and never
+                        # before it, and why this stage cannot be re-run casually.
+                        python3 scripts/deploy_items.py \
+                          --env prod \
+                          --workspace fabric-${{ domain }}-prod \
+                          --content-dir "$(Pipeline.Workspace)/fabric-content" \
+                          --parameter-file "$(parameterFile)"
+
+        # The assignments root. Its state spans environments — group-to-workspace role assignments
+        # converge only once the prod workspace exists — so it runs after prod content and is the
+        # last thing to write. PREVIEW (contract §4): treat a first run as one to watch.
+        - deployment: assign
+          displayName: Assignments — ${{ domain }}
+          dependsOn: content
+          environment: fabric-prod
+          download: none
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - checkout: self
+                  - task: AzureCLI@2
+                    displayName: terraform init/plan/apply — assignments/${{ domain }}
+                    inputs:
+                      azureSubscription: sc-fabric-admin
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      addSpnToEnvironment: true
+                      inlineScript: |
+                        set -euo pipefail
+                        export ARM_USE_OIDC=true
+                        export ARM_CLIENT_ID="$servicePrincipalId"
+                        export ARM_TENANT_ID="$tenantId"
+                        export ARM_OIDC_TOKEN="$idToken"
+                        export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                        export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                        terraform -chdir=terraform/domain-assignments init -input=false \
+                          -backend-config="key=assignments/${{ domain }}.tfstate"
+
+                        terraform -chdir=terraform/domain-assignments plan -input=false \
+                          -lock-timeout=5m \
+                          -var-file=env/${{ domain }}.tfvars \
+                          -out=assignments.tfplan
+
+                        # A role assignment deleted here removes a human's access, which rule 2
+                        # refuses; assert runs before the apply, as in every other band.
+                        terraform -chdir=terraform/domain-assignments show -json assignments.tfplan > plan.json
+                        python3 scripts/assert_plan.py plan.json --phase assignments
+
+                        terraform -chdir=terraform/domain-assignments apply -input=false \
+                          -lock-timeout=5m assignments.tfplan
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
