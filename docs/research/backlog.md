@@ -122,6 +122,14 @@ Ordered by how much they would change what the team does.
     _(done 2026-11-24 — `landscape-what-other-technologies-make-up-the-modern-data-stack.md`;
     81 technologies, 71 verified on a page that states their purpose, and four specifications)_
 
+27. **Unified Terraform pipeline.** One pipeline from groups and capacity through workspaces and
+    workspace identities to content, dev → test → prod: the ordered bands, the state scopes, and
+    what is promoted.
+    _(done 2026-11-26 — `deployment-what-does-a-unified-terraform-pipeline-look-like.md`; four
+    bands over three states, a capacity read back per environment, groups left manual at current
+    scale, and the prod plan made in the test stage. It flags three documents that disagree and
+    needs ADR 0010 / spec 0001 / ADR 0002 amended before the work repo builds this.)_
+
 ## C. How an item gets done
 
 1. Copy `docs/research/TEMPLATE.md` to `<topic>-<question>.md`.
