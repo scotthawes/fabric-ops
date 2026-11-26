@@ -30,17 +30,17 @@ scope.
 
 | ID | Question | Assumption adopted | Probe (read-only) | If the probe disagrees |
 | --- | --- | --- | --- | --- |
-| A1 | SP Fabric licence (#14) | No licence needed | `GET /v1/capacities` as the SP | `PROBE-LICENCE`: assign Pro/PPU to the SP (human), rerun |
-| A2 | SP capacity Contributor (#15) | Not needed; admin membership | `GET /v1/capacities` returns both capacities | `PROBE-CAPACITY`: check `administration_members` |
-| A3 | Refresh while paused (#19) | Never auto-pause | none — policy | A human pause is a separate, documented operation |
-| A4 | Reservation billing while paused (#20) | No reservation; never auto-pause | none — policy | If finance reports a reservation, pause stays unavailable |
-| A5 | Overage default (#23) | Set explicitly after create | `azapi` read of `properties.overage` | `PROBE-OVERAGE`: re-apply the explicit setting |
-| A6 | SP may hold Fabric administrator | **Assume no** | `GET /v1/admin/domains` | `PROBE-ADMIN`: domains stay human-created; Core assignment is already the default |
-| A7 | SP may create ADO repositories | Assume no | none — process | Human creates the repository from the template in run-book 00 |
-| A8 | Graph consent granted | Assume yes, granted in bootstrap | `GET /groups?$top=1` (read) | `PROBE-GRAPH`: the consent step is incomplete; group create will 403 |
-| A9 | 64-CU quota for F64 | Assume available | capacity create returns; quota error otherwise | `PROBE-QUOTA`: request quota, or start at F32 and record the licensing change |
-| A10 | Viewers hold Pro/PPU | Assume yes | none — policy | If not, prod viewers cannot read; that is a licensing purchase, not a pack change |
-| A11 | DR posture | Not promised | none | Out of scope; see `business-continuity-what-does-fabric-guarantee.md` |
+| OQ-01 | SP Fabric licence (#14) | No licence needed | `GET /v1/capacities` as the SP | `PROBE-LICENCE`: assign Pro/PPU to the SP (human), rerun |
+| OQ-02 | SP capacity Contributor (#15) | Not needed; admin membership | `GET /v1/capacities` returns both capacities | `PROBE-CAPACITY`: check `administration_members` |
+| OQ-03 | Refresh while paused (#19) | Never auto-pause | none — policy | A human pause is a separate, documented operation |
+| OQ-04 | Reservation billing while paused (#20) | No reservation; never auto-pause | none — policy | If finance reports a reservation, pause stays unavailable |
+| OQ-05 | Overage default (#23) | Set explicitly after create | `azapi` read of `properties.overage` | `PROBE-OVERAGE`: re-apply the explicit setting |
+| OQ-06 | SP may hold Fabric administrator | **Assume no** | `GET /v1/admin/domains` | `PROBE-ADMIN`: domains stay human-created; Core assignment is already the default |
+| OQ-07 | SP may create ADO repositories | Assume no | none — process | Human creates the repository from the template in run-book 00 |
+| OQ-08 | Graph consent granted | Assume yes, granted in bootstrap | `GET /groups?$top=1` (read) | `PROBE-GRAPH`: the consent step is incomplete; group create will 403 |
+| OQ-09 | 64-CU quota for F64 | Assume available | capacity create returns; quota error otherwise | `PROBE-QUOTA`: request quota, or start at F32 and record the licensing change |
+| OQ-10 | Viewers hold Pro/PPU | Assume yes | none — policy | If not, prod viewers cannot read; that is a licensing purchase, not a pack change |
+| OQ-11 | DR posture | Not promised | none | Out of scope; see `business-continuity-what-does-fabric-guarantee.md` |
 
 ## What the pipeline probes
 
