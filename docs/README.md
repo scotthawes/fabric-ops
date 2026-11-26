@@ -13,6 +13,7 @@ The map of this pack. Everything here is research, decision or synthesis — not
 | The design argued, area by area | [`recommendations/`](recommendations/) — 01 identity, 02 capacity, 03 deployment, 04 governance |
 | The decisions and what they cost | [`adr/`](adr/) — the decision record, indexed there in number order |
 | What a human must verify in the tenant | [`runbook/01-work-tenant-checklist.md`](runbook/01-work-tenant-checklist.md) |
+| What must exist before the pipeline's first run | [`runbook/03-pipeline-bootstrap.md`](runbook/03-pipeline-bootstrap.md) |
 | How the described platform behaves once running | [`runbook/02-steady-state.md`](runbook/02-steady-state.md), from [`specs/0002`](specs/0002-platform-operations.md) |
 | Artefacts to adapt for the work repo | [`reference/`](reference/) — pipeline YAML, Terraform, naming, layout, API census |
 | Which API surfaces we have actually collected | [`reference/api-surface-coverage.md`](reference/api-surface-coverage.md) |

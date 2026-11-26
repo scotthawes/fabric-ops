@@ -14,9 +14,9 @@ names are placeholders.
 | `pipeline-contract.md` | The interface the reference artefacts share: names, state keys, root variables, stage graph. |
 | `naming.md` | One naming pattern for workspaces, capacity, groups, state and pipelines, and why. |
 | `repo-layout.md` | The work repo's top-level folders and what each owns. |
-| `ado-pipeline.yml` | Build + Dev/Test/Prod stages, two federated connections, prod approval. |
-| `terraform-capacity.tf` | The shared F SKU as an Azure resource (ADR 0004). |
-| `terraform-fabric.tf` | Workspaces, group role assignment, dev Git binding (ADR 0003, 0005, 0006). |
+| `ado-pipeline.yml` | Four bands over three states, two federated connections, the prod plan made in Test. |
+| `terraform-capacity.tf` | The shared F SKU as an Azure resource, with the admin SP as a capacity administrator (ADR 0004). |
+| `terraform-fabric.tf` | One environment per apply: groups, workspace, identity, role edges, dev Git binding (ADR 0003, 0005, 0006). |
 | `content-layout.md` | Item definitions in source-control format, and how parameterisation reaches them. |
 | `parameter.example.yml` | A `fabric-cicd` `parameter.yml` with `find_replace` across dev/test/prod. |
 | `role-and-permission-matrix.md` | Workspace roles in the product's own words, and the six grant paths beneath them. |

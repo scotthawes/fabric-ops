@@ -1,83 +1,418 @@
-# Illustrative Azure DevOps pipeline — fabric-ops, 2026-11-11. Not runnable from this repo.
+# Illustrative Azure DevOps pipeline — one definition, four bands, three state scopes.
+# fabric-ops research artefact, dated 2026-11-26. Illustrative only: not a manifest, not runnable
+# from this repo, and nothing here was executed (ADR 0001). Names, state keys and the stage graph
+# are fixed by docs/reference/pipeline-contract.md; the ordering and the promotion argument come
+# from docs/research/deployment-what-does-a-unified-terraform-pipeline-look-like.md (§6, §7).
 #
-# Assumptions, all true in the work repo first: Azure Repos in the same ADO organisation as the dev
-# workspace's Git integration (ADR 0005); self-hosted Linux agents (terraform, python3+pip, az CLI
-# >= 2.30, git >= 2.9.0); two federated connections with no secret (ADR 0002) — sc-fabric-admin ->
-# sp-fabric-admin (roles only) and sc-fabric-deploy -> sp-fabric-deploy (items only); approval on the
-# ADO Environment `fabric-sales-forecast-prod` with dev/test unchecked; Terraform state in Azure
-# Storage, one key per environment. Deploy stages are
-# written once and expanded at compile time: the three `deployOrder` entries ARE DeployDev,
-# DeployTest and DeployProd, chained in order.
+# THE GATE IS THE `environment:` LINE, not anything inside a stage. Approvals and checks attach to
+# the ADO environment resource, never to YAML, and an environment name cannot be a variable. A
+# stage that loses its `environment:` — or is pointed at a new, auto-created one — deploys ungated
+# and silently. Diff `environment:` per stage on every YAML change.
 #
-# THE GATE IS THE `environment:` LINE BELOW. Remove it and the stage deploys ungated, silently.
-# An approval that times out marks the stage *skipped*, not failed — check the stage result, not
-# just the pipeline's overall colour.
+# An approval that TIMES OUT marks the stage *skipped*, not failed. A run can therefore look
+# nearly green while prod never ran. Read the stage result, not the run colour.
+#
+# Why the prod plan is made in the Test stage: ADO evaluates an environment's approval checks when
+# a *stage* starts, not when a job inside it starts. A plan produced inside the Prod stage would be
+# approved before anyone had seen it. So the last job of Test plans against prod state and
+# publishes `tfplan-prod`; Prod applies that file. A saved plan is bound to the state snapshot it
+# was made against, so if prod state moves between plan and apply the plan is stale and the run
+# must re-plan and re-approve. That is the price of "what was approved is what runs".
+#
+# No variable group, no Key Vault link, no secret variable — deliberately. Both connections use
+# workload identity federation and Terraform reaches state with ARM_USE_OIDC (no storage account
+# key), so there is nothing left to store. A secret variable would buy nothing and cost something:
+# masking is best-effort, and a stored value has to be rotated, which is the failure mode
+# federation exists to remove.
+#
+# Controls this file assumes and cannot express:
+#   - branch policy on `main`, and "Edit build pipeline" denied to Contributors, because one
+#     authorised pipeline can reach either connection;
+#   - per-pipeline authorisation on sc-fabric-admin AND sc-fabric-deploy (never "grant access to
+#     all pipelines" — a connection has standing access to what it connects to);
+#   - an Exclusive lock on each environment, so an admin run and a content run cannot overlap.
+#     Terraform locks are per state blob; Fabric items have no lock at all.
 
-trigger: { branches: { include: [main] } }
-pool: { name: fabric-self-hosted }
-variables:
-  tfDir: terraform
+trigger:
+  branches:
+    include:
+      - main
 
-parameters:
-  - name: deployOrder
-    type: object
-    default:
-      - { stage: DeployDev,  env: dev,  varFile: dev,  dependsOn: Build }
-      - { stage: DeployTest, env: test, varFile: test, dependsOn: DeployDev }
-      - { stage: DeployProd, env: prod, varFile: prod, dependsOn: DeployTest }
+pool:
+  name: fabric-self-hosted # image carries terraform, python3 + pip, az CLI >= 2.30, git >= 2.9.0
 
 stages:
-  - stage: Build # no identity, no backend: nothing here can reach the tenant
+  # ---------------------------------------------------------------------------------------------
+  # Build — bundle and validate. No connection, no backend: nothing here can reach the tenant.
+  # ---------------------------------------------------------------------------------------------
+  - stage: Build
+    displayName: Build — bundle content, fmt, validate
     jobs:
-      - job: Validate
+      - job: bundle
         steps:
           - checkout: self
-          - script: terraform -chdir=$(tfDir) fmt -check -recursive
-            displayName: terraform fmt
-          - script: |
-              terraform -chdir=$(tfDir) init -backend=false
-              terraform -chdir=$(tfDir) validate
-            displayName: terraform validate (no backend, no credentials)
-          # VERIFY: fabric-cicd has no documented validate/dry-run mode; this checks our YAML only.
-          - script: python scripts/preflight.py --check-parameter-file config/parameter.yml
 
-  - ${{ each e in parameters.deployOrder }}:
-      - stage: ${{ e.stage }}
-        dependsOn: ${{ e.dependsOn }}
-        jobs:
-          - deployment: ${{ e.env }}
-            environment: fabric-sales-forecast-${{ e.env }} # prod's approval check lives here
-            strategy:
-              runOnce:
-                deploy:
-                  steps:
-                    - checkout: self # control plane first: the workspace must exist (ADR 0003)
-                    - task: AzureCLI@2
-                      displayName: terraform apply — ${{ e.env }}
-                      inputs:
-                        azureSubscription: sc-fabric-admin
-                        scriptType: bash
-                        addSpnToEnvironment: true
-                        script: |
-                          # Federated: the assertion comes from the connection, not a secret.
-                          export ARM_USE_OIDC=true ARM_CLIENT_ID=$servicePrincipalId
-                          export ARM_TENANT_ID=$tenantId ARM_OIDC_TOKEN=$idToken
-                          terraform -chdir=$(tfDir) init \
-                            -backend-config="key=fabric-sales-forecast/${{ e.env }}.tfstate"
-                          terraform -chdir=$(tfDir) apply -auto-approve -var-file=env/${{ e.varFile }}.tfvars
-                    - task: AzureCLI@2
-                      displayName: fabric-cicd publish — ${{ e.env }}
-                      inputs:
-                        azureSubscription: sc-fabric-deploy
-                        scriptType: bash
-                        addSpnToEnvironment: true
-                        script: |
-                          # deploy_items.py builds an azure-identity credential from $servicePrincipalId,
-                          # $tenantId, $idToken and passes it to FabricWorkspace(token_credential=...).
-                          # VERIFY: accepted credential types, and whether a federated assertion works
-                          # directly — fabric-cicd authentication docs; and orphan removal
-                          # (unpublish_all_orphan_items) before prod relies on it.
-                          # No commit diff: every item redeploys, so a portal edit is overwritten (0003, 0005).
-                          python scripts/deploy_items.py --environment ${{ e.env }} \
-                            --content-dir content --parameter-file config/parameter.yml \
-                            --workspace-name fabric-sales-forecast-${{ e.env }}
+          # Published once, from the commit under test. Every deploy stage consumes these bytes;
+          # no deploy stage rebuilds. It is published before validation on purpose: a broken run
+          # still leaves an artifact, and it is harmless because every later stage depends on this
+          # one succeeding. The artifact belongs to the run, so deleting the run deletes it
+          # (retention is project-level and counts only succeeded runs).
+          - publish: content
+            artifact: fabric-content
+            displayName: Publish content as fabric-content
+
+          # Recursive from the repo root, so a root added later is covered without editing this.
+          - script: terraform fmt -check -recursive
+            displayName: terraform fmt -check -recursive
+
+          # `terraform validate` needs providers and module sources, so it needs `init` — but not
+          # the backend. Without `-backend=false`, init would demand the state storage account and
+          # the OIDC variables this stage deliberately does not have.
+          - script: |
+              set -euo pipefail
+              for root in terraform/platform terraform/workspaces; do
+                echo "--- validate $root"
+                terraform -chdir="$root" init -backend=false -input=false
+                terraform -chdir="$root" validate
+              done
+            displayName: terraform validate per root (no backend, no credentials)
+
+          # Nothing else is published. The content bundle is the only artefact built here; the
+          # Terraform artefact that promotes is the commit plus the committed .terraform.lock.hcl.
+
+  # ---------------------------------------------------------------------------------------------
+  # Platform — the capacity and its resource group, one state, applied rarely.
+  # ---------------------------------------------------------------------------------------------
+  - stage: Platform
+    displayName: Platform — apply terraform/platform
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: platform
+        displayName: Apply platform state
+        # Gate carrier. Approval here is optional — this band changes yearly — but the
+        # environment still gives the run a deployment record and a place for the lock.
+        environment: fabric-platform
+        download: none # a control-plane job never consumes the content artifact
+        # One connection ID under three provider spellings (research note §8): azurerm and the
+        # azurerm backend read ARM_* / $AZURESUBSCRIPTION_SERVICE_CONNECTION_ID, the Fabric provider
+        # reads FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID, and FABRIC_OIDC_REQUEST_TOKEN is the
+        # system access token (no PAT). AzureCLI@2 exports the values *inside* the step, so the
+        # exports live in the script below, not in a job-level env block.
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: terraform init/plan/apply — platform
+                  inputs:
+                    azureSubscription: sc-fabric-admin # admin track: capacity + resource group
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      # The rest of the azurerm backend block (resource group, storage account,
+                      # container, use_azuread_auth, use_oidc) lives in the root's .tf; only the
+                      # state key differs here. One container, one blob per state, one lock per
+                      # blob — which is why dev cannot block prod.
+                      terraform -chdir=terraform/platform init -input=false \
+                        -backend-config="key=platform.tfstate"
+
+                      terraform -chdir=terraform/platform plan -input=false \
+                        -lock-timeout=5m -out=platform.tfplan
+
+                      # Executing a saved plan is the confirmation; -auto-approve is irrelevant
+                      # once a plan file is passed.
+                      terraform -chdir=terraform/platform apply -input=false \
+                        -lock-timeout=5m platform.tfplan
+
+  # ---------------------------------------------------------------------------------------------
+  # Dev — control plane, then content. Two jobs, two connections, one environment.
+  # ---------------------------------------------------------------------------------------------
+  - stage: Dev
+    displayName: Dev — apply workspaces, then content
+    dependsOn: Platform
+    condition: succeeded()
+    jobs:
+      # Must run before `content`: the workspace, its identity and the role assignments have to
+      # exist before any item lands (never pass a workspace ID as a string — reference the
+      # resource, so the first apply cannot 404 on item create).
+      - deployment: control
+        displayName: Apply workspaces — dev
+        environment: fabric-dev
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: terraform init/plan/apply — workspaces dev
+                  inputs:
+                    azureSubscription: sc-fabric-admin # control plane: admin principal
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      terraform -chdir=terraform/workspaces init -input=false \
+                        -backend-config="key=workspaces/dev.tfstate"
+
+                      terraform -chdir=terraform/workspaces plan -input=false \
+                        -lock-timeout=5m -var-file=env/dev.tfvars -out=dev.tfplan
+
+                      terraform -chdir=terraform/workspaces apply -input=false \
+                        -lock-timeout=5m dev.tfplan
+
+      - deployment: content
+        displayName: Deploy items — dev
+        dependsOn: control
+        environment: fabric-dev
+        download: none # explicit download below, rather than the auto-injected task
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - download: current
+                  artifact: fabric-content
+                - task: AzureCLI@2
+                  displayName: deploy_items.py — dev
+                  inputs:
+                    azureSubscription: sc-fabric-deploy # content track: items only, no state
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      # No ARM_* export here: this job never calls Terraform. The script builds an
+                      # azure-identity credential from $servicePrincipalId, $tenantId and $idToken
+                      # and passes it to fabric-cicd. fabric-cicd is stateless, so this job takes
+                      # no Terraform lock — only the environment's Exclusive lock keeps it from
+                      # colliding with an admin run.
+                      python scripts/deploy_items.py --env dev \
+                        --content-dir "$(Pipeline.Workspace)/fabric-content"
+
+  # ---------------------------------------------------------------------------------------------
+  # Test — the same two steps, then the prod plan. The plan is the thing an approver reads.
+  # ---------------------------------------------------------------------------------------------
+  - stage: Test
+    displayName: Test — apply workspaces, content, plan prod
+    dependsOn: Dev
+    condition: succeeded()
+    jobs:
+      - deployment: control
+        displayName: Apply workspaces — test
+        environment: fabric-test
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: terraform init/plan/apply — workspaces test
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      terraform -chdir=terraform/workspaces init -input=false \
+                        -backend-config="key=workspaces/test.tfstate"
+
+                      terraform -chdir=terraform/workspaces plan -input=false \
+                        -lock-timeout=5m -var-file=env/test.tfvars -out=test.tfplan
+
+                      terraform -chdir=terraform/workspaces apply -input=false \
+                        -lock-timeout=5m test.tfplan
+
+      - deployment: content
+        displayName: Deploy items — test
+        dependsOn: control
+        environment: fabric-test
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - download: current
+                  artifact: fabric-content
+                - task: AzureCLI@2
+                  displayName: deploy_items.py — test
+                  inputs:
+                    azureSubscription: sc-fabric-deploy
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      # No ARM_* export: the Fabric token comes from the connection, not the
+                      # azurerm variables.
+                      python scripts/deploy_items.py --env test \
+                        --content-dir "$(Pipeline.Workspace)/fabric-content"
+
+      # Last job in the stage, after both test deploys, so the plan the approver reads is made
+      # against prod state as it stands at the end of this run. It READS prod state and changes
+      # nothing — plan only, no apply, no -target. The plan file is opaque, holds variable values
+      # and any sensitive values in cleartext, and is meaningless against another state, so it is
+      # published as an artefact of THIS run and never reused.
+      #
+      # Deliberately a plain job, NOT a deployment job on `fabric-prod`. A check on that
+      # environment is evaluated when a job targeting it starts, so a plan job on fabric-prod
+      # would ask for the approval before the plan existed — the inversion this design avoids.
+      # Planning is not a deployment: it has no target, no deployment record and no gate.
+      - job: plan_prod
+        displayName: Plan prod (read-only, ungated on purpose)
+        dependsOn:
+          - control
+          - content
+        steps:
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: terraform plan — prod
+            inputs:
+              azureSubscription: sc-fabric-admin
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              env:
+                FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+              inlineScript: |
+                set -euo pipefail
+                export ARM_USE_OIDC=true
+                export ARM_CLIENT_ID="$servicePrincipalId"
+                export ARM_TENANT_ID="$tenantId"
+                export ARM_OIDC_TOKEN="$idToken"
+                export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                terraform -chdir=terraform/workspaces init -input=false \
+                  -backend-config="key=workspaces/prod.tfstate"
+
+                terraform -chdir=terraform/workspaces plan -input=false \
+                  -lock-timeout=5m -var-file=env/prod.tfvars -out=prod.tfplan
+          - publish: terraform/workspaces/prod.tfplan
+            artifact: tfplan-prod
+            displayName: Publish prod.tfplan as tfplan-prod
+
+  # ---------------------------------------------------------------------------------------------
+  # Prod — apply the plan that was approved, then content. No re-plan.
+  # ---------------------------------------------------------------------------------------------
+  - stage: Prod
+    displayName: Prod — apply approved plan, then content
+    dependsOn: Test
+    condition: succeeded()
+    jobs:
+      # An apply long enough to outlive the federated assertion fails with AADSTS700024 (the
+      # assertion expires after roughly an hour, and it is the assertion that expires, not the
+      # access token). Keeping apply alone in its own job, with no plan and no content deploy
+      # competing for the hour, is the only lever this file has over that.
+      - deployment: apply
+        displayName: Apply approved prod plan
+        environment: fabric-prod # Approvals check lives here; timeout => stage skipped
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - download: current
+                  artifact: tfplan-prod
+                - task: AzureCLI@2
+                  displayName: terraform apply — approved plan
+                  inputs:
+                    azureSubscription: sc-fabric-admin
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    env:
+                      FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+                      export FABRIC_AZURE_DEVOPS_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+
+                      # A saved plan still needs the providers and the backend initialised. init
+                      # against the same state key reads that state; it does not re-plan and cannot
+                      # change what the approved file will do.
+                      terraform -chdir=terraform/workspaces init -input=false \
+                        -backend-config="key=workspaces/prod.tfstate"
+
+                      # No plan, no -var-file: the plan file already holds the variables and is bound
+                      # to the state snapshot it was made against. Applying it IS the approval. If it
+                      # fails as stale, re-plan in a new Test run and re-approve; do not -refresh=false
+                      # to force it through.
+                      terraform -chdir=terraform/workspaces apply -input=false \
+                        -lock-timeout=5m "$(Pipeline.Workspace)/tfplan-prod/prod.tfplan"
+
+      # A second deployment job on the same environment: checks are evaluated per job that
+      # targets fabric-prod, so this job may ask for the approval again after the apply. That is
+      # a nuisance, not a hole — and the reason Exclusive lock (sequential) is worth enabling, so
+      # the apply and the content deploy cannot interleave with another run.
+      - deployment: content
+        displayName: Deploy items — prod
+        dependsOn: apply
+        environment: fabric-prod
+        download: none
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - download: current
+                  artifact: fabric-content
+                - task: AzureCLI@2
+                  displayName: deploy_items.py — prod
+                  inputs:
+                    azureSubscription: sc-fabric-deploy # items only; never the control plane
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      # No ARM_* export: items are deployed with a Fabric token from this
+                      # connection, and this job has no Terraform state to reach.
+
+                      # Same bytes as dev and test; only parameter.yml keys differ. Orphan removal
+                      # is one-way, which is why this runs after the control plane, never before.
+                      # VERIFY: fabric-cicd's accepted credential types, whether a federated
+                      # assertion works directly, and orphan-removal behaviour before prod relies
+                      # on it.
+                      python scripts/deploy_items.py --env prod \
+                        --content-dir "$(Pipeline.Workspace)/fabric-content"
