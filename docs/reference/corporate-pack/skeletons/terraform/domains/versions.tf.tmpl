@@ -1,0 +1,31 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4, §5.
+#
+# State key: domains.tfstate — one state for the whole domain tree, because domains are
+# tenant-wide and the role assignments hang off the same objects.
+#
+# This root is CONDITIONAL on sp-fabric-admin holding Fabric administrator; the guard resource in
+# main.tf.tmpl enforces that at plan time.
+
+terraform {
+  required_version = ">= 1.8, < 2.0"
+
+  required_providers {
+    fabric = {
+      source  = "microsoft/fabric"
+      version = "= 1.15.1" # exact pin, verified 2026-11-11; a minor shipped a break (v1.6.0)
+    }
+  }
+
+  backend "azurerm" {
+    resource_group_name  = "rg-fabric-corporate"
+    storage_account_name = "stfabriccorp"
+    container_name       = "tfstate"
+
+    use_azuread_auth = true
+    use_oidc         = true
+
+    # key is supplied by the pipeline: terraform init -backend-config="key=domains.tfstate"
+  }
+}

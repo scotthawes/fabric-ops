@@ -1,0 +1,90 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4, §5.
+#
+# State key: domains.tfstate — see versions.tf.tmpl.
+#
+# This root is CONDITIONAL. It exists only for a tenant where sp-fabric-admin holds the Fabric
+# administrator role. The provider says so in three places: fabric_domain's docs ("The caller
+# must be a Fabric administrator"), Learn's Domains page ("Fabric admin (or higher)"), and the
+# app-registration rule ("must not have any Fabric permissions that require admin consent").
+# If the SP does not hold the role, the stage is skipped — not applied and failed. The guard
+# resource below makes that skip explicit: applying with the flag false fails at plan.
+
+provider "fabric" {
+  tenant_id = var.tenant_id
+  client_id = var.admin_client_id # sp-fabric-admin, the principal that must hold Fabric admin
+
+  use_oidc = true
+
+  # ADO federated exchange: the provider accepts the ADO service connection GUID (a GUID, not a
+  # display name) and requests its own Fabric-audience token from the $idToken assertion.
+  azure_devops_service_connection_id = var.ado_service_connection_id
+}
+
+# Fail closed when the conditional stage was started without the human confirmation. A comment is
+# not a gate; this is. `terraform_data` is built in from Terraform 1.4 and stores nothing remote.
+resource "terraform_data" "fabric_admin_guard" {
+  input = "fabric_domain requires Fabric administrator"
+
+  lifecycle {
+    precondition {
+      condition     = var.fabric_administrator_confirmed
+      error_message = "Set fabric_administrator_confirmed = true only after bootstrap has verified, with a real API call, that sp-fabric-admin holds Fabric administrator and has no admin-consent Fabric permission. Otherwise skip this stage."
+    }
+  }
+}
+
+# One fabric_domain per config/domains.yaml row. Keys are lowercase hyphenated domain names and
+# become part of the address, so renaming a key plans a destroy/create — prevent_destroy stops it.
+resource "fabric_domain" "this" {
+  for_each = var.domains
+
+  display_name = each.value.display_name # at most 40 characters (provider schema)
+  description  = each.value.description
+
+  # Empty string means "top-level domain". A non-empty value must be another key in this map;
+  # the variable validation enforces that, so a typo fails before the graph is built.
+  parent_domain_id = (
+    each.value.parent_domain == ""
+    ? null
+    : fabric_domain.this[each.value.parent_domain].id
+  )
+
+  lifecycle {
+    # A domain carries governance and a default sensitivity label. Destroying it unassigns every
+    # workspace underneath it and cannot be undone by re-applying this file alone.
+    prevent_destroy = true
+  }
+}
+
+# Two assignments per domain, one per role. `principals` is a SET with ForceNew on the set and on
+# `role`: adding or removing one principal replaces the whole assignment rather than patching it.
+# assert_plan does not forbid that replace (rule 1 covers fabric_domain, not its role sets), so a
+# reviewer must read a change here as a full re-grant.
+#
+# Deliberately NO prevent_destroy here: because every membership change is a replace, the guard
+# would freeze the grant — the one thing an operator legitimately needs to change.
+resource "fabric_domain_role_assignments" "admins" {
+  for_each = {
+    for key, domain in var.domains : key => domain
+    if length(domain.admins) > 0
+  }
+
+  domain_id = fabric_domain.this[each.key].id
+  role      = "Admins"
+
+  principals = toset(each.value.admins) # each: { id = "<object id>", type = "User" | "Group" }
+}
+
+resource "fabric_domain_role_assignments" "contributors" {
+  for_each = {
+    for key, domain in var.domains : key => domain
+    if length(domain.contributors) > 0
+  }
+
+  domain_id = fabric_domain.this[each.key].id
+  role      = "Contributors"
+
+  principals = toset(each.value.contributors)
+}

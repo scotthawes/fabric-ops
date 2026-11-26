@@ -1,0 +1,431 @@
+#!/usr/bin/env python3
+# Pack: 2026-11-26.1 — illustrative skeleton; see spec/0002-contract.md.
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never run from fabric-ops (ADR 0001).
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+#
+# Rename to preflight.py in the corporate work repo. No tenant access, no network, no provider:
+# it reads one tfvars file and checks the things that must be true BEFORE a plan is worth reading.
+#
+#   python preflight.py --root workspaces terraform/workspaces/env/sales/nonprod.tfvars
+#   python preflight.py --root platform   terraform/platform/env/prod.tfvars
+#
+# Exit 0 pass, 1 findings, 2 usage or unparseable HCL.
+#
+# The parser is a deliberately small HCL subset: top-level `key = value`, strings, numbers,
+# booleans, lists and objects, with #, // and /* */ comments. tfvars in this pack use nothing
+# else. Heredocs and function calls are rejected loudly rather than guessed at.
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+DEFAULT_GUID = "00000000-0000-0000-0000-000000000000"
+ENVIRONMENTS = ("nonprod", "prod")
+SKUS = ("F2", "F4", "F8", "F16", "F32", "F64", "F128", "F256", "F512", "F1024", "F2048")
+GROUP_ROLES = {"viewers": "Viewer", "contributors": "Contributor", "members": "Member"}
+
+REQUIRED_KEYS = {
+    "platform": [
+        "environment",
+        "subscription_id",
+        "tenant_id",
+        "location",
+        "capacity_name",
+        "capacity_sku",
+        "capacity_admin_object_ids",
+    ],
+    "domains": [
+        "domains",
+        "fabric_administrator_confirmed",
+        "tenant_id",
+        "admin_client_id",
+        "ado_service_connection_id",
+    ],
+    "workspaces": [
+        "domain",
+        "environment",
+        "workspace_name",
+        "capacity_name",
+        "groups",
+        "enable_workspace_identity",
+        "identity_storage_account_id",
+        "bind_git",
+        "tenant_id",
+        "subscription_id",
+        "admin_client_id",
+        "ado_service_connection_id",
+    ],
+    "domain-assignments": [
+        "domain",
+        "workspace_ids",
+        "tenant_id",
+        "admin_client_id",
+        "ado_service_connection_id",
+    ],
+}
+
+
+class HclError(ValueError):
+    pass
+
+
+def tokenize(text: str):
+    tokens = []
+    i = 0
+    line = 1
+    n = len(text)
+
+    while i < n:
+        char = text[i]
+
+        if char in " \t\r":
+            i += 1
+            continue
+        if char == "\n":
+            tokens.append(("NL", None, line))
+            line += 1
+            i += 1
+            continue
+        if char == "#":
+            while i < n and text[i] != "\n":
+                i += 1
+            continue
+        if char == "/" and i + 1 < n and text[i + 1] == "/":
+            while i < n and text[i] != "\n":
+                i += 1
+            continue
+        if char == "/" and i + 1 < n and text[i + 1] == "*":
+            end = text.find("*/", i + 2)
+            if end == -1:
+                raise HclError(f"unterminated block comment at line {line}")
+            line += text.count("\n", i, end)
+            i = end + 2
+            continue
+
+        if char in "{}[]=,":
+            kind = {
+                "{": "LBRACE",
+                "}": "RBRACE",
+                "[": "LBRACK",
+                "]": "RBRACK",
+                "=": "EQ",
+                ",": "COMMA",
+            }[char]
+            tokens.append((kind, None, line))
+            i += 1
+            continue
+
+        if char == '"':
+            start_line = line
+            i += 1
+            chars = []
+            while i < n:
+                if text[i] == "\\":
+                    if i + 1 >= n:
+                        raise HclError(f"dangling escape at line {line}")
+                    nxt = text[i + 1]
+                    section = text[i : i + 2]
+                    if nxt == "n":
+                        chars.append("\n")
+                    elif nxt == "t":
+                        chars.append("\t")
+                    elif nxt == "r":
+                        chars.append("\r")
+                    elif nxt == '"':
+                        chars.append('"')
+                    elif nxt == "\\":
+                        chars.append("\\")
+                    elif nxt == "u" and i + 5 < n:
+                        try:
+                            chars.append(chr(int(text[i + 2 : i + 6], 16)))
+                            i += 4
+                        except ValueError as exc:
+                            raise HclError(f"bad \\u escape at line {line}") from exc
+                    else:
+                        chars.append(section)
+                    i += 2
+                    continue
+                if text[i] == '"':
+                    i += 1
+                    break
+                if text[i] == "\n":
+                    line += 1
+                chars.append(text[i])
+                i += 1
+            else:
+                raise HclError(f"unterminated string starting at line {start_line}")
+            tokens.append(("STR", "".join(chars), start_line))
+            continue
+
+        if char.isdigit() or (char == "-" and i + 1 < n and text[i + 1].isdigit()):
+            match = re.match(r"-?\d+(\.\d+)?", text[i:])
+            assert match is not None
+            raw = match.group(0)
+            value = float(raw) if "." in raw else int(raw)
+            tokens.append(("NUM", value, line))
+            i += len(raw)
+            continue
+
+        if char.isalpha() or char == "_":
+            match = re.match(r"[A-Za-z0-9_-]+", text[i:])
+            assert match is not None
+            tokens.append(("IDENT", match.group(0), line))
+            i += len(match.group(0))
+            continue
+
+        if char == "<" and i + 1 < n and text[i + 1] == "<":
+            raise HclError(f"heredoc is not supported by this preflight parser (line {line})")
+
+        raise HclError(f"unexpected character {char!r} at line {line}")
+
+    tokens.append(("EOF", None, line))
+    return tokens
+
+
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.pos = 0
+
+    def peek(self):
+        return self.tokens[self.pos]
+
+    def pop(self):
+        token = self.tokens[self.pos]
+        self.pos += 1
+        return token
+
+    def skip_separators(self):
+        while self.peek()[0] in ("NL", "COMMA"):
+            self.pos += 1
+
+    def expect(self, kind):
+        token = self.pop()
+        if token[0] != kind:
+            raise HclError(f"expected {kind!r} at line {token[2]}, found {token[0]!r}")
+        return token
+
+    def parse_file(self):
+        result = {}
+        self.skip_separators()
+        while self.peek()[0] != "EOF":
+            key = self.parse_key()
+            self.expect("EQ")
+            result[key] = self.parse_value()
+            if self.peek()[0] not in ("NL", "COMMA", "EOF"):
+                token = self.peek()
+                raise HclError(f"expected a newline after {key!r} at line {token[2]}")
+            self.skip_separators()
+        return result
+
+    def parse_key(self):
+        kind, value, line = self.pop()
+        if kind not in ("IDENT", "STR"):
+            raise HclError(f"expected an attribute name at line {line}, found {kind!r}")
+        return value
+
+    def parse_value(self):
+        kind, value, line = self.pop()
+        if kind == "STR":
+            return value
+        if kind == "NUM":
+            return value
+        if kind == "IDENT":
+            if value == "true":
+                return True
+            if value == "false":
+                return False
+            if value == "null":
+                return None
+            # Lenient: a bare word is not valid HCL outside expressions, but reporting it as a
+            # string gives a better message than a parse error.
+            return value
+        if kind == "LBRACK":
+            items = []
+            self.skip_separators()
+            while self.peek()[0] != "RBRACK":
+                items.append(self.parse_value())
+                self.skip_separators()
+            self.expect("RBRACK")
+            return items
+        if kind == "LBRACE":
+            obj = {}
+            self.skip_separators()
+            while self.peek()[0] != "RBRACE":
+                key = self.parse_key()
+                self.expect("EQ")
+                obj[key] = self.parse_value()
+                self.skip_separators()
+            self.expect("RBRACE")
+            return obj
+        raise HclError(f"expected a value at line {line}, found {kind!r}")
+
+
+def load_tfvars(path: Path):
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise HclError(f"cannot read {path}: {exc}") from exc
+    return Parser(tokenize(text)).parse_file()
+
+
+def walk_strings(value, prefix=""):
+    if isinstance(value, str):
+        yield prefix, value
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from walk_strings(item, f"{prefix}[{index}]")
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            child = f"{prefix}.{key}" if prefix else key
+            yield from walk_strings(item, child)
+
+
+def is_guid(value: str) -> bool:
+    return bool(re.fullmatch(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", value))
+
+
+def check(root: str, data: dict):
+    findings = []
+
+    for key in REQUIRED_KEYS[root]:
+        if key not in data:
+            findings.append(f"missing required key: {key}")
+
+    for path, value in walk_strings(data):
+        if "PLACEHOLDER" in value.upper():
+            findings.append(f"{path}: still contains PLACEHOLDER ({value!r})")
+        if value == DEFAULT_GUID:
+            findings.append(f"{path}: still the all-zero GUID placeholder")
+
+    environment = data.get("environment")
+    if environment is not None and environment not in ENVIRONMENTS:
+        findings.append(f"environment: {environment!r} is not one of {', '.join(ENVIRONMENTS)}")
+
+    if root == "platform":
+        if isinstance(data.get("environment"), str) and isinstance(data.get("capacity_name"), str):
+            expected = f"fabric-capacity-{data['environment']}"
+            if data["capacity_name"] != expected:
+                findings.append(f"capacity_name: expected {expected!r}, got {data['capacity_name']!r}")
+        if data.get("capacity_sku") not in SKUS:
+            findings.append(f"capacity_sku: expected one of {', '.join(SKUS)}")
+        admins = data.get("capacity_admin_object_ids")
+        if not isinstance(admins, list) or not admins:
+            findings.append("capacity_admin_object_ids: expected a non-empty list")
+
+    elif root == "workspaces":
+        domain = data.get("domain")
+        if isinstance(domain, str) and not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", domain):
+            findings.append(f"domain: {domain!r} is not lowercase hyphenated")
+
+        if all(isinstance(data.get(key), str) for key in ("domain", "environment", "workspace_name")):
+            expected = f"fabric-{data['domain']}-{data['environment']}"
+            if data["workspace_name"] != expected:
+                findings.append(f"workspace_name: expected {expected!r}, got {data['workspace_name']!r}")
+
+        if isinstance(data.get("environment"), str) and isinstance(data.get("capacity_name"), str):
+            expected = f"fabric-capacity-{data['environment']}"
+            if data["capacity_name"] != expected:
+                findings.append(f"capacity_name: expected {expected!r}, got {data['capacity_name']!r}")
+
+        groups = data.get("groups")
+        if not isinstance(groups, dict):
+            findings.append("groups: expected an object with viewers, contributors and members")
+        else:
+            if set(groups) != set(GROUP_ROLES):
+                findings.append(f"groups: expected exactly {sorted(GROUP_ROLES)}, got {sorted(groups)}")
+            for key, expected_role in GROUP_ROLES.items():
+                entry = groups.get(key)
+                if not isinstance(entry, dict):
+                    findings.append(f"groups.{key}: expected an object with role and owners")
+                    continue
+                if entry.get("role") != expected_role:
+                    findings.append(f"groups.{key}.role: expected {expected_role!r}, got {entry.get('role')!r}")
+                if not isinstance(entry.get("owners"), list):
+                    findings.append(f"groups.{key}.owners: expected a list (empty falls back to the applying SP)")
+
+        if not isinstance(data.get("enable_workspace_identity"), bool):
+            findings.append("enable_workspace_identity: expected true or false")
+        if not isinstance(data.get("bind_git"), bool):
+            findings.append("bind_git: expected true or false")
+        if data.get("bind_git") is True and data.get("environment") != "nonprod":
+            findings.append("bind_git: true is only allowed when environment is nonprod (ADR 0005)")
+
+        storage = data.get("identity_storage_account_id")
+        if not isinstance(storage, str):
+            findings.append("identity_storage_account_id: expected a string (\"\" when there is none)")
+        elif storage and not re.fullmatch(
+            r"/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Storage/storageAccounts/[^/]+",
+            storage,
+        ):
+            findings.append("identity_storage_account_id: expected a storage-account ARM ID or \"\"")
+
+    elif root == "domains":
+        domains = data.get("domains")
+        if not isinstance(domains, dict) or not domains:
+            findings.append("domains: expected a non-empty object, one entry per config/domains.yaml row")
+        else:
+            for key, entry in domains.items():
+                if not isinstance(entry, dict):
+                    findings.append(f"domains.{key}: expected an object")
+                    continue
+                if not isinstance(entry.get("display_name"), str) or not entry["display_name"].strip():
+                    findings.append(f"domains.{key}.display_name: expected a non-empty string")
+                elif len(entry["display_name"]) > 40:
+                    findings.append(f"domains.{key}.display_name: longer than 40 characters")
+                if not isinstance(entry.get("parent_domain"), str):
+                    findings.append(f"domains.{key}.parent_domain: expected \"\" or another domain key")
+                elif entry["parent_domain"] and entry["parent_domain"] not in domains:
+                    findings.append(f"domains.{key}.parent_domain: {entry['parent_domain']!r} is not a key in domains")
+                for role in ("admins", "contributors"):
+                    if not isinstance(entry.get(role), list):
+                        findings.append(f"domains.{key}.{role}: expected a list of {{ id, type }} objects")
+
+        if data.get("fabric_administrator_confirmed") is not True:
+            findings.append(
+                "fabric_administrator_confirmed: must be true; this root is conditional on the SP holding Fabric administrator"
+            )
+
+    elif root == "domain-assignments":
+        if not isinstance(data.get("domain"), str) or not data["domain"].strip():
+            findings.append("domain: expected the Fabric domain display name")
+        workspace_ids = data.get("workspace_ids")
+        if not isinstance(workspace_ids, list) or not workspace_ids:
+            findings.append("workspace_ids: expected a non-empty list of Fabric workspace GUIDs")
+        else:
+            for index, workspace_id in enumerate(workspace_ids):
+                if not isinstance(workspace_id, str) or not is_guid(workspace_id):
+                    findings.append(f"workspace_ids[{index}]: expected a GUID, got {workspace_id!r}")
+
+    return findings
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Validate a corporate-pack tfvars file before plan.")
+    parser.add_argument("tfvars", type=Path, help="path to the .tfvars file")
+    parser.add_argument("--root", required=True, choices=sorted(REQUIRED_KEYS), help="which Terraform root")
+    args = parser.parse_args(argv)
+
+    try:
+        data = load_tfvars(args.tfvars)
+    except HclError as exc:
+        print(f"FAIL preflight root={args.root} file={args.tfvars} error={exc}")
+        return 2
+
+    findings = check(args.root, data)
+
+    if findings:
+        print(f"FAIL preflight root={args.root} file={args.tfvars} findings={len(findings)}")
+        for finding in findings:
+            print(f"  - {finding}")
+        return 1
+
+    print(f"PASS preflight root={args.root} file={args.tfvars} findings=0")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

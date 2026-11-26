@@ -1,0 +1,56 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §3–§5.
+#
+# One azurerm_fabric_capacity per state. There is exactly one of these in each platform state.
+#
+# SKU GUIDANCE (sizing belongs to the run-book, not this file):
+#   nonprod — F2 is the smallest billable F SKU (2 CUs, 48 CU-hours/day). It is enough for
+#             container CRUD and item deployment, and it is the cheapest thing that can be
+#             destroyed and recreated without touching prod.
+#   prod    — F64 is P1 parity (64 CUs) and is the usual starting point when prod peak smoothed
+#             usage sits under 100%. F128..F2048 are valid here; F4096/F8192 are documented in
+#             licensing but are NOT in azurerm_fabric_capacity's SKU list.
+#
+# NOT EXPRESSIBLE HERE — configure outside Terraform, and say so in the run-book:
+#   * Capacity overage. Default-on at 25%, billed at 3x pay-as-you-go beyond the threshold.
+#     It lives in properties.overage of the 2026-09-01-preview ARM API; this resource is pinned
+#     to 2023-11-01 and has no overage block. An azapi_resource against the preview API could
+#     set it, but then two states would claim one capacity ID. One owner per object: leave the
+#     hatch out of this root.
+#   * Pause/resume. Suspend is an ARM action (POST .../Microsoft.Fabric/capacities/<name>/suspend),
+#     not a property; no Terraform resource or attribute represents it. Do it as a pipeline step
+#     or CLI call, never while any Fabric Terraform is being planned or applied (ADR 0004).
+
+resource "azurerm_fabric_capacity" "this" {
+  name                = var.capacity_name # fabric-capacity-<env>, fixed by contract §3
+  resource_group_name = data.azurerm_resource_group.capacity.name
+  location            = var.location
+
+  sku {
+    # F2 in nonprod, F64 in prod; sizing rationale above.
+    name = var.capacity_sku
+    # The only valid tier.
+    tier = "Fabric"
+  }
+
+  # UPN for an Entra user, object ID for a service principal. Include the automation principal
+  # here: without capacity-admin rights, data "fabric_capacity" in the workspaces root cannot
+  # list the capacity, and the workspace apply fails at the lookup rather than at the state check.
+  administration_members = var.capacity_admin_object_ids
+
+  tags = local.common_tags
+
+  lifecycle {
+    # A capacity destroy stops billing and removes compute from every workspace assigned to it.
+    # Terraform cannot restore it. The guard is not a substitute for review: deleting this block
+    # bypasses prevent_destroy, so retire by keeping the block (operating model §3).
+    prevent_destroy = true
+  }
+}
+
+# Resizing (sku.name) carries no ForceNew marker in the provider docs, so a resize is expected to
+# apply in place. The absence of a marker is not proof.
+# VERIFY: that an F2 -> F64 change applies in place AND that the change is visible to Fabric
+# without a pause/resume cycle. Plan it in nonprod first. name, location and resource_group_name
+# DO force replacement; assert_plan rule 1 blocks that replacement before apply.

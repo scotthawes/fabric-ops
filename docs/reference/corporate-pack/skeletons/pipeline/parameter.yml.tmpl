@@ -1,0 +1,113 @@
+# Illustrative fabric-cicd parameter file — corporate pack, unit C.
+#
+# Pack: 2026-11-26.1
+# Dated 2026-11-26. Illustrative only: no tenant was contacted, nothing here runs from fabric-ops
+# (ADR 0001), and every value below is a placeholder. Copy to the corporate work repo (the pack's
+# pipeline expects `config/parameter.yml`; change the `parameterFile` variable in cicd.yml if it
+# lives elsewhere) and fill the placeholders there. Never edit the template to match a copy.
+#
+# WHAT THIS FILE DOES: item definitions are committed out of the authoring workspace, so they carry
+# that workspace's GUIDs — workspace, lakehouse, sometimes a connection. fabric-cicd substitutes
+# those strings in memory at deploy time, per environment, so `content/` is never rewritten and the
+# same bytes reach nonprod and prod. Only IDs vary; a per-environment *expression* or a different
+# connection inside an item is a smell in the item, not a parameter-file problem.
+#
+# THE KEYS `nonprod` AND `prod` MUST MATCH the environment string passed to
+# `FabricWorkspace(environment=...)` in scripts/deploy_items.py, which this pipeline passes as
+# `--env nonprod` / `--env prod`. A mismatch is NOT an error: fabric-cicd leaves the value
+# unsubstituted and the item deploys pointing at the authoring workspace, with no warning. Check
+# the deployed item, not the deploy log.
+#
+# NO REAL VALUES, AND NO SECRETS. A parameter file is not a secret store: it is committed, and
+# every value in it is copied into an item definition. Replace the placeholders with IDs and names
+# only — never a client credential, personal access token, storage key, connection string or SQL password.
+#
+# VERIFY (fabric-cicd moves quickly; check its parameterisation docs before the first run):
+#   - the accepted file path (`.deploy/parameter.yml` is the documented default, and a non-default
+#     path may need an explicit argument to the deploy call);
+#   - the `find_value` / `replace_value` / `is_regex` spelling and whether `is_regex` is a string
+#     or a bool;
+#   - whether `$workspaces.<name>.id` / `$items.<Type>.<Name>.id` resolve inside `replace_value`
+#     during the same run (ordering matters when this deploy creates the referenced item);
+#   - orphan removal: it is one-way, so a find_value that stops matching a real ID is a silent
+#     pointer to the wrong workspace, not a no-op.
+
+find_replace:
+  # -------------------------------------------------------------------------------------------
+  # Environment name. Definitions that store a literal environment word (a schema name, a folder
+  # path, a query parameter) take it from here rather than from a per-environment copy of the item.
+  # -------------------------------------------------------------------------------------------
+  - find_value: "__ENVIRONMENT__"
+    replace_value:
+      nonprod: "nonprod"
+      prod: "prod"
+    is_regex: "false"
+
+  # -------------------------------------------------------------------------------------------
+  # Per-domain placeholders. The pipeline deploys one workspace per domain per environment, and the
+  # domain is part of the workspace name (contract §3: `fabric-<domain>-<env>`), so a token rather
+  # than a literal keeps one parameter file serving every domain in the matrix.
+  #
+  # `<domain>` is a token for the corporate copy to substitute when the copy is made — it is NOT
+  # resolved by fabric-cicd, which substitutes `find_value`, not `replace_value`. A domain whose
+  # items need genuinely different literals gets its own `parameter.<domain>.yml` and a run with
+  # `--parameter-file` pointing at it; there is no per-domain key in this schema, because the
+  # replace_value keys are environments.
+  # -------------------------------------------------------------------------------------------
+  - find_value: "__WORKSPACE_NAME__"
+    replace_value:
+      nonprod: "fabric-<domain>-nonprod"
+      prod: "fabric-<domain>-prod"
+    is_regex: "false"
+
+  - find_value: "__CAPACITY_NAME__"
+    replace_value:
+      nonprod: "fabric-capacity-nonprod"
+      prod: "fabric-capacity-prod"
+    is_regex: "false"
+
+  # A workspace ID referenced from inside an item (a shortcut target, a semantic-model binding).
+  # Prefer `$workspaces.<name>.id` if the VERIFY above confirms it resolves — it cannot go stale,
+  # whereas a literal here is a number to maintain per domain per environment.
+  - find_value: "__WORKSPACE_ID__"
+    replace_value:
+      nonprod: "<nonprod-workspace-id-of-<domain>>"
+      prod: "<prod-workspace-id-of-<domain>>"
+    is_regex: "false"
+
+  # -------------------------------------------------------------------------------------------
+  # The values the definitions actually carry out of the authoring workspace. The authoring
+  # workspace is the nonprod one (authors commit out of it; test and prod are never authored), so
+  # the `find_value` is that workspace's GUID and the `nonprod` key maps it to itself.
+  #
+  # The all-zero GUID below is a placeholder standing in for the real one. Verbatim GUIDs are the
+  # common case and the reason this file exists: a GUID used only in a report binding still needs an
+  # entry, and a missing entry is silent.
+  # -------------------------------------------------------------------------------------------
+  - find_value: "00000000-0000-0000-0000-000000000000"
+    replace_value:
+      nonprod: "<nonprod-workspace-id-of-<domain>>"
+      prod: "<prod-workspace-id-of-<domain>>"
+    is_regex: "false"
+
+  - find_value: "00000000-0000-0000-0000-000000000000"
+    replace_value:
+      nonprod: "<nonprod-lakehouse-id-of-<domain>>"
+      prod: "<prod-lakehouse-id-of-<domain>>"
+    is_regex: "false"
+
+  # A connection or gateway ID, when an item definition names one. Both keys may hold the same value
+  # if the connection is shared across environments — that is a legitimate sameness, and writing it
+  # twice is how the reviewer sees that it is deliberate.
+  - find_value: "00000000-0000-0000-0000-000000000000"
+    replace_value:
+      nonprod: "<nonprod-connection-id>"
+      prod: "<prod-connection-id>"
+    is_regex: "false"
+
+# Two extensions this pack deliberately does not ship, because each needs a decision recorded in the
+# corporate repo rather than a placeholder here:
+#   - `key_value_replace` (rewriting a JSON key's value rather than a string) — only needed when an
+#     item stores a structured reference that string substitution would corrupt;
+#   - `spark_pool` / `semantic_model_bim` sections — environment-specific compute and model
+#     settings, which are configuration, not promotion of the same bytes.

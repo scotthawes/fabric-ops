@@ -1,0 +1,45 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+
+variable "domain" {
+  type        = string
+  description = "Lowercase hyphenated domain key (e.g. sales), matched case-insensitively to a Fabric display name."
+
+  validation {
+    condition     = can(regex("^[a-z0-9]+(-[a-z0-9]+)*$", var.domain))
+    error_message = "domain must be lowercase hyphenated words (contract §3)."
+  }
+}
+
+variable "workspace_ids" {
+  type        = list(string)
+  description = "Fabric workspace GUIDs to place in the domain."
+
+  validation {
+    condition = (
+      length(var.workspace_ids) > 0 &&
+      alltrue([
+        for id in var.workspace_ids :
+        can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", id)) &&
+        id != "00000000-0000-0000-0000-000000000000"
+      ])
+    )
+    error_message = "workspace_ids must contain at least one real Fabric workspace GUID."
+  }
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "Entra tenant ID."
+}
+
+variable "admin_client_id" {
+  type        = string
+  description = "Application (client) ID of sp-fabric-admin."
+}
+
+variable "ado_service_connection_id" {
+  type        = string
+  description = "GUID of sc-fabric-admin, not its display name."
+}

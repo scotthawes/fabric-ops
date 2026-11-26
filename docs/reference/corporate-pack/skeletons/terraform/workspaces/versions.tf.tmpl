@@ -1,0 +1,50 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4, §5.
+#
+# One apply per domain per environment; the state key carries both:
+#   workspaces/<domain>/nonprod.tfstate
+#   workspaces/<domain>/prod.tfstate
+# There is no for_each over environments. A prod plan must not be able to contain nonprod's
+# workspace, and a nonprod destroy must not reach prod.
+#
+# Band 2 of the pipeline. Items are NOT here: fabric-cicd owns them (ADR 0003). The capacity is
+# NOT here: platform/<env>.tfstate owns it, and this root reads it by display name.
+
+terraform {
+  required_version = ">= 1.8, < 2.0"
+
+  required_providers {
+    fabric = {
+      source  = "microsoft/fabric"
+      version = "= 1.15.1" # exact pin, verified 2026-11-11
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 5.13" # storage RBAC only; checked 5.13.0, 2026-11-05
+    }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.1" # groups as code; VERIFY the minor current at build time
+    }
+    # azapi is needed ONLY for the commented resource-instance-rule hatch in workspace.tf.tmpl.
+    # Declaring it here does not enable anything; uncomment with that block.
+    # azapi = {
+    #   source  = "Azure/azapi"
+    #   version = "~> 2.0"
+    # }
+  }
+
+  # PARTIAL backend. The key is supplied at init because a backend cannot read variables:
+  #   terraform init -reconfigure \
+  #     -backend-config="key=workspaces/sales/nonprod.tfstate"
+  # One blob per domain per environment => one lock per apply. Never share a key across stages.
+  backend "azurerm" {
+    resource_group_name  = "rg-fabric-corporate"
+    storage_account_name = "stfabriccorp"
+    container_name       = "tfstate"
+
+    use_azuread_auth = true
+    use_oidc         = true
+  }
+}

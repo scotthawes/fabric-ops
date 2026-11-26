@@ -1,0 +1,58 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4, §5.
+#
+# PREVIEW ROOT. fabric_domain_workspace_assignments is preview-gated in provider v1.15.1, and
+# `preview` is provider-wide. Keeping it in its own state means the flag cannot be inherited by
+# the state that holds production workspaces (operating model §6).
+#
+# DESTRUCTION SEMANTICS: deleting this resource UNASSIGNS the workspaces from the domain. It does
+# not delete the workspaces, but it silently removes domain governance (labels, discovery) from
+# them. prevent_destroy therefore stays on; to change membership, edit workspace_ids, not the block.
+
+provider "fabric" {
+  tenant_id = var.tenant_id
+  client_id = var.admin_client_id
+  use_oidc  = true
+
+  azure_devops_service_connection_id = var.ado_service_connection_id
+
+  # Required for this resource; scoped to this root alone. It is not an invitation to add preview
+  # resources here — they would silently share this state's blast radius.
+  preview = true
+}
+
+# The contract's tfvars carry `domain` and `workspace_ids`, not a domain GUID, so the GUID is
+# resolved by display name. Resolve it once and fail if the match is not exactly one.
+# VERIFY: that the applying SP can enumerate domains here (fabric_domains documents SP auth but
+# does not state the role). If it cannot, pass domain_id from the domains state instead.
+data "fabric_domains" "all" {}
+
+locals {
+  # Contract names domains with lowercase hyphenated words, while `fabric_domains` exposes the
+  # display name ("sales" vs "Sales"). Compare case-insensitively and fail on zero/multiple.
+  domain_matches = [
+    for domain in data.fabric_domains.all.values : domain.id
+    if lower(domain.display_name) == lower(var.domain)
+  ]
+
+  # Empty rather than [0] so a zero/multi match reaches the precondition instead of erroring on
+  # the index first. The precondition is the thing that explains the failure.
+  domain_id = try(local.domain_matches[0], "")
+}
+
+resource "fabric_domain_workspace_assignments" "this" {
+  domain_id     = local.domain_id
+  workspace_ids = toset(var.workspace_ids)
+
+  lifecycle {
+    precondition {
+      condition     = length(local.domain_matches) == 1
+      error_message = "Expected exactly one Fabric domain whose display name matches '${var.domain}' (case-insensitive); found ${length(local.domain_matches)}. Domains are created by the domains stage; do not guess a GUID in tfvars."
+    }
+
+    # Unassigning is not deleting a workspace, but it is a governance change that no plan review
+    # downstream of this root can see. Keep the guard; edit workspace_ids to change membership.
+    prevent_destroy = true
+  }
+}

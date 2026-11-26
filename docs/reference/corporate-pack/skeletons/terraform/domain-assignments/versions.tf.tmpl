@@ -1,0 +1,31 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4, §5.
+#
+# State key: assignments/<domain>.tfstate, one per domain.
+#
+# PREVIEW ROOT. fabric_domain_workspace_assignments is preview-gated in provider v1.15.1, and
+# `preview` is provider-wide. Keeping it in its own state means the flag cannot be inherited by
+# the state that holds production workspaces (operating model §6).
+
+terraform {
+  required_version = ">= 1.8, < 2.0"
+
+  required_providers {
+    fabric = {
+      source  = "microsoft/fabric"
+      version = "= 1.15.1"
+    }
+  }
+
+  backend "azurerm" {
+    resource_group_name  = "rg-fabric-corporate"
+    storage_account_name = "stfabriccorp"
+    container_name       = "tfstate"
+
+    use_azuread_auth = true
+    use_oidc         = true
+
+    # key supplied at init: terraform init -backend-config="key=assignments/sales.tfstate"
+  }
+}

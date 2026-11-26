@@ -1,0 +1,33 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+
+output "workspace_id" {
+  value       = fabric_workspace.this.id
+  description = "Fabric workspace GUID, consumed by the content stage (deploy_items.py)."
+}
+
+output "workspace_identity_principal_id" {
+  # identity is an attribute object, and null when disabled; index would error, try does not.
+  value       = try(fabric_workspace.this.identity.service_principal_id, null)
+  description = "Service principal object ID of the workspace identity, or null when disabled."
+}
+
+output "group_object_ids" {
+  value = {
+    viewers      = azuread_group.viewers.object_id
+    contributors = azuread_group.contributors.object_id
+    members      = azuread_group.members.object_id
+  }
+  description = "Role -> Entra object IDs, for reviews and downstream grants."
+}
+
+output "workspace_name" {
+  value       = fabric_workspace.this.display_name
+  description = "Display name; the Git-bound repository and content stage join on it."
+}
+
+output "capacity_id" {
+  value       = data.fabric_capacity.shared.id
+  description = "Fabric capacity GUID this workspace was assigned to."
+}

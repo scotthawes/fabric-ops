@@ -1,0 +1,170 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §3, §5, §7.
+
+# ---------------------------------------------------------------------------------------------
+# The workspace container. capacity_id is a Fabric GUID from the data source; the ARM resource
+# ID is rejected at plan time.
+# ---------------------------------------------------------------------------------------------
+
+resource "fabric_workspace" "this" {
+  display_name = var.workspace_name # fabric-<domain>-<env>, unique in the tenant by API rule
+  description  = var.workspace_description
+  capacity_id  = data.fabric_capacity.shared.id
+
+  # Conditional SystemAssigned identity. The schema models identity as an ATTRIBUTE, not a block,
+  # so this is a conditional value rather than a dynamic block.
+  # VERIFY: that `identity = null` removes an existing identity in place, and that adding one to
+  # an existing workspace does not force replacement. The schema shows no ForceNew; that is not proof.
+  identity = local.identity_enabled ? { type = "SystemAssigned" } : null
+
+  lifecycle {
+    # Restoring from soft delete does NOT restore the identity (new app/SP IDs), so every Azure
+    # RBAC assignment or connection that referenced it is stale. Retire by keeping the block and
+    # handing off with removed { lifecycle { destroy = false } }; deleting the block bypasses this.
+    prevent_destroy = true
+  }
+}
+
+# ---------------------------------------------------------------------------------------------
+# Three group grants, one per role. The reference builds the edge group -> workspace -> grant,
+# so a missing group fails plan rather than apply. Roles are never Admin for people (ADR 0006).
+# ---------------------------------------------------------------------------------------------
+
+resource "fabric_workspace_role_assignment" "viewers" {
+  workspace_id = fabric_workspace.this.id
+  role         = "Viewer"
+
+  principal = {
+    id   = azuread_group.viewers.object_id
+    type = "Group"
+  }
+}
+
+resource "fabric_workspace_role_assignment" "contributors" {
+  workspace_id = fabric_workspace.this.id
+  role         = "Contributor"
+
+  principal = {
+    id   = azuread_group.contributors.object_id
+    type = "Group"
+  }
+}
+
+resource "fabric_workspace_role_assignment" "members" {
+  workspace_id = fabric_workspace.this.id
+  role         = "Member"
+
+  principal = {
+    id   = azuread_group.members.object_id
+    type = "Group"
+  }
+}
+
+# The identity's own workspace role. Trusted workspace access expects Contributor; without a role
+# the identity can hold storage permissions and still get no token.
+#
+# A DIRECT service-principal grant, which ADR 0006 refuses for people. The exception is written
+# down: this principal is a workload owned by the workspace, has no human membership to delegate,
+# and its life must end with the workspace.
+resource "fabric_workspace_role_assignment" "identity" {
+  count = local.identity_enabled ? 1 : 0
+
+  workspace_id = fabric_workspace.this.id
+  role         = "Contributor"
+
+  principal = {
+    id   = fabric_workspace.this.identity.service_principal_id
+    type = "ServicePrincipal"
+  }
+}
+
+# ---------------------------------------------------------------------------------------------
+# Optional: Azure RBAC for a firewall-enabled storage account. The grant must be at account
+# scope; a folder-level grant does not satisfy trusted workspace access.
+# ---------------------------------------------------------------------------------------------
+
+resource "azurerm_role_assignment" "identity_storage" {
+  count = local.identity_enabled && var.identity_storage_account_id != "" ? 1 : 0
+
+  scope                = var.identity_storage_account_id # ARM ID passed in; never an ambient name
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = fabric_workspace.this.identity.service_principal_id
+}
+
+# ---------------------------------------------------------------------------------------------
+# ILLUSTRATIVE ONLY — NOT ACTIVE. Resource instance rule (network path) for that storage account.
+#
+# Neither azurerm_storage_account nor azurerm_storage_account_network_rules documents
+# `resource_access_rules` (checked 2026-11-12), so there is no typed resource for the field.
+# The rule names the WORKSPACE, not the identity; the subscription segment is all-zero by design.
+# An azapi destroy is a no-op: the rule stays live while state forgets it. That is acceptable for
+# a field hatch with one named owner, not for an object. Read the live account before trusting
+# this to merge rather than replace the existing networkAcls.
+#
+# resource "azapi_update_resource" "storage_resource_instance_rule" {
+#   count = var.identity_storage_account_id != "" ? 1 : 0
+#
+#   resource_id = var.identity_storage_account_id
+#   type        = "Microsoft.Storage/storageAccounts@2023-05-01" # VERIFY the api-version
+#
+#   # VERIFY the body schema: properties.networkAcls.resourceAccessRules, element shape
+#   # { tenantId, resourceId }, and that azapi_update_resource PATCHes rather than replaces the
+#   # rest of networkAcls. Read the live account before enabling this.
+#   body = {
+#     properties = {
+#       networkAcls = {
+#         resourceAccessRules = [
+#           {
+#             tenantId   = var.tenant_id
+#             resourceId = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/PLACEHOLDER/providers/Microsoft.Fabric/workspaces/${fabric_workspace.this.id}"
+#           }
+#         ]
+#       }
+#     }
+#   }
+# }
+
+# ---------------------------------------------------------------------------------------------
+# NONPROD ONLY: the Git binding. `bind_git = false` in prod (ADR 0005). test/prod are deployment
+# targets whose only way in is the pipeline, so a portal edit is overwritten, not resurrected.
+# The resource precondition below refuses bind_git = true when environment is prod.
+# ---------------------------------------------------------------------------------------------
+
+resource "fabric_workspace_git" "nonprod" {
+  count = var.bind_git ? 1 : 0
+
+  workspace_id = fabric_workspace.this.id
+
+  # PreferWorkspace, NOT PreferRemote. This resource is not importable, so adoption runs the
+  # create path, which initialises from the branch; PreferRemote can overwrite the workspace's
+  # items with the branch. PreferWorkspace never does.
+  initialization_strategy = "PreferWorkspace"
+
+  # v1.15.1 models the repository as an attribute object, not a block. directory_name must start
+  # with "/". The repository name is fixed by contract §3.
+  git_provider_details = {
+    git_provider_type = "AzureDevOps"
+    organization_name = var.ado_organization
+    project_name      = var.ado_project
+    repository_name   = "fabric-${var.domain}-nonprod"
+    branch_name       = var.git_branch
+    directory_name    = "/"
+  }
+
+  # Required since v1.6.0. An SP is supported only with ConfiguredConnection.
+  git_credentials = {
+    source        = "ConfiguredConnection"
+    connection_id = var.git_connection_id # PLACEHOLDER ADO connection GUID
+  }
+
+  # A Terraform-created binding both binds AND syncs; it is a writer, not a passive pointer.
+  lifecycle {
+    # Cross-field guard: the variable validation can only see bind_git itself on Terraform 1.8.
+    # With bind_git false this instance does not exist, so the guard costs nothing in prod.
+    precondition {
+      condition     = var.environment == "nonprod"
+      error_message = "bind_git may only be true when environment is nonprod; prod stays unbound (ADR 0005)."
+    }
+  }
+}

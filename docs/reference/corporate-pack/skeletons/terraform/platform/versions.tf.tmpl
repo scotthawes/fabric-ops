@@ -1,0 +1,40 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §4, §5.
+# Copy into the corporate work repo, rename *.tf.tmpl -> *.tf, fill placeholders, then plan.
+#
+# PINNING. azurerm 5.13.0 is the version the capacity resource was checked against (2026-11-12).
+# The constraint is a verified minor, not "latest": a major bump re-plans every state.
+# Terraform floor: the Fabric provider requires >= 1.8; 1.11+ preferred.
+
+terraform {
+  required_version = ">= 1.8, < 2.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 5.13"
+    }
+  }
+
+  # PARTIAL backend. A backend block cannot read variables, so everything except the fixed names
+  # is supplied at init. This is what lets one root serve two states:
+  #
+  #   terraform init -reconfigure \
+  #     -backend-config="key=platform/nonprod.tfstate"
+  #
+  # and, for the prod state, key=platform/prod.tfstate.
+  #
+  # Federated auth: no storage key. The applying app needs Storage Blob Data Contributor on the
+  # container; use_azuread_auth + use_oidc make the backend use the ARM_* / idToken exchange.
+  # The account and container are fixed by contract §3 and are not secret. If the state storage
+  # lives in another resource group or subscription, override those with -backend-config too.
+  backend "azurerm" {
+    resource_group_name  = "rg-fabric-corporate"
+    storage_account_name = "stfabriccorp"
+    container_name       = "tfstate"
+
+    use_azuread_auth = true
+    use_oidc         = true
+  }
+}

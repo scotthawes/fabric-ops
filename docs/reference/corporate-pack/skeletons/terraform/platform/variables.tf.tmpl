@@ -1,0 +1,68 @@
+# corporate-pack 2026-11-26 — ILLUSTRATIVE SKELETON. Never applied from fabric-ops (ADR 0001).
+# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Contract: docs/reference/corporate-pack/spec/0002-contract.md §5.
+# Every value below is supplied by env/<environment>.tfvars. No real ID is committed.
+
+variable "environment" {
+  type        = string
+  description = "nonprod or prod. Selects the state key, the capacity name and the tag value."
+
+  validation {
+    condition     = contains(["nonprod", "prod"], var.environment)
+    error_message = "environment must be exactly nonprod or prod (contract §3)."
+  }
+}
+
+variable "subscription_id" {
+  type        = string
+  description = "Subscription holding the capacity and the state account. Guid; not a secret."
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "Entra tenant ID. Guid; not a secret."
+}
+
+variable "location" {
+  type        = string
+  description = "Azure region for the capacity, e.g. uksouth. Changing it replaces the capacity."
+}
+
+variable "capacity_name" {
+  type        = string
+  description = "fabric-capacity-nonprod or fabric-capacity-prod (contract §3)."
+
+  # Shape only: the exact environment-to-name pairing is a cross-field check, done by
+  # preflight.py. Keeping this condition on the variable itself works on Terraform 1.8, where
+  # cross-variable validation is not available.
+  validation {
+    condition     = can(regex("^fabric-capacity-(nonprod|prod)$", var.capacity_name))
+    error_message = "capacity_name must be fabric-capacity-nonprod or fabric-capacity-prod."
+  }
+}
+
+variable "capacity_sku" {
+  type        = string
+  description = "F2 for nonprod, F64 for prod. F4096/F8192 are not in this resource's SKU list."
+
+  validation {
+    condition = contains(
+      ["F2", "F4", "F8", "F16", "F32", "F64", "F128", "F256", "F512", "F1024", "F2048"],
+      var.capacity_sku
+    )
+    error_message = "capacity_sku must be one of F2..F2048; azurerm_fabric_capacity does not accept F4096/F8192."
+  }
+}
+
+variable "capacity_admin_object_ids" {
+  type        = list(string)
+  description = "Capacity administrators: UPN for users, Entra object ID for service principals."
+
+  validation {
+    condition = (
+      length(var.capacity_admin_object_ids) > 0 &&
+      alltrue([for member in var.capacity_admin_object_ids : member != "00000000-0000-0000-0000-000000000000"])
+    )
+    error_message = "Supply at least one real administrator (UPN or object ID); the all-zero GUID is a placeholder."
+  }
+}
