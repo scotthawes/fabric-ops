@@ -18,6 +18,10 @@ connection, Terraform state and environment topology. It is a separate project w
 ([ADR 0001](docs/adr/0001-research-artefact-not-deployment-tool.md), amended 2026-11-12); this repo
 carries findings *to* it and never becomes it.
 
+**Corporate pack**
+The build-ready design pack under `docs/reference/corporate-pack/`, copied into the corporate work
+repo. It is what a machine reader consumes; nothing in it runs from this repository.
+
 **Trial capacity**
 The free, time-limited Fabric capacity used for experimentation. Useful for learning
 mechanics, never for judging the work tenant's settings.
@@ -33,10 +37,19 @@ The provisioned pool of compute that Fabric workloads run on, bought as an F SKU
 F2048) or an equivalent reserved SKU. Workspaces are assigned to a capacity, and their
 consumption is measured in capacity units (CU).
 
+**Environment**
+One of exactly two deployment targets, `nonprod` or `prod`. It is the container distinction between
+workspaces, never part of an item's name.
+
 **Workspace**
 The collaboration and security boundary: it holds items, assigns roles (Admin, Member,
 Contributor, Viewer) to users, groups and service principals, and is assigned to one
 capacity.
+
+**Member group**
+The Entra group granted the workspace `Member` role, which can add users and publish apps. It is an
+access-administration path, so its ownership and reporting are treated like Admin's, not like
+Contributor's.
 
 **Item**
 Any object inside a workspace — lakehouse, warehouse, notebook, data pipeline, semantic
@@ -45,7 +58,8 @@ and the item-definition APIs all operate on.
 
 **Domain**
 A tenant-level grouping of workspaces used for governance, so administration can be
-delegated by business area rather than workspace by workspace.
+delegated by business area rather than workspace by workspace. Also used informally for a business
+area; where the distinction matters this glossary says **Fabric domain** or **business domain**.
 
 **Monitoring Item**
 The Fabric item that holds a workspace's telemetry: an Eventstream, a read-only KQL database and an

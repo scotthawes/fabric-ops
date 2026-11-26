@@ -33,11 +33,12 @@ What becomes easy, what becomes hard, and what we are now committed to maintaini
 | [0001](0001-research-artefact-not-deployment-tool.md) | This repo is a research artefact, not a deployment tool | accepted |
 | [0002](0002-two-service-principals-federated.md) | Two service principals, federated, split by job | accepted |
 | [0003](0003-terraform-control-plane-fabric-cicd-items.md) | Terraform for the control plane, fabric-cicd for items | accepted |
-| [0004](0004-one-shared-capacity.md) | One Fabric capacity shared by dev, test and prod | accepted |
+| [0004](0004-one-shared-capacity.md) | One Fabric capacity shared by dev, test and prod | superseded by 0012 |
 | [0005](0005-authoring-and-promotion.md) | Authoring in a bound dev workspace, promotion by pinned commit | accepted |
-| [0006](0006-access-through-entra-groups.md) | Access through one Entra security group per workspace | accepted |
+| [0006](0006-access-through-entra-groups.md) | Access through one Entra security group per workspace | accepted (amended 2026-11-26) |
 | [0007](0007-terraform-layout-and-pinning.md) | Two Terraform roots, and the provider pinned exactly | accepted |
 | [0008](0008-schema-is-state-based.md) | Schema is state-based, deployed after the items | accepted |
 | [0009](0009-observability-is-event-sourced.md) | Observability is event-sourced; monitoring gets its own capacity | proposed |
 | [0010](0010-delegation-and-administration-model.md) | Existence is centralised, operation is delegated | accepted (amended 2026-11-26) |
 | [0011](0011-fabric-now-databricks-at-a-gate.md) | Consolidate on Fabric now, and gate Databricks on a named trigger | accepted |
+| [0012](0012-two-capacities-one-per-environment.md) | Two capacities, one per environment | accepted |

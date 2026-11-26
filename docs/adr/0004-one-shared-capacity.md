@@ -1,7 +1,8 @@
 # 0004 — One Fabric capacity shared by dev, test and prod
 
-- **Status:** accepted
+- **Status:** superseded by [0012](0012-two-capacities-one-per-environment.md)
 - **Date:** 2026-11-11
+- **Superseded:** 2026-11-26 — two capacities, one per environment, replace the shared SKU
 - **Deciders:** Scott
 - **Evidence:** [`capacity-provisioning-and-cost-control.md`](../research/capacity-provisioning-and-cost-control.md)
 - **Overrides:** the research recommendation of one capacity per environment

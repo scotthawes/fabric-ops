@@ -3,6 +3,7 @@
 - **Status:** accepted
 - **Date:** 2026-11-15
 - **Amended:** 2026-11-26 — the pipeline creates the groups; ownership and membership stay human
+- **Amended:** 2026-11-26 — three groups per workspace; `members` joins the closed suffix list
 - **Deciders:** Scott
 - **Evidence:** [`governance-access-and-workspace-roles.md`](../research/governance-access-and-workspace-roles.md),
   [`entra-and-ado-operations.md`](../research/entra-and-ado-operations.md),
@@ -164,3 +165,20 @@ the smaller half.
   is the guard; the restore window is not.
 - Still unverified: whether an SP-created group with a human co-owner is editable by that human in
   every tenant configuration. That is a tenant fact, not a design choice.
+
+## Amendment 2026-11-26b — three groups, and Member is a group role
+
+The corporate design puts three groups on every workspace: Viewer, Contributor and Member. This
+amends §5's closed suffix list and §4's implicit "only Admin is special" reading.
+
+- **§5 suffix list** becomes `viewers`, `contributors`, `members`. The workspace Admin human owns all
+  three groups for their workspace; the platform team still manages the assignment, never the people.
+- **§4 is unchanged in its prohibition and extended in its reading.** No group may hold `Admin`, and
+  the assertion that fails on a group-Admin stays. A group **may** hold `Member`: it can add users and
+  publish apps, so it is an access-administration role rather than ordinary membership.
+- **Reporting.** The access report separates a group-`Member` grant from a person-`Member` grant, and
+  fails on direct per-user grants made below Admin. The exception register (§6) is still the only
+  place a direct grant may appear.
+- **ADR 0006** is amended in the same change from one group per workspace to three.
+- **Cost.** 2N workspaces × 3 groups = 6N groups, each owned, each a Pro/PPU licensing decision for
+  its members, and each an entry in the quarterly review.

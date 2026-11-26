@@ -2,6 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-12
+- **Amended:** 2026-11-26 — a multi-domain estate keeps the same principle but needs four roots, not two
 - **Deciders:** Scott
 - **Evidence:** [`terraform-operating-model.md`](../research/terraform-operating-model.md)
 
@@ -47,3 +48,13 @@ state to be protected.
   with a 404 or 409 on item creation and passes on retry — a failure that looks like a Fabric bug.
 - If this is ever collapsed to one root, the state must be moved deliberately; it is not a
   refactor to do casually mid-sprint.
+
+## Amendment 2026-11-26 — four roots when there are domains
+
+The split-by-lifetime principle is unchanged. The corporate estate adds two lifetimes this ADR did
+not have: the **domain** objects (tenant-level governance, changed rarely) and the **preview**
+workspace-to-domain assignments, which must not share a root with production containers because
+`preview = true` is provider-wide. The instance of this decision for that estate is
+[`corporate-pack/spec/0002-contract.md`](../reference/corporate-pack/spec/0002-contract.md) §2:
+platform (applied twice, one state per capacity), domains, workspaces per domain+env, and a
+preview-only assignments root.
