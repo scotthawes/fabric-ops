@@ -350,8 +350,8 @@ apply gets its own job rather than sharing one with everything else ([`ado-pipel
 
 | Document | What it says | What this note would change |
 | --- | --- | --- |
-| [ADR 0010](../adr/0010-delegation-and-administration-model.md) §2 | group creation manual; directory write refused | amend only if groups go into code; name the permission set and the owner cost |
-| [spec 0001](../specs/0001-fabric-deployment-pipeline.md) | "One Terraform root"; groups out of scope | correct to ADR 0007's two roots plus the bands; groups move from "out of scope" to a decided-for-now "manual" |
+| [ADR 0010](../adr/0010-delegation-and-administration-model.md) §2 | group creation manual; directory write refused | **amended 2026-11-26** — groups are created in the workspaces root with `Group.Create` (+ `User.Read.All` for a human owner); §3 ownership and §4 the Admin assertion are unchanged |
+| [spec 0001](../specs/0001-fabric-deployment-pipeline.md) | "One Terraform root"; groups out of scope | **corrected 2026-11-26** — two roots per ADR 0007, the prod plan made in Test, and groups moved into scope |
 | [ADR 0002](../adr/0002-two-service-principals-federated.md) | "prefer separate pipelines" | record the single-file/two-track compromise and the controls that make it defensible |
 
 ## What this does not establish

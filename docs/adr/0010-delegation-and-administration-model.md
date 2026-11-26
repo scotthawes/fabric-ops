@@ -2,6 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-15
+- **Amended:** 2026-11-26 — the pipeline creates the groups; ownership and membership stay human
 - **Deciders:** Scott
 - **Evidence:** [`governance-access-and-workspace-roles.md`](../research/governance-access-and-workspace-roles.md),
   [`entra-and-ado-operations.md`](../research/entra-and-ado-operations.md),
@@ -50,6 +51,9 @@ display name (`fabric-sales-forecast-dev-contributors`, per `reference/naming.md
 fails `terraform plan` instead of pasting an object ID that survives one rename. Group creation stays manual:
 adding the AzureAD provider to the platform principal buys `Directory.ReadWrite.All` to save a click, and
 that trade is refused.
+**Amended 2026-11-26:** group creation moves into the workspaces root, because the role assignment needs a
+resource edge and the cost is narrower than `Directory.ReadWrite.All`; ownership and membership stay human.
+See the amendment below.
 
 **3. Membership is delegated to a named group owner, not to the platform team.** Each per-workspace group is
 owned by the human who holds `Admin` on that workspace. That person adds and removes members; the platform
@@ -123,3 +127,40 @@ its role list.
 - **Deliberately not decided here:** staffing, whether the security review is internal or delegated, and who
   approves an exception. Those are organisational facts the pack cannot supply — spec 0002 already says so,
   and inventing them would make this look more finished than it is.
+
+## Amendment 2026-11-26 — the pipeline creates the groups; people still own them
+
+The §2 refusal rested on a price that turned out to be wrong, and on a benefit that turned out to be
+the smaller half.
+
+- **The price is `Group.Create`, not `Directory.ReadWrite.All`.** The `azuread_group` resource
+  documents its least application permission as `Group.Create`, plus `User.Read.All` when a user is
+  named as owner (or `Directory.Read.All` when either owner type is used). Directory-wide write is
+  not required.
+- **The benefit is the dependency edge, not the saved click.** With the group in the same root as
+  the workspace, the role assignment references `azuread_group.x.object_id`, so plan orders the
+  creation and a workspace rebuild cannot leave a name lookup pointing at a group that no longer
+  matches.
+
+**Decision.** Groups are created by `azuread_group` in the **workspaces root**, one per role:
+
+- `display_name = "<workspace>-<key>"` and `security_enabled = true` — the naming rule is unchanged.
+- `prevent_duplicate_names = true`, because Entra display names are **not unique**; §2's
+  name-as-contract only holds if a duplicate cannot exist.
+- `lifecycle { prevent_destroy = true }`, so a workspace destroy cannot churn the group's object ID
+  under an access review, a break-glass entry or an Azure RBAC assignment.
+- `owners` names the workspace's Admin human. An empty list falls back to the applying principal,
+  which is the provider's documented default — permitted, but it leaves §3's delegation unassigned.
+- §3 (membership is delegated to the owner) and §4 (no group carries `Admin`; the assertion stays)
+  are unchanged. Creation is automation's; who is in the group, and who owns it, are not.
+
+**Consequences.**
+
+- A directory change now appears in a Terraform plan and is reviewed with the workspace that needs it.
+- The platform principal holds directory write. It is `sp-fabric-admin`, never the deploy principal,
+  so ADR 0002's split still bounds what a content pipeline can do.
+- Group deletion is a 30-day soft delete (cloud security groups are in preview), and a permanent
+  purge leaves dangling role assignments — the tracked tenant question in the backlog. `prevent_destroy`
+  is the guard; the restore window is not.
+- Still unverified: whether an SP-created group with a human co-owner is editable by that human in
+  every tenant configuration. That is a tenant fact, not a design choice.

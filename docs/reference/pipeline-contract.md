@@ -100,9 +100,10 @@ Rules that follow from the research note:
 | `sp-fabric-admin` on Graph | `Group.Create`, `User.Read.All` (user owners), admin consent once |
 | `sp-fabric-deploy` | `Contributor` in each deployed workspace; "Service principals can call Fabric public APIs" |
 
-Groups are **built as code** here because that is the requested destination. It amends
-[ADR 0010](../adr/0010-delegation-and-administration-model.md) §2, which keeps creation manual; the
-note's recommendation (manual at current scale) stays recorded until that amendment is made.
+Groups are **built as code** here. [ADR 0010](../adr/0010-delegation-and-administration-model.md) §2
+was amended on 2026-11-26 to record that: creation is the pipeline's, while membership and ownership
+stay human. The note's separate recommendation (manual at current scale) is the reasoning that was
+weighed and not taken.
 
 ## 6. File ownership for the build wave
 

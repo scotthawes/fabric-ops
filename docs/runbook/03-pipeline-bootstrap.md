@@ -161,11 +161,11 @@ it produces a connection whose `Verify` fails with a message that looks like a w
   **manual** and refuses directory write on the platform principal. Until the amendment the contract
   says it makes is recorded, the consented set is a capability the pipeline does not use. Consenting it
   is a standing grant on the most privileged principal in the design; make that trade deliberately.
-  Because the workspaces root **creates** the groups in this design, it does not look them up by name;
-  the only directory read it needs is the one `User.Read.All` already covers, for binding a human
-  owner. If groups are instead kept manual, the root must resolve them by object ID or name and needs
-  at least `Group.Read.All` — **VERIFY** the least permission that works, because the provider's
-  documented floor has moved.
+  The amendment to ADR 0010 is recorded (2026-11-26), so the workspaces root now uses this set.
+  Because the root **creates** the groups, it does not look them up by name; the only directory read
+  it needs is the one `User.Read.All` already covers, for binding a human owner. If groups are instead
+  kept manual, the root must resolve them by object ID or name and needs at least `Group.Read.All` —
+  **VERIFY** the least permission that works, because the provider's documented floor has moved.
 - **Path:** Entra admin centre → **App registrations** → `sp-fabric-admin` → **API permissions** →
   **Add a permission** → **Microsoft Graph** → **Application permissions** → `Group.Create`,
   `User.Read.All` → **Add permissions** → **Grant admin consent**. The CLI can add the same entries,

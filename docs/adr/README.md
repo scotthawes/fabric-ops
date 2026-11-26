@@ -39,5 +39,5 @@ What becomes easy, what becomes hard, and what we are now committed to maintaini
 | [0007](0007-terraform-layout-and-pinning.md) | Two Terraform roots, and the provider pinned exactly | accepted |
 | [0008](0008-schema-is-state-based.md) | Schema is state-based, deployed after the items | accepted |
 | [0009](0009-observability-is-event-sourced.md) | Observability is event-sourced; monitoring gets its own capacity | proposed |
-| [0010](0010-delegation-and-administration-model.md) | Existence is centralised, operation is delegated | accepted |
+| [0010](0010-delegation-and-administration-model.md) | Existence is centralised, operation is delegated | accepted (amended 2026-11-26) |
 | [0011](0011-fabric-now-databricks-at-a-gate.md) | Consolidate on Fabric now, and gate Databricks on a named trigger | accepted |
