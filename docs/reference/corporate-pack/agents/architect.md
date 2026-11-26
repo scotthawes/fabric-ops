@@ -1,6 +1,6 @@
 # Architect
 
-**Illustrative · Pack: 2026-11-26.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 Governed by [`AGENTS.md`](AGENTS.md) and [`../forbid.md`](../forbid.md). Reads
 `../spec/0002-contract.md` before answering anything.

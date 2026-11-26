@@ -1,6 +1,6 @@
 # 0002 — Corporate pack contract
 
-Pack: 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-26.2 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 **Dated 2026-11-26.** The interface every file in this pack composes against. Fixed names, state keys,
 parameters and stage graph. A file that disagrees with this document is wrong, however plausible it
@@ -31,7 +31,8 @@ corporate-pack/
 ├── spec/
 │   ├── 0001-decisions.md         # the closed decisions, one section each
 │   ├── 0002-contract.md          # this file
-│   └── 0003-open-questions.md    # tenant facts, each VERIFY + date + owner
+│   ├── 0003-open-questions.md    # tenant facts, each VERIFY + date + owner
+│   └── 0004-assumptions.md       # how every unknown is absorbed: assume, probe, fallback
 ├── skeletons/
 │   ├── terraform/platform/{main,capacity,variables,outputs,versions}.tf.tmpl
 │   ├── terraform/domains/{main,variables,outputs,versions}.tf.tmpl
@@ -41,7 +42,7 @@ corporate-pack/
 │   ├── terraform/README.md       # module contract: inputs, outputs, what not to rename
 │   ├── pipeline/cicd.yml.tmpl
 │   ├── pipeline/parameter.yml.tmpl
-│   └── scripts/{assert_plan.py.tmpl,preflight.py.tmpl,deploy_items.py.tmpl}
+│   └── scripts/{assert_plan.py.tmpl,preflight.py.tmpl,deploy_items.py.tmpl,probe.py.tmpl}
 ├── runbook/
 │   ├── 00-bootstrap.md           # the human steps before the first run
 │   ├── 01-first-run.md           # stage order, checks, stop conditions
@@ -87,7 +88,7 @@ One container, one blob per key:
 | --- | --- |
 | `platform/nonprod.tfstate` | `terraform/platform` |
 | `platform/prod.tfstate` | `terraform/platform` |
-| `domains.tfstate` | `terraform/domains` (only if the SP holds Fabric administrator) |
+| `domains.tfstate` | `terraform/domains` (only if `createDomains` is enabled) |
 | `workspaces/<domain>/nonprod.tfstate` | `terraform/workspaces` |
 | `workspaces/<domain>/prod.tfstate` | `terraform/workspaces` |
 | `assignments/<domain>.tfstate` | `terraform/domain-assignments` (preview) |
@@ -125,12 +126,13 @@ Every value is a placeholder until the corporate repo supplies it. No real ID is
 ## 6. Stage graph
 
 ```
-Build ──▶ Platform ──▶ Domains ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain> (one stage each)
+Build ──▶ Probe ──▶ Platform ──▶ Domains (optional) ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain>
 ```
 
 | Stage | Jobs | Environment | Gate |
 | --- | --- | --- | --- |
 | Build | bundle content, `fmt -check`, `validate` per root, assert parameter↔YAML parity | none | none |
+| Probe | read-only checks; writes `probe.json`; fails with `PROBE-*` codes | none | none (a probe that writes is a deployment) |
 | Platform | two capacity jobs in parallel (`capacity-nonprod`, `capacity-prod`), then a `domains` job in the same stage | `fabric-platform` | optional approval |
 | Nonprod | one job per domain: control apply → content | `fabric-nonprod` | none — the environment carries the lock and the deployment record |
 | PlanProd | one plan job per domain, artifact `tfplan-<domain>` | **none** | none (read-only) |
@@ -142,6 +144,9 @@ Rules that are not negotiable:
 - One artifact per domain; a plan is never applied to another state or domain.
 - `assert_plan` runs before every apply and fails closed (§7).
 - `isSkippable: false` on every prod stage; a timed-out approval marks a stage *skipped*, not failed.
+- **Domains are optional and off by default** (`createDomains: false`). A human creates them and the
+  pipeline assigns through the Core API; the Terraform domain root is enabled only when the probe
+  proves the SP holds Fabric administrator.
 - `-refresh=false` and `-target` are forbidden.
 - **No local plan.** There is no read-only `terraform plan` on the corporate laptop; the pipeline's
   plan is the only plan, and the saved artifact is the thing approved.

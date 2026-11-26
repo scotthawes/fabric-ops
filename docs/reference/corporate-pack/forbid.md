@@ -1,6 +1,6 @@
 # Forbidden
 
-**Illustrative · Pack: 2026-11-26.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 Ten rules. Each is greppable: the **detect** line is what a reviewer or `checks/check-pack.sh`
 looks for. Rules 1–4 and 9 are machine-checked; the rest are review rules, and a violation is a

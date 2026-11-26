@@ -1,6 +1,6 @@
 # 0001 — Closed decisions
 
-Pack: 2026-11-26.1 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-26.2 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 Thirteen decisions, each closed on 2026-11-26 against wayfinder map
 [#41](https://github.com/scotthawes/fabric-ops/issues/41). One section per decision: what was
@@ -84,11 +84,16 @@ monitoring store could sit on the shared capacity.
 
 ## 4. Domains created by Terraform, with a human fallback
 
-**Decision.** The admin SP seeks **Fabric administrator**. If it can hold the role,
-`fabric_domain` is created by `terraform/domains`. If it cannot, a named human creates the domain
-and `scripts/assign_domains.py` assigns workspaces through the Core API
+**Decision.** By default a named human creates each Fabric domain, and
+`scripts/assign_domains.py` assigns workspaces through the Core API
 `POST /workspaces/{id}/assignToDomain`, which needs workspace admin plus domain contributor or
-admin. The role test happens **before** the layout is fixed, not after the first failed apply.
+admin. Terraform domain creation (`terraform/domains`) is **optional and off by default**; it is
+enabled only when the read-only probe proves the admin SP holds Fabric administrator.
+
+**Completed 2026-11-26.** The default is now the fallback itself. There is no channel back from the
+corporate tenant, so the design cannot wait on the Fabric-administrator answer; the safe branch is
+the one that works either way. The probe reports whether the optional root may be enabled, but
+nothing depends on it.
 
 **Why.** All three provider domain resources (`fabric_domain`,
 `fabric_domain_role_assignments`, preview `fabric_domain_workspace_assignments`) go through the

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Illustrative. Pack: 2026-11-26.1 (2026-11-26). Not runnable from fabric-ops (ADR 0001);
+# Illustrative. Pack: 2026-11-26.2 (2026-11-26). Not runnable from fabric-ops (ADR 0001);
 # the corporate work repo runs it against its own copy. Exit non-zero on the first class of
 # failure it finds, printing every offending path. Read-only: it edits nothing.
 #
@@ -7,7 +7,7 @@
 #
 # Rules, in the order the contract names them (spec/0002-contract.md §9):
 #   1. VERSION exists and its pack version matches every file header
-#   2. every file header carries "Pack: 2026-11-26.1"
+#   2. every file header carries "Pack: 2026-11-26.2"
 #   3. no *.tf exists anywhere in the pack
 #   4. every GUID is the all-zero placeholder
 #   5. no secret-shaped string, unless the file defines or detects it
@@ -16,7 +16,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
-EXPECTED="2026-11-26.1"
+EXPECTED=$(sed -n 's/^[Pp]ack:[[:space:]]*//p' VERSION 2>/dev/null | head -1 | tr -d '[:space:]')
+[ -n "$EXPECTED" ] || { echo "FAIL  VERSION is missing or has no pack: line"; exit 1; }
 ZERO_GUID="00000000-0000-0000-0000-000000000000"
 fail=0
 

@@ -1,5 +1,5 @@
 # corporate-pack 2026-11-26 — ILLUSTRATIVE. Placeholders only; preflight.py rejects this file
-# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Pack: 2026-11-26.2 — illustrative skeleton; placeholders only.
 # until every PLACEHOLDER and all-zero GUID is replaced.
 # State key for this file: platform/prod.tfstate
 

@@ -1,6 +1,6 @@
 # Corporate design pack
 
-**Illustrative · Pack: 2026-11-26.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 ## What this pack is
 
@@ -39,6 +39,7 @@ place the pack version is written; every file's header repeats it for greppabili
 | 3 | `spec/0002-contract.md` | the interface: names, state keys, parameters, stages |
 | 4 | `spec/0001-decisions.md` | why each decision was taken |
 | 5 | `spec/0003-open-questions.md` | tenant facts still unverified — each VERIFY, date, owner |
+| 6 | `spec/0004-assumptions.md` | how each unknown is absorbed: assume, probe, fallback |
 | 6 | `runbook/00-bootstrap.md` | the human steps before the first run |
 | 7 | `runbook/01-first-run.md` | stage order, checks after each, and the stop conditions |
 | 8 | `runbook/troubleshooting.md` | keep open during the first run |
@@ -61,6 +62,7 @@ disagree, the contract wins and the runbook is wrong.
 | `spec/0001-decisions.md` | the closed decisions, one section each |
 | `spec/0002-contract.md` | the interface every file composes against |
 | `spec/0003-open-questions.md` | tenant facts, each VERIFY + date + owner |
+| `spec/0004-assumptions.md` | the assumption, probe and fallback for each unknown |
 | `skeletons/terraform/README.md` | module contract for the four roots |
 | `skeletons/pipeline/cicd.yml.tmpl` | the one pipeline: stages, environments, gates |
 | `skeletons/pipeline/parameter.yml.tmpl` | `fabric-cicd` parameter file |
@@ -129,7 +131,7 @@ bash checks/check-pack.sh
 ```
 
 Fails, printing the offending path, on: a broken relative link, an unindexed file, a header without
-`Pack: 2026-11-26.1`, any `*.tf`, any GUID that is not the all-zero placeholder, a secret-shaped
+`Pack: 2026-11-26.2`, any `*.tf`, any GUID that is not the all-zero placeholder, a secret-shaped
 string outside the two files that define or detect it, or a `VERSION` that disagrees with the
 headers. It is the same script the corporate machine runs first.
 

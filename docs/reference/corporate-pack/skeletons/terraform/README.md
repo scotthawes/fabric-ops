@@ -1,6 +1,6 @@
 # Terraform roots — module contract
 
-**Pack: 2026-11-26.1 · dated 2026-11-26 · ILLUSTRATIVE ONLY.** Nothing here is applied from
+**Pack: 2026-11-26.2 · dated 2026-11-26 · ILLUSTRATIVE ONLY.** Nothing here is applied from
 `fabric-ops` (ADR 0001). The corporate work repo copies these skeletons, renames `*.tf.tmpl` to
 `*.tf`, fills placeholders, and applies them **only** through the ADO pipeline.
 

@@ -1,5 +1,5 @@
 # corporate-pack 2026-11-26 — ILLUSTRATIVE. Placeholders only.
-# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Pack: 2026-11-26.2 — illustrative skeleton; placeholders only.
 # State key: assignments/sales.tfstate
 
 # `domain` is the lowercase domain key from config/domains.yaml; the root resolves it against

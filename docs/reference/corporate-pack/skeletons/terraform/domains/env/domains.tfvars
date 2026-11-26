@@ -1,5 +1,5 @@
 # corporate-pack 2026-11-26 — ILLUSTRATIVE. Placeholders only; preflight.py rejects this file.
-# Pack: 2026-11-26.1 — illustrative skeleton; placeholders only.
+# Pack: 2026-11-26.2 — illustrative skeleton; placeholders only.
 # State key: domains.tfstate
 
 # This root is CONDITIONAL on sp-fabric-admin holding Fabric administrator. Leave false (or omit
