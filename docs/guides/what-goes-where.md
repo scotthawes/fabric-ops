@@ -3,6 +3,10 @@
 **Dated 2026-11-12.** The launch decision sheet. Three mechanisms, one rule each, then the order to
 run them in.
 
+**Amended 2026-11-26:** Entra groups are created by the pipeline, not by hand — see the 2026-11-26
+amendment to [ADR 0010](../adr/0010-delegation-and-administration-model.md). Membership and ownership
+stay human.
+
 The rule of thumb:
 
 - **Terraform** owns anything with an ID that must exist *before* content lands, and anything that
@@ -24,7 +28,7 @@ The rule of thumb:
 | Capacity admins, overage threshold, surge protection | | | ✅ | Portal/API settings AzureRM cannot express; overage is a money decision |
 | Pause / resume | | | ✅ | ARM action, outside Terraform state (ADR 0004) |
 | Tenant settings | ⚠️ | | ⚠️ | Expressible, but no import and `NoChange` default — assert only what you'll own forever |
-| Entra groups (one per workspace) | | | ✅ | Identity-system work, not Fabric |
+| Entra groups (one per workspace) | ✅ | | | Created with the workspace so the role assignment has a resource edge; membership and ownership stay human (ADR 0010 amendment, 2026-11-26) |
 | Workspaces + capacity assignment | ✅ | | | Must exist before items; must not be recreated (ADR 0003) |
 | Workspace role assignments | ✅ | | | Reviewable in a diff; the admin principal does it (ADR 0002) |
 | Dev workspace Git binding | ✅ | | | Active binding, not passive — connect once, early (ADR 0005) |
@@ -71,15 +75,14 @@ Sequence matters more than any single row, because of two hard dependencies: a w
 before items land, and a capacity must exist before a workspace can be assigned.
 
 **Phase 0 — before any pipeline exists (manual, half a day)**
-1. Create the Entra groups: one per workspace, name matching the workspace.
-2. Create the two service principals and their federated service connections.
-3. Turn on the four service-principal tenant settings, naming the admin security group.
-4. Confirm the network posture (run-book item 1) — this can invalidate the agent placement.
+1. Create the two service principals and their federated service connections.
+2. Turn on the four service-principal tenant settings, naming the admin security group.
+3. Confirm the network posture (run-book item 1) — this can invalidate the agent placement.
 
 **Phase 1 — the platform (Terraform)**
-5. `terraform/capacity`: resource group and F SKU.
-6. Set capacity admins, overage threshold, surge protection (manual, portal).
-7. `terraform/workspaces`: the three workspaces, their group role assignments, dev's Git binding.
+4. `terraform/capacity`: resource group and F SKU.
+5. Set capacity admins, overage threshold, surge protection (manual, portal).
+6. `terraform/workspaces`: the three workspaces, their groups, group role assignments, dev's Git binding.
 
 **Phase 2 — the first content (pipeline)**
 8. Commit two items to dev; merge; the pipeline deploys them to dev.

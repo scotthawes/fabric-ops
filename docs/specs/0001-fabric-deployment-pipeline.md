@@ -134,9 +134,10 @@ portal.
 
 **Modules and boundaries**
 
-- One Terraform root for the Fabric control plane, with per-environment variable files and one
-  state key per environment. Capacity (Azure-scope) is separable from Fabric-scope resources so
-  that the differing provider and identity paths do not interleave.
+- Two Terraform roots, split by lifetime (ADR 0007): `terraform/platform` for the resource group and
+  the shared capacity, in its own state; `terraform/workspaces` applied once per environment with a
+  state key and tfvars per environment, reading the capacity back as a data source. CLI workspaces
+  are not used, because the two principals need separate credentials and access controls.
 - A deploy script that owns item deployment: it takes an environment, a content directory, a
   parameter file and a workspace selector, builds a credential from the pipeline's federated
   identity, and calls `fabric-cicd`. This is the single entry point for content — the pipeline
@@ -162,8 +163,10 @@ portal.
 **Contract: promotion**
 
 - Merge to main deploys dev; test follows the same commit; prod requires approval on an ADO
-  Environment. The artefact is the commit SHA. Only dev is bound to Git integration; test and prod
-  accept changes solely from the pipeline.
+  Environment. The artefact is the commit SHA, plus the built content bundle. Only dev is bound to
+  Git integration; test and prod accept changes solely from the pipeline. The prod Terraform plan is
+  produced in the last job of the test stage and applied behind the approval, because a plan is bound
+  to one state and cannot be promoted.
 
 **Contract: environment**
 
@@ -214,7 +217,9 @@ Fabric API prove nothing about whether the deployment works.
   and cannot carry role assignments.
 - Item types with no definition API, and any attempt to automate around their absence.
 - Sensitivity-label deployment, OneLake security roles, SQL `GRANT` management.
-- Provisioning the ADO organisation, agents, service connections or Entra groups from code.
+- Provisioning the ADO organisation, agents or service connections from code — the bootstrap stays
+  human (run-book 03). Entra groups are **in** scope since the 2026-11-26 amendment to ADR 0010;
+  group membership and ownership stay human.
 - Capacity sizing decisions beyond expressing the SKU as a variable.
 - Multi-tenant or cross-tenant deployment.
 
