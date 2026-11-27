@@ -70,6 +70,20 @@ for tsv in docs/reference/api-operations.tsv docs/reference/arm-fabric-operation
   if [ "$rows" -lt 10 ]; then bad "$tsv has only $rows rows"; else ok "$tsv ($rows operations)"; fi
 done
 
+echo "corporate pack"
+pack=docs/reference/corporate-pack/checks/check-pack.sh
+if [ ! -f "$pack" ]; then
+  bad "$pack missing"
+else
+  pack_out=$(bash "$pack" 2>&1)
+  if [ "$?" -eq 0 ]; then
+    ok "the corporate pack passes its own checker"
+  else
+    bad "the corporate pack failed check-pack.sh"
+    printf '%s\n' "$pack_out" | grep '^FAIL' | head -20
+  fi
+fi
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "PASS"

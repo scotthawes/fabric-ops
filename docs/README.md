@@ -9,6 +9,7 @@ The map of this pack. Everything here is research, decision or synthesis — not
 | To know what to build and what to do by hand | [`guides/what-goes-where.md`](guides/what-goes-where.md) |
 | To know what Fabric will let you automate | [`guides/automation-coverage.md`](guides/automation-coverage.md) |
 | The platform's shape in one page | [`maps/fabric-system-map.md`](maps/fabric-system-map.md) |
+| How a change reaches the corporate tenant | [`maps/corporate-deployment-pipeline.md`](maps/corporate-deployment-pipeline.md) |
 | Who administers it, as a one-page architecture sheet | [`maps/platform-administration-architecture.html`](maps/platform-administration-architecture.html) |
 | The design argued, area by area | [`recommendations/`](recommendations/) — 01 identity, 02 capacity, 03 deployment, 04 governance |
 | The decisions and what they cost | [`adr/`](adr/) — the decision record, indexed there in number order |
