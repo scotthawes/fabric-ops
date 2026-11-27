@@ -32,6 +32,11 @@ from pathlib import Path
 
 REPLACE_FORBIDDEN = {"fabric_workspace", "azurerm_fabric_capacity", "fabric_domain"}
 DELETE_FORBIDDEN = {"azuread_group", "fabric_workspace", "azurerm_fabric_capacity"}
+# A `forget` action removes the object from state without destroying it: the object keeps existing,
+# unmanaged, and the next plan cannot see it. For a protected object that is the same escape as a
+# delete, so it is rule 2. fabric_domain is included: forgetting one drops the domain from
+# management while the domain and its role assignments stay live.
+FORGET_FORBIDDEN = DELETE_FORBIDDEN | {"fabric_domain"}
 
 # Rule 6: the expected address set for each root. `[key]` and `[0]` are the only variable parts;
 # for_each keys must be lowercase hyphenated domain keys. A resource not matching one of these is
@@ -106,12 +111,21 @@ def is_delete(actions):
     return actions == ["delete"]
 
 
+def is_forget(actions):
+    return actions == ["forget"]
+
+
+def is_removal(actions):
+    """True when the object leaves management, whether destroyed or merely forgotten."""
+    return is_delete(actions) or is_forget(actions)
+
+
 def planned_counts(changes):
     counts = Counter()
     for change in changes:
         if change["mode"] != "managed":
             continue
-        if is_delete(change["actions"]):
+        if is_removal(change["actions"]):
             continue
         counts[change["type"]] += 1
     return dict(sorted(counts.items()))
@@ -129,10 +143,17 @@ def check_rules(root, phase, plan, known_good_dir, write_baseline):
         if change["type"] in REPLACE_FORBIDDEN and is_replace(change["actions"]):
             fail(1, change["address"], f"replace of {change['type']} is forbidden")
 
-    # 2. Delete on the objects that hold workspace or directory identity.
+    # 2. Delete on the objects that hold workspace or directory identity. `forget` counts: it
+    # removes the object from state without destroying it, leaving a live object nothing manages.
     for change in changes:
         if change["type"] in DELETE_FORBIDDEN and is_delete(change["actions"]):
             fail(2, change["address"], f"delete of {change['type']} is forbidden")
+        elif change["type"] in FORGET_FORBIDDEN and is_forget(change["actions"]):
+            fail(
+                2,
+                change["address"],
+                f"forget of {change['type']} removes it from state without destroying it; the live object escapes management",
+            )
 
     # 3. A workspace plan must carry at least three group role assignments.
     if root == "workspaces":
@@ -141,7 +162,7 @@ def check_rules(root, phase, plan, known_good_dir, write_baseline):
             for change in changes
             if change["mode"] == "managed"
             and change["type"] == "fabric_workspace_role_assignment"
-            and not is_delete(change["actions"])
+            and not is_removal(change["actions"])
         ]
         if len(assignments) < 3:
             fail(

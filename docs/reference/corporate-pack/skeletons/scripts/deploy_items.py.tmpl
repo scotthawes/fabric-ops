@@ -9,7 +9,14 @@
 #   python deploy_items.py \
 #     --environment nonprod --domain sales \
 #     --workspace-id "$(terraform -chdir=... output -raw workspace_id)" \
-#     --content-dir build/content --parameter-file build/content/parameter.yml
+#     --content-dir build/content/sales --parameter-file build/content/sales.parameter.yml
+#
+# SCOPE. The content directory's basename must equal --domain, the parameter file's name must
+# carry that domain and must not still contain the literal `<domain>` token, and
+# --remove-orphans is refused without an explicit --item-type. None of these is decoration: the
+# workspace comes from --workspace-id, so without them a mis-pointed argument publishes one
+# domain's items into another domain's workspace, and an unscoped orphan sweep removes items the
+# repo never owned.
 #
 # Requires: pip install fabric-cicd azure-identity
 #
@@ -41,6 +48,10 @@ ENVIRONMENT_KEYS = {"nonprod": "nonprod", "prod": "prod"}
 
 DOMAIN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 GUID_RE = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+ITEM_TYPE_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*")
+
+# A wildcard item-type is the whole workspace by another name, so it is not a scope.
+WILDCARD_ITEM_TYPES = {"*", "all", "any"}
 
 
 class DeployError(RuntimeError):
@@ -69,7 +80,10 @@ def parse_args(argv=None):
     parser.add_argument(
         "--remove-orphans",
         action="store_true",
-        help="also unpublish deployed items of the in-scope types that are absent from the repo",
+        help=(
+            "also unpublish deployed items of the in-scope types that are absent from the repo; "
+            "refused unless at least one explicit --item-type is given"
+        ),
     )
     parser.add_argument(
         "--check-only",
@@ -142,6 +156,56 @@ def pipeline_credential():
     )
 
 
+def check_scope(args) -> tuple[str, str] | None:
+    """Return (code, message) for the first scope violation, else None.
+
+    Three failures here are all the same class of mistake: a deploy that is not narrowed to the
+    domain it was told about, or an orphan sweep with no item-type scope. fabric-cicd derives the
+    workspace from --workspace-id, so nothing else in the invocation proves the content and
+    parameters belong to --domain.
+    """
+    content_name = args.content_dir.name
+    if content_name != args.domain:
+        return (
+            "CONTENT-SCOPE",
+            f"content dir basename must equal the domain: expected .../{args.domain}, "
+            f"got {args.content_dir} (basename {content_name!r})",
+        )
+
+    parameter_name = args.parameter_file.name
+    lowered = parameter_name.lower()
+    if "<domain>" in lowered:
+        return (
+            "PARAMETER-SCOPE",
+            f"parameter file name {parameter_name!r} still contains the literal '<domain>' token; "
+            "name it for the domain before deploying",
+        )
+    if not re.search(rf"(?<![a-z0-9]){re.escape(args.domain)}(?![a-z0-9])", lowered):
+        return (
+            "PARAMETER-SCOPE",
+            f"parameter file name {parameter_name!r} must contain the domain {args.domain!r}; "
+            "one parameter file per domain keeps its IDs from crossing a workspace boundary",
+        )
+
+    item_types = args.item_type or []
+    for item_type in item_types:
+        if not ITEM_TYPE_RE.fullmatch(item_type) or item_type.lower() in WILDCARD_ITEM_TYPES:
+            return (
+                "ITEM-TYPE",
+                f"--item-type {item_type!r} is not one explicit Fabric item type; "
+                "an item type is a name such as Notebook or SemanticModel",
+            )
+
+    if args.remove_orphans and not item_types:
+        return (
+            "ORPHAN-SCOPE",
+            "--remove-orphans requires at least one explicit --item-type: with no item-type scope "
+            "fabric-cicd unpublishes every item in the workspace, not only orphans",
+        )
+
+    return None
+
+
 def main(argv=None):
     args = parse_args(argv)
 
@@ -171,6 +235,12 @@ def main(argv=None):
         f"environment={environment} domain={args.domain} content={args.content_dir} "
         f"parameter={args.parameter_file} remove_orphans={str(args.remove_orphans).lower()}"
     )
+
+    scope_failure = check_scope(args)
+    if scope_failure is not None:
+        code, message = scope_failure
+        print(f"FAIL deploy environment={environment} domain={args.domain} code={code} error={message}")
+        return 2
 
     try:
         workspace_id = resolve_workspace_id(args)

@@ -119,6 +119,15 @@ parameters:
     type: boolean
     default: false
 
+  # Optional: assign workspaces to domains with Terraform. Off by default because a human does it
+  # in the portal; enabling it requires the admin SP to hold domain contributor/admin, and the
+  # plan is made inside the gated job — so do not add an Approvals check to fabric-prod for it
+  # without moving the plan into PlanProd first.
+  - name: assignDomains
+    displayName: Assign workspaces to domains with Terraform
+    type: boolean
+    default: false
+
 variables:
   - name: TF_IN_AUTOMATION
     value: "true"
@@ -240,6 +249,24 @@ stages:
               # convertToJson is the only way to hand a list parameter to a shell step.
               PIPELINE_DOMAINS: ${{ convertToJson(parameters.domains) }}
               PIPELINE_MATRIX: ${{ convertToJson(parameters.matrix) }}
+
+          # Preflight the values, not just their presence. `variables.tf` validates shape; this
+          # cross-checks each tfvars against its root — no remaining placeholder, no all-zero GUID,
+          # and a capacity name that matches the environment. Without it, a prod workspace pointed
+          # at fabric-capacity-nonprod would reach a plan and an apply.
+          - script: |
+              set -euo pipefail
+              python3 scripts/preflight.py --root platform terraform/platform/env/nonprod.tfvars
+              python3 scripts/preflight.py --root platform terraform/platform/env/prod.tfvars
+              for domain in $(printf '%s' '${{ convertToJson(parameters.domains) }}' \
+                | python3 -c 'import json,sys; print(" ".join(json.load(sys.stdin)))'); do
+                python3 scripts/preflight.py --root workspaces "terraform/workspaces/env/${domain}/nonprod.tfvars"
+                python3 scripts/preflight.py --root workspaces "terraform/workspaces/env/${domain}/prod.tfvars"
+              done
+              if [ '${{ parameters.createDomains }}' = 'true' ]; then
+                python3 scripts/preflight.py --root domains terraform/domains/env/domains.tfvars
+              fi
+            displayName: Preflight — placeholders and capacity/environment cross-checks
 
   # =============================================================================================
   # Probe — read-only prerequisites, before anything that carries an environment or a state key.
@@ -441,10 +468,9 @@ stages:
       # one apply.
       #
       # IT IS OFF BY DEFAULT (`createDomains: false`). The default path is the one spec/0004
-      # adopted: a human creates the domains and the pipeline assigns workspaces through the Core
-      # API (`scripts/assign_domains.py`), which needs only workspace admin plus domain contributor
-      # or admin. Terraform domain creation waits for a run that sets createDomains=true, which
-      # should only happen after PROBE-ADMIN returned 200 (the artifact records the answer).
+      # adopted: a human creates the domains and assigns each domain's two workspaces in the admin
+      # portal, so nothing depends on the SP holding domain rights. Terraform domain creation waits
+      # for a run that sets createDomains=true, which should only happen after PROBE-ADMIN 200.
       #
       # The condition is not a convenience. A skipped job leaves domains.tfstate untouched, so
       # turning the flag back off cannot destroy a domain a human now owns; and a run that forgets
@@ -638,8 +664,8 @@ stages:
                           --environment nonprod \
                           --domain ${{ domain }} \
                           --workspace-id-file "$(Pipeline.Workspace)/workspace-${{ domain }}-nonprod/workspace-id.txt" \
-                          --content-dir "$(Pipeline.Workspace)/fabric-content" \
-                          --parameter-file "$(parameterFile)"
+                          --content-dir "$(Pipeline.Workspace)/fabric-content/${{ domain }}" \
+                          --parameter-file "config/parameter.${{ domain }}.yml"
 
   # =============================================================================================
   # PlanProd — one plain job per domain. NOT a deployment job, and no `environment:` anywhere in
@@ -841,8 +867,8 @@ stages:
                           --environment prod \
                           --domain ${{ domain }} \
                           --workspace-id-file "$(Pipeline.Workspace)/workspace-${{ domain }}-prod/workspace-id.txt" \
-                          --content-dir "$(Pipeline.Workspace)/fabric-content" \
-                          --parameter-file "$(parameterFile)"
+                          --content-dir "$(Pipeline.Workspace)/fabric-content/${{ domain }}" \
+                          --parameter-file "config/parameter.${{ domain }}.yml"
 
         # The assignments root. Its state spans environments — group-to-workspace role assignments
         # converge only once the prod workspace exists — so it runs after prod content and is the
@@ -850,6 +876,7 @@ stages:
         - deployment: assign
           displayName: Assignments — ${{ domain }}
           dependsOn: content
+          condition: and(succeeded(), eq(parameters.assignDomains, true))
           environment: fabric-prod
           download: none
           strategy:

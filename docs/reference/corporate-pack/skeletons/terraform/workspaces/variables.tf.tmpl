@@ -54,7 +54,7 @@ variable "capacity_name" {
 variable "groups" {
   type = map(object({
     role   = string
-    owners = list(string) # Entra object IDs; an empty list falls back to the applying SP
+    owners = list(string) # Entra object IDs; required, at least one per group — no SP fallback
   }))
   description = "Exactly viewers, contributors, members. Key becomes the group-name suffix."
 
@@ -67,6 +67,17 @@ variable "groups" {
       try(var.groups["members"].role == "Member", false)
     )
     error_message = "groups must be exactly { viewers = Viewer, contributors = Contributor, members = Member }."
+  }
+
+  # Owners are a naming decision, not a default. An empty list used to fall back to the applying
+  # principal, which made the automation SP the owner of every group and left no human accountable
+  # in an access review. Fail at plan instead: the fix is to name owners in config/domains.yaml.
+  validation {
+    condition = alltrue([
+      for key in ["viewers", "contributors", "members"] :
+      try(length(var.groups[key].owners) > 0, false)
+    ])
+    error_message = "Every group needs at least one owner object ID; there is no applying-SP fallback (contract §5)."
   }
 }
 
@@ -131,10 +142,10 @@ variable "git_branch" {
 
 variable "git_connection_id" {
   type        = string
-  description = "ADO connection GUID for ConfiguredConnection. PLACEHOLDER until the connection exists."
+  description = "ADO service-connection GUID for ConfiguredConnection, supplied by bootstrap (runbook 00); no default, because a binding must not silently point at a connection that does not exist."
 
   validation {
     condition     = can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.git_connection_id))
-    error_message = "git_connection_id must be a GUID (the service connection ID, not its name)."
+    error_message = "git_connection_id must be a GUID (the service connection ID bootstrap created, not its name)."
   }
 }

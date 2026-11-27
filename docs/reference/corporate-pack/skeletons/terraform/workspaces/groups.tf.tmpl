@@ -12,15 +12,16 @@
 # platform principal Group.ReadWrite.All (plus User.Read.All when a human is an owner). If the
 # corporate decision is manual groups, delete this file and replace the assignments' principal
 # IDs with data sources — do not leave half the lifecycle in Terraform.
+#
+# OWNERS ARE REQUIRED. There is no fallback to the applying principal: an ownerless group has no
+# human who can answer an access review, and quietly making the automation SP the owner hides the
+# gap behind a principal nobody named. `var.groups` validation fails the plan on an empty list, so
+# the mistake is a plan error rather than a group with a silent owner.
 
 resource "azuread_group" "viewers" {
   display_name = "${var.workspace_name}-viewers"
   description  = "Viewer group for ${var.workspace_name} (ADR 0006)."
-  owners = (
-    length(var.groups["viewers"].owners) > 0
-    ? toset(var.groups["viewers"].owners)
-    : toset([data.azuread_client_config.current.object_id])
-  )
+  owners       = toset(var.groups["viewers"].owners)
   security_enabled        = true
   prevent_duplicate_names = true
 
@@ -34,11 +35,7 @@ resource "azuread_group" "viewers" {
 resource "azuread_group" "contributors" {
   display_name = "${var.workspace_name}-contributors"
   description  = "Contributor group for ${var.workspace_name} (ADR 0006)."
-  owners = (
-    length(var.groups["contributors"].owners) > 0
-    ? toset(var.groups["contributors"].owners)
-    : toset([data.azuread_client_config.current.object_id])
-  )
+  owners       = toset(var.groups["contributors"].owners)
   security_enabled        = true
   prevent_duplicate_names = true
 
@@ -50,11 +47,7 @@ resource "azuread_group" "contributors" {
 resource "azuread_group" "members" {
   display_name = "${var.workspace_name}-members"
   description  = "Member group for ${var.workspace_name} (ADR 0006)."
-  owners = (
-    length(var.groups["members"].owners) > 0
-    ? toset(var.groups["members"].owners)
-    : toset([data.azuread_client_config.current.object_id])
-  )
+  owners       = toset(var.groups["members"].owners)
   security_enabled        = true
   prevent_duplicate_names = true
 

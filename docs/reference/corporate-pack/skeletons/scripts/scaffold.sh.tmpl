@@ -17,9 +17,15 @@
 #   scripts/*.py          skeletons/scripts/*.py.tmpl
 #   scripts/scaffold.sh   skeletons/scripts/scaffold.sh.tmpl (this file)
 #   scripts/report.sh     skeletons/scripts/report.sh.tmpl
+#   checks/               checks/**, including checks/known-good/README.md
+#   content/<domain>/     an empty placeholder; the content bundle is built here after the first apply
 #   AGENTS.md             agents/AGENTS.md
 #   .opencode/agents/     agents/*.md role briefs (AGENTS.md excluded)
 #   docs/corporate-pack/  spec/, runbook/, README.md, forbid.md, VERSION
+#
+# The content directory is created empty and stays empty: the first apply creates the workspace,
+# and only then can a per-domain parameter file hold its IDs. One `.gitkeep` per example domain is
+# what keeps content/ in the repository before that happens.
 #
 # Safety: a non-empty target is refused without --force; a target that already has terraform/ is
 # refused even with --force, because that is a seeded repo and a second scaffold would half-
@@ -137,6 +143,18 @@ copy_file() {
   printf 'copied       %s -> %s\n' "$src" "$dst"
 }
 
+# make_placeholder DST — an empty file that keeps an otherwise empty directory in the repository.
+make_placeholder() {
+  local dst=$1
+  if [ "$dry_run" -eq 1 ]; then
+    printf 'would create %s\n' "$dst"
+    return 0
+  fi
+  mkdir -p "$(dirname "$dst")"
+  : >"$dst"
+  printf 'created      %s\n' "$dst"
+}
+
 # copy_tree SRC DST tf|keep — recursive, file by file, so a dry run names every write.
 copy_tree() {
   local src_dir=$1
@@ -164,6 +182,19 @@ copy_tree "$pack_root/skeletons/terraform" "$target/terraform" tf
 copy_file "$pack_root/skeletons/pipeline/cicd.yml.tmpl" "$target/pipelines/cicd.yml"
 copy_file "$pack_root/skeletons/pipeline/parameter.yml.tmpl" "$target/config/parameter.yml"
 copy_file "$pack_root/skeletons/config/domains.yaml.tmpl" "$target/config/domains.yaml"
+
+# --- Content: one empty directory per example domain. -----------------------------------------
+# The bundle fabric-cicd reads is content/<domain>/; deploy_items.py refuses a --content-dir whose
+# basename is not the domain, so the placeholder carries a real domain name rather than "content".
+example_domain=""
+for candidate in "$pack_root"/skeletons/terraform/workspaces/env/*/; do
+  [ -d "$candidate" ] || continue
+  candidate=${candidate%/}
+  example_domain=${candidate##*/}
+  break
+done
+[ -n "$example_domain" ] || die "cannot determine the example domain from skeletons/terraform/workspaces/env"
+make_placeholder "$target/content/$example_domain/.gitkeep"
 
 # --- Scripts: Python without .tmpl, plus this scaffold and the report packer. ------------------
 copy_file "$pack_root/skeletons/scripts/scaffold.sh.tmpl" "$target/scripts/scaffold.sh" yes
@@ -195,20 +226,27 @@ copy_file "$pack_root/README.md" "$target/docs/corporate-pack/README.md"
 copy_file "$pack_root/forbid.md" "$target/docs/corporate-pack/forbid.md"
 copy_file "$pack_root/VERSION" "$target/docs/corporate-pack/VERSION"
 
+# --- Checks: the pack's checker and the known-good baseline contract. --------------------------
+copy_tree "$pack_root/checks" "$target/checks" keep
+
 if [ "$dry_run" -eq 1 ]; then
-  printf '\nDry run: nothing was written. A real run would also print the next five steps.\n'
+  printf '\nDry run: nothing was written. A real run would also print the next six steps.\n'
   exit 0
 fi
 
-printf '\nScaffolded %s\n\nNext five steps:\n' "$target_abs"
+printf '\nScaffolded %s\n\nNext six steps:\n' "$target_abs"
 cat <<'EOF'
   1. Fill the placeholders. Replace the config/domains.yaml rows first, then
      grep -rn 'PLACEHOLDER\|00000000-0000-0000-0000-000000000000' terraform pipelines config scripts
      must print nothing, and python3 scripts/preflight.py --root <root> <tfvars> must print PASS.
   2. Create one repository per nonprod workspace, named fabric-<domain>-nonprod, default branch
      main (runbook 00 §10). The pipeline binds; it does not create repositories.
-  3. Date the three human steps in the work repo's bootstrap record: the Fabric-administrator
+  3. After the first apply of each domain's workspace, create that domain's parameter file beside
+     config/parameter.yml, named for the domain (for example config/parameter-sales.yml).
+     deploy_items.py refuses a parameter file whose name does not carry the domain, and the first
+     apply is what produces the workspace and item IDs the file substitutes.
+  4. Date the three human steps in the work repo's bootstrap record: the Fabric-administrator
      proof, the Graph consent, and the prod-approval rehearsal (runbook 00 §1, §5, §7; 02 H3).
-  4. Work through docs/corporate-pack/runbook/02-readiness.md until every row is green.
-  5. Queue the Probe stage, read probe.json, and stop before Platform on any red PROBE-* code.
+  5. Work through docs/corporate-pack/runbook/02-readiness.md until every row is green.
+  6. Queue the Probe stage, read probe.json, and stop before Platform on any red PROBE-* code.
 EOF

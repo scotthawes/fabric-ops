@@ -7,7 +7,14 @@
 # it reads one tfvars file and checks the things that must be true BEFORE a plan is worth reading.
 #
 #   python preflight.py --root workspaces terraform/workspaces/env/sales/nonprod.tfvars
-#   python preflight.py --root platform   terraform/platform/env/prod.tfvars
+#   python preflight.py --root platform   terraform/platform/env/prod.tfvars --phase prod
+#   python preflight.py --root domains    terraform/domains/env/domains.tfvars \
+#     --phase domains --allow-disabled
+#
+# --phase names the deployment phase this file is for. It is not inferred from the filename: a
+# capacity named `fabric-capacity-nonprod` planned under --phase prod is the mistake this catches.
+# On the domains root, --allow-disabled is the `createDomains=false` branch: the file is skipped
+# with a PASS line instead of failing for a root the pipeline is not going to apply.
 #
 # Exit 0 pass, 1 findings, 2 usage or unparseable HCL.
 #
@@ -26,6 +33,17 @@ DEFAULT_GUID = "00000000-0000-0000-0000-000000000000"
 ENVIRONMENTS = ("nonprod", "prod")
 SKUS = ("F2", "F4", "F8", "F16", "F32", "F64", "F128", "F256", "F512", "F1024", "F2048")
 GROUP_ROLES = {"viewers": "Viewer", "contributors": "Contributor", "members": "Member"}
+
+# Values that are identifiers, not names. A malformed GUID here reaches the provider as a 400 far
+# from the tfvars file; checking the shape is how the finding names the line that is wrong.
+GUID_KEYS = {
+    "platform": ["subscription_id", "tenant_id"],
+    "domains": ["tenant_id", "admin_client_id", "ado_service_connection_id"],
+    "workspaces": ["tenant_id", "subscription_id", "admin_client_id", "ado_service_connection_id"],
+    "domain-assignments": ["tenant_id", "admin_client_id", "ado_service_connection_id"],
+}
+
+PHASES = ("nonprod", "prod", "domains")
 
 REQUIRED_KEYS = {
     "platform": [
@@ -288,12 +306,30 @@ def is_guid(value: str) -> bool:
     return bool(re.fullmatch(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", value))
 
 
-def check(root: str, data: dict):
+def capacity_matches_phase(name: str, phase: str) -> bool:
+    """The suffix is hyphenated: fabric-capacity-nonprod ends with 'nprod', not '-prod'."""
+    if phase == "prod":
+        return name.endswith("-prod") and not name.endswith("-nonprod")
+    return name.endswith(f"-{phase}")
+
+
+def check_guids(root: str, data: dict, findings: list):
+    for key in GUID_KEYS[root]:
+        if key not in data:
+            continue  # absence is reported by REQUIRED_KEYS
+        value = data[key]
+        if not isinstance(value, str) or not is_guid(value):
+            findings.append(f"{key}: expected a GUID, got {value!r}")
+
+
+def check(root: str, data: dict, phase: str | None = None):
     findings = []
 
     for key in REQUIRED_KEYS[root]:
         if key not in data:
             findings.append(f"missing required key: {key}")
+
+    check_guids(root, data, findings)
 
     for path, value in walk_strings(data):
         if "PLACEHOLDER" in value.upper():
@@ -304,12 +340,21 @@ def check(root: str, data: dict):
     environment = data.get("environment")
     if environment is not None and environment not in ENVIRONMENTS:
         findings.append(f"environment: {environment!r} is not one of {', '.join(ENVIRONMENTS)}")
+    if phase in ENVIRONMENTS and isinstance(environment, str) and environment != phase:
+        findings.append(f"environment: file says {environment!r} but --phase is {phase!r}")
 
     if root == "platform":
-        if isinstance(data.get("environment"), str) and isinstance(data.get("capacity_name"), str):
-            expected = f"fabric-capacity-{data['environment']}"
-            if data["capacity_name"] != expected:
-                findings.append(f"capacity_name: expected {expected!r}, got {data['capacity_name']!r}")
+        capacity_name = data.get("capacity_name")
+        if isinstance(capacity_name, str):
+            if phase in ENVIRONMENTS and not capacity_matches_phase(capacity_name, phase):
+                findings.append(
+                    f"capacity_name: phase {phase} requires a name ending '-{phase}', "
+                    f"got {capacity_name!r}"
+                )
+            if isinstance(data.get("environment"), str):
+                expected = f"fabric-capacity-{data['environment']}"
+                if capacity_name != expected:
+                    findings.append(f"capacity_name: expected {expected!r}, got {capacity_name!r}")
         if data.get("capacity_sku") not in SKUS:
             findings.append(f"capacity_sku: expected one of {', '.join(SKUS)}")
         admins = data.get("capacity_admin_object_ids")
@@ -344,8 +389,20 @@ def check(root: str, data: dict):
                     continue
                 if entry.get("role") != expected_role:
                     findings.append(f"groups.{key}.role: expected {expected_role!r}, got {entry.get('role')!r}")
-                if not isinstance(entry.get("owners"), list):
-                    findings.append(f"groups.{key}.owners: expected a list (empty falls back to the applying SP)")
+                owners = entry.get("owners")
+                if not isinstance(owners, list) or not owners:
+                    findings.append(
+                        f"groups.{key}.owners: expected a non-empty list of Entra object IDs; "
+                        "there is no applying-SP fallback"
+                    )
+                else:
+                    bad_owners = [
+                        owner for owner in owners if not isinstance(owner, str) or not is_guid(owner)
+                    ]
+                    if bad_owners:
+                        findings.append(
+                            f"groups.{key}.owners: every entry must be a GUID, got {bad_owners!r}"
+                        )
 
         if not isinstance(data.get("enable_workspace_identity"), bool):
             findings.append("enable_workspace_identity: expected true or false")
@@ -353,6 +410,13 @@ def check(root: str, data: dict):
             findings.append("bind_git: expected true or false")
         if data.get("bind_git") is True and data.get("environment") != "nonprod":
             findings.append("bind_git: true is only allowed when environment is nonprod (ADR 0005)")
+        if data.get("bind_git") is True:
+            connection = data.get("git_connection_id")
+            if not isinstance(connection, str) or not is_guid(connection):
+                findings.append(
+                    f"git_connection_id: expected the GUID bootstrap supplied for the sc-fabric-admin "
+                    f"connection, got {connection!r}"
+                )
 
         storage = data.get("identity_storage_account_id")
         if not isinstance(storage, str):
@@ -407,7 +471,29 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Validate a corporate-pack tfvars file before plan.")
     parser.add_argument("tfvars", type=Path, help="path to the .tfvars file")
     parser.add_argument("--root", required=True, choices=sorted(REQUIRED_KEYS), help="which Terraform root")
+    parser.add_argument(
+        "--phase",
+        choices=PHASES,
+        help="deployment phase this file is for; platform capacity_name must end -<phase>",
+    )
+    parser.add_argument(
+        "--allow-disabled",
+        action="store_true",
+        help="domains root only: skip with a PASS line when createDomains is false",
+    )
     args = parser.parse_args(argv)
+
+    if args.allow_disabled and not (args.root == "domains" and args.phase == "domains"):
+        print(
+            f"FAIL preflight root={args.root} file={args.tfvars} "
+            "error=--allow-disabled is only meaningful with --root domains --phase domains"
+        )
+        return 2
+    if args.phase == "domains" and args.root != "domains":
+        print(
+            f"FAIL preflight root={args.root} file={args.tfvars} error=--phase domains needs --root domains"
+        )
+        return 2
 
     try:
         data = load_tfvars(args.tfvars)
@@ -415,7 +501,17 @@ def main(argv=None):
         print(f"FAIL preflight root={args.root} file={args.tfvars} error={exc}")
         return 2
 
-    findings = check(args.root, data)
+    # Domains are optional and off by default (contract §6). The gate is the file's own
+    # fabric_administrator_confirmed, which is what createDomains=false materialises; with
+    # --allow-disabled this file is skipped, not validated against a plan that will not run.
+    if args.allow_disabled and data.get("fabric_administrator_confirmed") is not True:
+        print(
+            f"PASS preflight root={args.root} file={args.tfvars} "
+            "skipped=createDomains=false fabric_administrator_confirmed is not true"
+        )
+        return 0
+
+    findings = check(args.root, data, args.phase)
 
     if findings:
         print(f"FAIL preflight root={args.root} file={args.tfvars} findings={len(findings)}")
