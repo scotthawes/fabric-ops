@@ -18,7 +18,7 @@
 #   scripts/scaffold.sh   skeletons/scripts/scaffold.sh.tmpl (this file)
 #   scripts/report.sh     skeletons/scripts/report.sh.tmpl
 #   checks/known-good/    the baseline ledger; the pack checker itself is not copied
-#   content/<domain>/<project>/   an empty placeholder; the bundle is built here after the first apply
+#   content/<domain>/      an empty placeholder; the bundle is built here after the first apply
 #   AGENTS.md             agents/AGENTS.md
 #   .opencode/agents/     agents/*.md role briefs (AGENTS.md excluded)
 #   docs/corporate-pack/  spec/, runbook/, README.md, forbid.md, VERSION
@@ -184,10 +184,9 @@ copy_file "$pack_root/skeletons/pipeline/parameter.yml.tmpl" "$target/config/par
 copy_file "$pack_root/skeletons/config/domains.yaml.tmpl" "$target/config/domains.yaml"
 
 # --- Content: one empty directory per example domain. -----------------------------------------
-# The bundle fabric-cicd reads is content/<domain>/<project>/; deploy_items.py refuses a --content-dir whose
+# The bundle fabric-cicd reads is content/<domain>/; deploy_items.py refuses a --content-dir whose
 # basename is not the domain, so the placeholder carries a real domain name rather than "content".
 example_domain=""
-example_project="forecast"
 for candidate in "$pack_root"/skeletons/terraform/workspaces/env/*/; do
   [ -d "$candidate" ] || continue
   candidate=${candidate%/}
@@ -195,7 +194,7 @@ for candidate in "$pack_root"/skeletons/terraform/workspaces/env/*/; do
   break
 done
 [ -n "$example_domain" ] || die "cannot determine the example domain from skeletons/terraform/workspaces/env"
-make_placeholder "$target/content/$example_domain/$example_project/.gitkeep"
+make_placeholder "$target/content/$example_domain/.gitkeep"
 
 # --- Scripts: Python without .tmpl, plus this scaffold and the report packer. ------------------
 copy_file "$pack_root/skeletons/scripts/scaffold.sh.tmpl" "$target/scripts/scaffold.sh" yes
@@ -241,7 +240,7 @@ cat <<'EOF'
      grep -rn 'PLACEHOLDER\|00000000-0000-0000-0000-000000000000' terraform pipelines config scripts
      must print nothing, and python3 scripts/preflight.py --root <root> <tfvars> must print PASS.
   2. Create one repository per nonprod workspace, named fabric-<domain>-nonprod, default branch
-     main (runbook 00 §10). The pipeline binds; it does not create repositories.
+     main (runbook 00 §11). The pipeline binds; it does not create repositories.
   3. After the first apply of each domain's workspace, create that domain's parameter file beside
      config/parameter.<domain>.yml, one per domain (the example is config/parameter.sales.yml).
      deploy_items.py refuses a parameter file whose name does not carry the domain, and the first

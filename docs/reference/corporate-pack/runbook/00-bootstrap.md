@@ -264,11 +264,11 @@ a connection that verifies and a role assignment that grants nothing.
 - **Who.** Project Administrator; the Fabric connection needs the workspace admin (or the SP).
 - **Do.** One Azure Repos repository per nonprod workspace, named exactly
   `fabric-<domain>-nonprod` (contract §3), default branch `main`. Their content is what Build
-  bundles, laid out per domain as `content/<domain>/<project>/`; each nonprod workspace binds to its
+  bundles, laid out per domain as `content/<domain>/`; each nonprod workspace binds to its
   own repo, and **prod is never bound**.
   Commit the pipeline at `pipelines/cicd.yml`. The ops repository that holds it is
-  `PLACEHOLDER-ops-repo`: the contract does not name it — record the choice in
-  `spec/0003-open-questions.md`.
+  `PLACEHOLDER-ops-repo`: the contract does not name it. Record the choice in the corporate repo
+  (the registry's header or its own README); it is not an open question in this pack.
   Create the pipeline from that file, then Service connections → each connection → Security →
   **Pipeline permissions**: remove "grant access to all pipelines", add this pipeline only.
   Create the Fabric **`ConfiguredConnection`** the Git binding uses: in the Fabric portal →
@@ -276,8 +276,12 @@ a connection that verifies and a role assignment that grants nothing.
   connection authenticated as `sp-fabric-admin`. Record its connection GUID as `git_connection_id`
   in `terraform/workspaces/env/<domain>/nonprod.tfvars`. The workspaces root sets
   `source = "ConfiguredConnection"`; the SP cannot bind any other way.
+- **Owner object IDs.** `config/domains.yaml` carries three owner object IDs per workspace. Take
+  each from Entra admin centre → **Users** → the person → **Object ID**, or
+  `az ad user show --id <upn> --query id -o tsv`. A group owner is an object ID too; a UPN is not
+  accepted. Do this before the first apply, because preflight rejects the all-zero placeholder.
 - **Verify.** For every row of `config/domains.yaml` a repository of exactly that name exists and
-  carries `content/<domain>/<project>/`; the pipeline's YAML path is `pipelines/cicd.yml`; each
+  carries `content/<domain>/`; the pipeline's YAML path is `pipelines/cicd.yml`; each
   connection's Security page lists exactly one pipeline and `isShared` is false; a job logs in with
   each alias in turn; the Fabric connection appears in the portal and its GUID is in the nonprod
   tfvars.

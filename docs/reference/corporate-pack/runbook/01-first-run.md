@@ -24,7 +24,7 @@ The runnable name is `scaffold.sh.tmpl` until it is copied; only the copy become
 (`pipelines/cicd.yml`, `scripts/probe.py`, …), copies `agents/`, `checks/known-good/README.md` and
 the pack docs, and seeds `config/domains.yaml` from `skeletons/config/domains.yaml.tmpl`. Fill the
 placeholders from [runbook 00 §Placeholders](00-bootstrap.md#placeholders), create the repositories
-(§11) and add `content/<domain>/<project>/` for each domain before queueing anything.
+(§11) and add `content/<domain>/` for each domain before queueing anything.
 
 - **Check after.** `find . -name '*.tmpl'` in the corporate repo prints nothing; `config/domains.yaml`
   has a `domains:` list; `scripts/report.sh` exists. [runbook 02](02-readiness.md) R0 makes this a
@@ -44,7 +44,7 @@ the job result, not the run colour. The same applies to the `assign` job when `a
 
 | Stage | Environment | Jobs | Gate |
 | --- | --- | --- | --- |
-| Build | none | bundle one content tree per domain (`content/<domain>/<project>/`), `fmt -check`, `validate`, compare `parameters.domains`/`matrix` with `config/domains.yaml` | none — no connection, no backend |
+| Build | none | bundle one content tree per domain (`content/<domain>/`), `fmt -check`, `validate`, compare `parameters.domains`/`matrix` with `config/domains.yaml` | none — no connection, no backend |
 | Probe | none | read-only checks; writes `probe.json`; fails `PROBE-*` | none — a probe that writes is a deployment |
 | Platform | `fabric-platform` | `capacity-nonprod` ∥ `capacity-prod`, each plan-then-apply in the job, then the `domains` job (conditional) | none — never add an Approvals check; the plan is made in the job |
 | Nonprod | `fabric-nonprod` | two jobs per domain: `control` (plan → apply) and `content` | none — the environment carries the lock and the record |
@@ -136,7 +136,7 @@ Never create a baseline to quiet a count, and never write one from a plan you di
 - **Runs.** Per domain, plans and applies in the domain's own state key
   (`workspaces/<domain>/nonprod.tfstate`): groups, workspace, identity, a role assignment per group
   plus the identity's own, optional storage grant, Git binding, with `assert_plan` inline; then
-  content with `sc-fabric-deploy` from `content/<domain>/<project>/` and
+  content with `sc-fabric-deploy` from `content/<domain>/` and
   `config/parameter.<domain>.yml`.
 - **Check after.** One role assignment per group (three), plus the workspace identity's own
   Contributor; a workspace identity with a `service_principal_id`; workspace `Active` on its

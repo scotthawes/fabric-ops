@@ -55,7 +55,7 @@ Rules that follow from the state map, not from preference:
 - A plan artifact is applied to the state and domain that produced it, and to no other.
 - Apply content only after the workspace apply for that domain/environment has completed. The
   workspace blocks until capacity assignment settles; an ambient workspace GUID has no such edge.
-- Content is per domain: `content/<domain>/<project>/` with `config/parameter.<domain>.yml`.
+- Content is per domain: `content/<domain>/` with `config/parameter.<domain>.yml`.
 
 ## 3. Inputs and outputs
 
@@ -187,7 +187,7 @@ standard library except `deploy_items.py`, which needs `fabric-cicd` and `azure-
 python preflight.py --root workspaces terraform/workspaces/env/sales/nonprod.tfvars
 python assert_plan.py plan.json --root workspaces --phase nonprod   # reads checks/known-good/nonprod.json
 python deploy_items.py --environment nonprod --domain sales \
-  --workspace-id <guid> --content-dir content/sales/forecast --parameter-file config/parameter.sales.yml
+  --workspace-id <guid> --content-dir content/sales --parameter-file config/parameter.sales.yml
 ```
 
 `probe.py` is the read-only prerequisite check; `preflight.py` exit 0 pass / 1 findings / 2

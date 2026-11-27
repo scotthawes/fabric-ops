@@ -304,7 +304,7 @@ key** — and stop; a pasted log is not a report.
 - **Stage.** Nonprod or Prod content job, before any Fabric call.
 - **Symptom.** `FAIL deploy … error=CONTENT-SCOPE …`: the content directory or the parameter file
   does not carry the `--domain` value, and `deploy_items.py` refuses it.
-- **Cause.** Content is per domain: the job must read `content/<domain>/<project>/` and
+- **Cause.** Content is per domain: the job must read `content/<domain>/` and
   `config/parameter.<domain>.yml`. A shared tree, a copied file with the wrong name, or a domain
   token left as `<domain>` produces this.
 - **Action.** Fix the path — rename the tree or the parameter file to the domain the job deploys, or

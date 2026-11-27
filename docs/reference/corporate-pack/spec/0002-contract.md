@@ -73,7 +73,7 @@ pack:
 ├── pipelines/cicd.yml
 ├── config/domains.yaml              # the domain matrix
 ├── config/parameter.<domain>.yml    # one parameter file per domain
-├── content/<domain>/<project>/      # one content tree per domain
+├── content/<domain>/      # one content tree per domain
 ├── scripts/
 └── checks/known-good/
 ```
@@ -168,7 +168,7 @@ Pipeline parameters, and their defaults:
 
 Content and its parameter file are per domain:
 
-- `content/<domain>/<project>/` — the item definitions Build bundles for that domain.
+- `content/<domain>/` — the item definitions Build bundles for that domain.
 - `config/parameter.<domain>.yml` — the `fabric-cicd` parameter file for that domain.
 - `deploy_items.py --domain <domain>` refuses a content directory or parameter file whose path does
   not carry that domain, failing `CONTENT-SCOPE` before it contacts Fabric.
