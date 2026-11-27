@@ -35,17 +35,23 @@ corporate-pack/
 │   └── 0004-assumptions.md       # how every unknown is absorbed: assume, probe, fallback
 ├── skeletons/
 │   ├── terraform/platform/{main,capacity,variables,outputs,versions}.tf.tmpl
+│   ├── terraform/platform/env/{nonprod,prod}.tfvars
 │   ├── terraform/domains/{main,variables,outputs,versions}.tf.tmpl
 │   ├── terraform/domains/env/domains.tfvars
 │   ├── terraform/workspaces/{main,groups,workspace,variables,outputs,versions}.tf.tmpl
+│   ├── terraform/workspaces/env/<domain>/{nonprod,prod}.tfvars
 │   ├── terraform/domain-assignments/{main,variables,outputs,versions}.tf.tmpl
+│   ├── terraform/domain-assignments/env/<domain>.tfvars
 │   ├── terraform/README.md       # module contract: inputs, outputs, what not to rename
 │   ├── pipeline/cicd.yml.tmpl
-│   ├── pipeline/parameter.yml.tmpl
-│   └── scripts/{assert_plan.py.tmpl,preflight.py.tmpl,deploy_items.py.tmpl,probe.py.tmpl}
+│   ├── pipeline/parameter.yml.tmpl      # copy to config/parameter.<domain>.yml, one per domain
+│   ├── config/domains.yaml.tmpl
+│   └── scripts/{assert_plan.py.tmpl,preflight.py.tmpl,deploy_items.py.tmpl,probe.py.tmpl,
+│                report.sh.tmpl,scaffold.sh.tmpl}
 ├── runbook/
 │   ├── 00-bootstrap.md           # the human steps before the first run
 │   ├── 01-first-run.md           # stage order, checks, stop conditions
+│   ├── 02-readiness.md           # the pre-run gate
 │   └── troubleshooting.md        # symptom -> cause -> action, keyed by error
 ├── agents/
 │   ├── AGENTS.md                 # invariants and authority order
@@ -54,11 +60,23 @@ corporate-pack/
 │   ├── bootstrap-guide.md
 │   └── migration-assessor.md
 └── checks/
-    └── check-pack.sh
+    ├── check-pack.sh
+    └── known-good/README.md      # how the first baseline is recorded
 ```
 
-`config/` belongs to the **corporate work repo**, not to this pack: `config/domains.yaml` is the
-domain matrix, copied from `skeletons/terraform/README.md`'s example.
+`config/`, `content/` and the copied `pipelines/` belong to the **corporate work repo**, not to this
+pack:
+
+```
+<corporate-repo>/
+├── terraform/                       # the copied roots, tfvars and README
+├── pipelines/cicd.yml
+├── config/domains.yaml              # the domain matrix
+├── config/parameter.<domain>.yml    # one parameter file per domain
+├── content/<domain>/<project>/      # one content tree per domain
+├── scripts/
+└── checks/known-good/
+```
 
 ## 3. Fixed names
 
@@ -91,7 +109,7 @@ One container, one blob per key:
 | `domains.tfstate` | `terraform/domains` (only if `createDomains` is enabled) |
 | `workspaces/<domain>/nonprod.tfstate` | `terraform/workspaces` |
 | `workspaces/<domain>/prod.tfstate` | `terraform/workspaces` |
-| `assignments/<domain>.tfstate` | `terraform/domain-assignments` (preview) |
+| `assignments/<domain>.tfstate` | `terraform/domain-assignments` (preview; only if `assignDomains`) |
 
 The platform split is deliberate: destroying the nonprod capacity cannot reach the prod state.
 
@@ -113,40 +131,79 @@ domains:
 
 Terraform inputs per state:
 
-- `terraform/platform/env/{nonprod,prod}.tfvars`: `subscription_id`, `tenant_id`, `location`,
-  `capacity_name`, `capacity_sku` (`F2` / `F64`), `capacity_admin_object_ids`.
+- `terraform/platform/env/{nonprod,prod}.tfvars`: `environment`, `subscription_id`, `tenant_id`,
+  `location`, `capacity_name`, `capacity_sku` (`F2` / `F64`), `capacity_admin_object_ids`.
 - `terraform/workspaces/env/<domain>/<env>.tfvars`: `domain`, `environment`, `workspace_name`,
   `capacity_name`, `groups` (three roles with owners), `enable_workspace_identity`,
-  `identity_storage_account_id`, `bind_git`.
-- `terraform/domains/env/domains.tfvars`: the domain list, one entry per `config/domains.yaml` row.
-- `terraform/domain-assignments/env/<domain>.tfvars`: `domain`, `workspace_ids`.
+  `identity_storage_account_id`, `bind_git`, plus the Git binding's `ado_organization`,
+  `ado_project`, `git_branch`, `git_connection_id`.
+- `terraform/domains/env/domains.tfvars` — **only when `createDomains=true`**: `domains` (one entry
+  per `config/domains.yaml` row), `fabric_administrator_confirmed`, and the provider variables below.
+- `terraform/domain-assignments/env/<domain>.tfvars` — **only when `assignDomains=true`**: `domain`,
+  `workspace_ids` (the domain's nonprod and prod workspaces), and the provider variables below.
+
+Every root takes the same backend/provider variables:
+
+| Variable | Value |
+| --- | --- |
+| `tenant_id` | Entra tenant |
+| `subscription_id` | subscription holding the capacity (workspaces: optional storage grant only) |
+| `admin_client_id` | `sp-fabric-admin` application (client) ID |
+| `ado_service_connection_id` | GUID of `sc-fabric-admin` |
+
+The backend is `rg-fabric-tfstate` / `stfabriccorp` / `tfstate` with `use_azuread_auth = true` and
+`use_oidc = true`; only the key varies. `rg-fabric-corporate` is a **data source**, created by
+bootstrap.
+
+Pipeline parameters, and their defaults:
+
+| Parameter | Default | Meaning |
+| --- | --- | --- |
+| `domains` | the matrix | ordered domain list, expanded per job/stage |
+| `matrix` | the matrix | non-secret columns: `display_name`, `project`, `repo` |
+| `createDomains` | **`false`** | run `terraform/domains`; only after `PROBE-ADMIN` 200 |
+| `assignDomains` | **`false`** | run `terraform/domain-assignments`; only after `PROBE-ADMIN` 200 |
+
+`environment` is a fourth parameter and an inert run label; no key or path is derived from it.
+
+Content and its parameter file are per domain:
+
+- `content/<domain>/<project>/` — the item definitions Build bundles for that domain.
+- `config/parameter.<domain>.yml` — the `fabric-cicd` parameter file for that domain.
+- `deploy_items.py --domain <domain>` refuses a content directory or parameter file whose path does
+  not carry that domain, failing `CONTENT-SCOPE` before it contacts Fabric.
 
 Every value is a placeholder until the corporate repo supplies it. No real ID is committed.
 
 ## 6. Stage graph
 
 ```
-Build ──▶ Probe ──▶ Platform ──▶ Domains (optional) ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain>
+Build ──▶ Probe ──▶ Platform ──▶ Nonprod ──▶ PlanProd ──▶ Guard ──▶ Prod-<domain>
 ```
 
 | Stage | Jobs | Environment | Gate |
 | --- | --- | --- | --- |
-| Build | bundle content, `fmt -check`, `validate` per root, assert parameter↔YAML parity | none | none |
+| Build | bundle one content tree per domain, `fmt -check`, `validate` per root, compare `parameters.domains`/`parameters.matrix` with `config/domains.yaml` | none | none |
 | Probe | read-only checks; writes `probe.json`; fails with `PROBE-*` codes | none | none (a probe that writes is a deployment) |
-| Platform | two capacity jobs in parallel (`capacity-nonprod`, `capacity-prod`), then a `domains` job in the same stage | `fabric-platform` | optional approval |
-| Nonprod | one job per domain: control apply → content | `fabric-nonprod` | none — the environment carries the lock and the deployment record |
+| Platform | two capacity apply jobs in parallel (`capacity-nonprod`, `capacity-prod`), then the `domains` **job** in the same stage | `fabric-platform` | optional approval |
+| Nonprod | one job per domain: plan → apply → content | `fabric-nonprod` | none — the environment carries the lock and the deployment record |
 | PlanProd | one plan job per domain, artifact `tfplan-<domain>` | **none** | none (read-only) |
-| Prod-`<domain>` | `assert_plan` → apply saved plan → content → assign | `fabric-prod` | **human approval** |
+| Guard | credential-free `assert_plan` over every prod plan; exit non-zero stops the prod band | **none** | none (fails closed) |
+| Prod-`<domain>` | apply the guarded plan → content → optional assign | `fabric-prod` | **human approval** |
 
 Rules that are not negotiable:
 
 - `PlanProd` never runs inside a prod stage; the approval would fire before the plan exists.
 - One artifact per domain; a plan is never applied to another state or domain.
-- `assert_plan` runs before every apply and fails closed (§7).
+- `assert_plan` runs before every apply and fails closed (§7): inline in Platform and Nonprod, and in
+  `Guard` against every prod plan before the approval is requested.
 - `isSkippable: false` on every prod stage; a timed-out approval marks a stage *skipped*, not failed.
-- **Domains are optional and off by default** (`createDomains: false`). A human creates them and the
-  pipeline assigns through the Core API; the Terraform domain root is enabled only when the probe
-  proves the SP holds Fabric administrator.
+- **Domains are a job inside Platform, not a stage**, and are off by default (`createDomains: false`).
+  A human creates each domain **and assigns its two workspaces in the portal**; the Terraform domain
+  roots run only when the probe proves the SP holds Fabric administrator. The same holds for
+  `assignDomains: false`: the assign job is skipped, not failed.
+- **Overage is not managed here.** After Platform creates a capacity, a human reviews and sets
+  overage in the portal (default on at 25% / 3×); it never appears in a plan.
 - `-refresh=false` and `-target` are forbidden.
 - **No local plan.** There is no read-only `terraform plan` on the corporate laptop; the pipeline's
   plan is the only plan, and the saved artifact is the thing approved.

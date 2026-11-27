@@ -21,13 +21,15 @@ key** — and stop; a pasted log is not a report.
 | plan proposes replacement | Nonprod, Prod | stop before approval |
 | `assert_plan` failure | Prod-`<domain>` (also Nonprod) | read the verdict; never bypass |
 | domain assignment destroy | Prod-`<domain>` assign job | a workspace ID left the list |
+| `CONTENT-SCOPE` | Nonprod, Prod content | content dir or parameter file does not carry the domain |
+| state forget ≠ delete | any apply | removing a resource from state does not delete the object |
 | `PROBE-AUTH` | Probe | no ARM token: the assertion never exchanged |
 | `PROBE-FABRIC` | Probe | `GET /v1/capacities` 401/403 — tenant switch or SP licence |
 | `PROBE-PROVIDER` | Probe | `Microsoft.Fabric` not registered on this subscription |
 | `PROBE-DOMAINS` | Probe | `GET /v1/domains` failed; domains root and assign job blocked |
 | `PROBE-GRAPH` | Probe | `GET /groups` 403; group create will fail one stage later |
 | `PROBE-ADMIN` | Probe | 403 selects the Core path; 200 permits the optional root |
-| domain fallback | Probe → Domains (absent) → assign job | no Fabric administrator: human creates, pipeline assigns |
+| domain fallback | Probe → Platform (`domains` skipped) | no Fabric administrator: human creates and assigns in the portal |
 | build red before any credential | Build | `fmt`, `validate`, or parameter parity |
 
 ## Build
@@ -75,12 +77,14 @@ key** — and stop; a pasted log is not a report.
   Fabric administrator, which is a different cause.
 - **Symptom.** Graph returns `403 Authorization_RequestDenied` (or `Insufficient privileges`) while
   the plan succeeded. The message names the Graph call, not the workspace.
-- **Cause.** `Group.Create` was never consented, consent was granted to the wrong app, or admin
-  consent was granted by a role that could not grant it. `User.Read.All` alone also produces this at
-  the owner binding.
-- **Action.** Entra → App registrations → `sp-fabric-admin` → API permissions: both application
-  permissions present and **Granted for <tenant>**. Re-consent as a Privileged Role Administrator.
-  Prove it with a Graph token whose `roles` contains both, then re-run the stage.
+- **Cause.** `Group.ReadWrite.All` was never consented, consent was granted to the wrong app, or
+  admin consent was granted by a role that could not grant it. `Group.Create` is not enough: the
+  pipeline must also write the group's owner, so `User.Read.All` alone produces this at the owner
+  binding.
+- **Action.** Entra → App registrations → `sp-fabric-admin` → API permissions: both
+  `Group.ReadWrite.All` and `User.Read.All` present and **Granted for <tenant>**. Re-consent as a
+  Privileged Role Administrator. Prove it with a Graph token whose `roles` contains both, then
+  re-run the stage.
 - **Do not.** Grant `Directory.ReadWrite.All` or add the SP to a directory role as a shortcut. The
   pair is the consented set (contract, and `forbid.md` rule 2).
 
@@ -150,13 +154,13 @@ key** — and stop; a pasted log is not a report.
   matches.
 - **Action.** Stop before approval. Find the forcing diff in the plan; usually it is a rename. A
   rename of an existing object is not done by changing the config — decide with the architect
-  whether to keep the name (contract §3, `naming.md` rule 8) or to migrate deliberately.
+  whether to keep the name (contract §3) or to migrate deliberately.
 - **Do not.** Approve it, and do not remove the resource from state to make the plan quiet. A
   replacement of a workspace or capacity is a migration, not a change.
 
 ## `assert_plan` failure
 
-- **Stage.** Prod-`<domain>`, before every apply. Nonprod runs the same script.
+- **Stage.** `Guard`, and before every apply. Nonprod runs the same script.
 - **Symptom.** The job prints a one-line verdict and the offending addresses, then exits non-zero.
   The apply never starts — that is the gate working.
 - **Cause.** One of the six rules in contract §7. Read the verdict, then the addresses:
@@ -175,7 +179,8 @@ key** — and stop; a pasted log is not a report.
 
 ## Domain assignment destroy
 
-- **Stage.** Prod-`<domain>`, the assign job after content (`assignments/<domain>.tfstate`).
+- **Stage.** Prod-`<domain>`, the assign job after content (`assignments/<domain>.tfstate`), and
+  only when `assignDomains=true`. With the default `false` a human assigns in the portal instead.
 - **Symptom.** The plan shows a `destroy` of a domain assignment, or the assigned workspace list
   shrinks.
 - **Cause.** `workspace_ids` in `terraform/domain-assignments/env/<domain>.tfvars` lost an entry —
@@ -233,16 +238,16 @@ key** — and stop; a pasted log is not a report.
 
 ## `PROBE-DOMAINS`
 
-- **Stage.** Probe, `GET /v1/domains`. It gates the optional domains root and the prod assign job;
+- **Stage.** Probe, `GET /v1/domains`. It gates the optional Terraform domain roots and their jobs;
   it does not gate Platform or Nonprod.
 - **Symptom.** Red (403/404) while AUTH and FABRIC are green. The probe carries the status, not a
   diagnosis.
 - **Cause.** The SP can read capacities but not tenant domains: it holds no domain contributor or
   Fabric administrator role. The probe carries the status, not the cause; the permission it needs is
   granted by the Fabric administrator either way.
-- **Action.** If the pipeline truly has no domains root and no assign job, delete this probe with
-  them in the same change. Otherwise stop: the assign job needs the domain read. Resolve the role,
-  then re-run Probe.
+- **Action.** If the pipeline truly has no domains job enabled and no assign job, delete this probe
+  with them in the same change. Otherwise stop: the optional roots need the domain read. Resolve the
+  role, then re-run Probe.
 - **Do not.** Set `createDomains=true` to "see what happens", or let the assign job run on a guess —
   an assignment to a missing domain is a failed apply, not a test.
 
@@ -254,7 +259,7 @@ key** — and stop; a pasted log is not a report.
   capacity probe is green. Ignored, the plan succeeds and the Nonprod apply fails at
   `azuread_group` — the `403 Authorization_RequestDenied` entry above, one stage later.
 - **Cause.** Consent never granted, granted to the wrong app, granted by a role that could not grant
-  it, or `User.Read.All` missing while `Group.Create` is present. The owner binding needs both.
+  it, or `Group.ReadWrite.All` missing while `User.Read.All` is present. The owner binding needs both.
 - **Action.** [00-bootstrap](00-bootstrap.md) §5: both application permissions, **Granted for the
   tenant**, by a Privileged Role Administrator; prove it with a token whose `roles` holds both;
   re-run Probe.
@@ -267,28 +272,60 @@ key** — and stop; a pasted log is not a report.
   the domain path.
 - **Symptom.** 403 (the normal answer), 200 (the SP does hold Fabric administrator), or 401/5xx
   (which is not an answer at all).
-- **Cause.** Assumption A6 assumes an SP cannot hold Fabric administrator; a 403 confirms it and the
-  run uses the Core assignment path. A 200 means the optional Terraform domains root may be
+- **Cause.** Assumption A6 assumes an SP cannot hold Fabric administrator; a 403 confirms it and
+  domains plus assignments stay portal steps. A 200 means the optional Terraform domain roots may be
   enabled; nothing depends on it.
-- **Action.** 403 → `createDomains=false`, delete the `domains` job, take the fallback below. 200 →
-  the root is optional: enable it only with `fabric_administrator_confirmed = true` and a named human
-  who confirmed ([00-bootstrap](00-bootstrap.md) §1). Record which branch ran, in `probe.json`.
+- **Action.** 403 → `createDomains=false` and `assignDomains=false`; the `domains` and `assign` jobs
+  are skipped, and the portal steps below do the work. 200 → the roots are optional: enable them only
+  with `fabric_administrator_confirmed = true` and a named human who confirmed
+  ([00-bootstrap](00-bootstrap.md) §1). Record which branch ran, in `probe.json`.
 - **Do not.** Read 200 as "domains are now managed", or 403 as a failure to fix.
 
-## Domain fallback — Core assignment instead of the Terraform root
+## Domain fallback — a human creates and assigns in the portal
 
-- **Stage.** Probe (selection) → Domains (absent) → Prod-`<domain>` assign job.
-- **Symptom.** No `fabric_domain` in any plan, no `domains.tfstate`, and the assign job is the only
-  place a domain is named. `PROBE-ADMIN` is 403.
+- **Stage.** Probe (selection) → Platform (the `domains` job is skipped) → Prod-`<domain>` (the
+  `assign` job is skipped).
+- **Symptom.** No `fabric_domain` in any plan, no `domains.tfstate`, no `assignments/<domain>.tfstate`,
+  and neither job ran. `PROBE-ADMIN` is 403.
 - **Cause.** The default path in [`../spec/0001-decisions.md`](../spec/0001-decisions.md) and
-  `0004`: a human creates the domains; the pipeline assigns workspaces through the Core API. The SP
-  needs workspace admin plus domain contributor — not Fabric administrator.
-- **Action.** Confirm `createDomains=false` and that the `domains` job is **deleted**, not left to
-  fail (contract §6). The Fabric administrator creates one domain per `config/domains.yaml` row,
-  display name exactly as the YAML, and records the date and the name. Then the assign job runs
-  against `assignments/<domain>.tfstate`; a second plan is empty.
-- **Do not.** Enable the domains root on a hunch, create a domain the YAML does not name, or assign
-  before the domain exists.
+  `0004`: a human creates each domain **and assigns its two workspaces in the portal**;
+  `createDomains` and `assignDomains` are both `false`. The human needs domain admin, not Fabric
+  administrator.
+- **Action.** Confirm both flags are `false` and that the two jobs are **skipped**, not failed
+  (contract §6). For each `config/domains.yaml` row, a Fabric administrator or domain admin creates
+  the domain with the YAML's exact display name before the first run; after the first apply they
+  assign `fabric-<domain>-nonprod` and `fabric-<domain>-prod` in the portal (runbook 00 §12, §14).
+  Record the date and the person.
+- **Do not.** Enable the domain roots on a hunch, create a domain the YAML does not name, or assign
+  before the workspace exists.
+
+## `CONTENT-SCOPE`
+
+- **Stage.** Nonprod or Prod content job, before any Fabric call.
+- **Symptom.** `FAIL deploy … error=CONTENT-SCOPE …`: the content directory or the parameter file
+  does not carry the `--domain` value, and `deploy_items.py` refuses it.
+- **Cause.** Content is per domain: the job must read `content/<domain>/<project>/` and
+  `config/parameter.<domain>.yml`. A shared tree, a copied file with the wrong name, or a domain
+  token left as `<domain>` produces this.
+- **Action.** Fix the path — rename the tree or the parameter file to the domain the job deploys, or
+  fix `parameters.domains`. Re-run the content job; nothing in Fabric changed.
+- **Do not.** Widen the script's check or point every domain at one parameter file. A mismatch is
+  how one domain's item IDs reach another domain's workspace.
+
+## Forgetting a resource is not deleting it
+
+- **Stage.** Any apply where someone has edited state by hand.
+- **Symptom.** A resource is missing from the plan although the object still exists in the tenant, or
+  someone proposes `terraform state rm` to "make the plan clean".
+- **Cause.** Removing a resource from state **forgets** it; Terraform no longer manages it and the
+  object stays live. Deleting the resource block **destroys** the object. The two are not
+  interchangeable, and `removed { lifecycle { destroy = false } }` is the only retirement that says
+  which one was meant.
+- **Action.** Stop. Decide which is intended and record it. If the object is to be retired, the
+  reviewed change uses a `removed` block; if it is to be adopted, import it and read the next plan.
+  Re-adding a forgotten object is an import, not a re-apply.
+- **Do not.** Forget a capacity, workspace, group or domain to quiet a plan: the next destroy will
+  either miss it or a duplicate will be created beside it, and the estate no longer has one owner.
 
 ## When nothing here matches
 

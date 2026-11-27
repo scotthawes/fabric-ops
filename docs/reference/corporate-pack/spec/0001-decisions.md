@@ -59,8 +59,9 @@ naming rule 5, whose group-name contract is now `fabric-<domain>-<env>-<role>`.
 
 **Decision.** One capacity per environment, shared across all domains:
 `fabric-capacity-nonprod` at **F2**, `fabric-capacity-prod` at **F64**, same region, fixed at
-creation. Overage **off** on nonprod and capped **below one-third of daily CU hours** on prod.
-Nonprod is paused **manually**, not on a schedule, until open question #19 is answered. Capacity
+creation. Overage **off** on nonprod and capped **below one-third of daily CU hours** on prod,
+reviewed and set by a human **in the portal after the capacity exists**. Nonprod is paused
+**manually**, not on a schedule, until open question #19 is answered. Capacity
 admin is a named human with a named deputy; the admin SP is intended to hold Contributor, or to sit
 on the capacity admin list if it cannot (OQ-02).
 
@@ -72,8 +73,10 @@ automating an unverified behaviour is how a quiet estate looks like a working on
 
 **Cost.** F2 cannot host an Eventhouse path, so ADR 0009's monitoring store needs its own F4 — a
 third capacity the "two capacities" sentence does not mention. Overage is not a cap: it bills at
-roughly three times pay-as-you-go once crossed. It is not expressible in AzureRM, so it arrives only
-through `azapi` at `2026-09-01-preview` and never appears in `terraform plan`. F2 will throttle a
+roughly three times pay-as-you-go once crossed. It is not expressible in AzureRM or the pinned
+`azurerm_fabric_capacity`, so it never appears in `terraform plan`: a human reviews it in the portal
+after the capacity exists (default on, 25% threshold, 3× rate) and the pipeline does not manage it.
+F2 will throttle a
 runaway; that is the intent, and it must be stated to anyone who expects prod behaviour in nonprod.
 No prices are recorded here.
 
@@ -84,11 +87,12 @@ monitoring store could sit on the shared capacity.
 
 ## 4. Domains created by Terraform, with a human fallback
 
-**Decision.** By default a named human creates each Fabric domain, and
-`scripts/assign_domains.py` assigns workspaces through the Core API
-`POST /workspaces/{id}/assignToDomain`, which needs workspace admin plus domain contributor or
-admin. Terraform domain creation (`terraform/domains`) is **optional and off by default**; it is
-enabled only when the read-only probe proves the admin SP holds Fabric administrator.
+**Decision.** By default a named human creates each Fabric domain **in the portal and assigns its
+two workspaces in the portal**. The Terraform domain roots (`terraform/domains` and
+`terraform/domain-assignments`) are **optional and off by default**: `createDomains` is `false` and
+`assignDomains` is `false`. Both roots run only when the read-only probe proves the admin SP holds
+Fabric administrator (`PROBE-ADMIN` 200); the portal path needs a human with domain admin, not
+Fabric administrator.
 
 **Completed 2026-11-26.** The default is now the fallback itself. There is no channel back from the
 corporate tenant, so the design cannot wait on the Fabric-administrator answer; the safe branch is
@@ -97,15 +101,15 @@ nothing depends on it.
 
 **Why.** All three provider domain resources (`fabric_domain`,
 `fabric_domain_role_assignments`, preview `fabric_domain_workspace_assignments`) go through the
-admin API group, so through Terraform each one needs Fabric administrator. The Core path is
+admin API group, so through Terraform each one needs Fabric administrator. The portal path is
 narrower and avoids the role entirely. One domain can hold both environments, so the fallback does
 not fork the layout: a domain GUID enters the workspaces root as data either way.
 
 **Cost.** Fabric administrator is tenant-wide: a principal that can create domains can also destroy
 assignments across every domain in the tenant. That blast radius is the price of automating a
-resource that only exists to delegate. The fallback is a second code path and makes a new domain a
-run-book step rather than a YAML edit. Destroying the assignment resource **unassigns** the
-workspace — a stop-on condition, never routine.
+resource that only exists to delegate. The optional Terraform roots are a second code path, and the
+default makes a new domain a portal step plus a YAML edit. Destroying the assignment resource
+**unassigns** the workspace — a stop-on condition, never routine.
 
 **Supersedes/amends.** Amends ADR 0007, which had no domains root. Recorded from #42 and #44.
 
@@ -165,14 +169,15 @@ prod unbound). Recorded from #43 and #52.
 
 | Root | State | Owns |
 | --- | --- | --- |
-| `terraform/platform` | `platform/nonprod.tfstate`, `platform/prod.tfstate` | resource group, one capacity each |
-| `terraform/domains` | `domains.tfstate` | `fabric_domain` — only if the SP holds Fabric administrator |
+| `terraform/platform` | `platform/nonprod.tfstate`, `platform/prod.tfstate` | one capacity each; reads `rg-fabric-corporate` as a data source |
+| `terraform/domains` | `domains.tfstate` | `fabric_domain` — only if `createDomains` and the SP holds Fabric administrator |
 | `terraform/workspaces` | `workspaces/<domain>/<env>.tfstate` | groups, workspace, role assignments, nonprod Git binding |
-| `terraform/domain-assignments` | `assignments/<domain>.tfstate` | preview assignment resources |
+| `terraform/domain-assignments` | `assignments/<domain>.tfstate` | preview assignment resources — only if `assignDomains` and the SP holds Fabric administrator |
 
 Platform is split by environment so destroying the nonprod capacity cannot reach the prod state.
 There are no `modules/` — each root has one call site. `config/domains.yaml` in the corporate repo is
-the matrix truth; adding a domain is a YAML entry plus two tfvars files, with no HCL edit.
+the matrix truth; adding a domain is a YAML entry, its committed tfvars pair and a portal step, with
+no HCL edit. `rg-fabric-corporate` is a bootstrap object, not owned by either platform state.
 
 **Why.** The capacity is an Azure resource that outlives every workspace and is applied by a
 different principal; the workspaces root is applied per domain per environment with its own lock.
@@ -182,9 +187,8 @@ their own root stops `preview = true` — a provider-wide flag — from covering
 **Cost.** Five to seven state blobs to back up, lock and restore, where ADR 0007 had two. The
 capacity enters the workspaces root as `data "fabric_capacity"` by name, so the name is ambient and a
 duplicate display name is ambiguous; `terraform_remote_state` would buy a declared output at the cost
-of coupling to another root's output names. Under the §4 fallback the domains root disappears, and
-when the assignment resource graduates the assignments root folds back in — both are layout changes
-with state moves.
+of coupling to another root's output names. With `createDomains` and `assignDomains` both false the
+two domain roots have no state at all; enabling either is a layout change with a state to create.
 
 **Supersedes/amends.** Amends ADR 0007 (two roots become four; capacity root split per environment).
 Records the two-capacity divergence from ADR 0004.
@@ -218,14 +222,16 @@ connection set. Replaces run-book 03's four-environment precondition. Recorded f
 **Decision.**
 
 ```
-Build ──▶ Platform ──▶ Domains ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain> (one stage each)
+Build ──▶ Probe ──▶ Platform ──▶ Nonprod ──▶ PlanProd ──▶ Guard ──▶ Prod-<domain>
 ```
 
+Domains is a **job inside Platform**, not a stage, and it is skipped unless `createDomains` is true.
 Fan-out happens inside each band; only the gate forces structure. `PlanProd` runs **outside** any
-environment and emits one saved plan artifact per domain (`tfplan-<domain>`). Each `Prod-<domain>`
-stage runs `assert_plan` → apply saved plan → content → assignment, and raises its **own human
-approval**. One plan and one approval per domain: **N approvals per run**, plus at most two for
-Platform and Nonprod. `isSkippable: false` on every prod stage.
+environment and emits one saved plan artifact per domain (`tfplan-<domain>`). `Guard` runs the
+credential-free `assert_plan` over every saved plan and fails closed. Each `Prod-<domain>` stage runs
+the guarded plan → content → assignment, and raises its **own human approval**. One plan and one
+approval per domain: **N approvals per run**, plus at most two for Platform and Nonprod.
+`isSkippable: false` on every prod stage.
 
 **Why.** A matrix expands a *job*, a deployment job's strategy is `runOnce`, and `environment:` must
 be a literal, so a matrix leg cannot be gated — matrix where there is no gate, explicit stages where

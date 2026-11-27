@@ -14,10 +14,10 @@ deliberate.
 | --- | --- | --- | --- |
 | `terraform/platform` | `platform/nonprod.tfstate` | Platform: `capacity-nonprod` | `azurerm_fabric_capacity` F2 |
 | `terraform/platform` | `platform/prod.tfstate` | Platform: `capacity-prod` | `azurerm_fabric_capacity` F64 |
-| `terraform/domains` | `domains.tfstate` | Platform, **only if** the SP is Fabric admin | `fabric_domain`, role assignments |
-| `terraform/workspaces` | `workspaces/<domain>/nonprod.tfstate` | Nonprod: one job per domain | groups, workspace, grants, optional Git |
+| `terraform/domains` | `domains.tfstate` | Platform `domains` job, **only if** `createDomains` and the SP is Fabric admin | `fabric_domain`, role assignments |
+| `terraform/workspaces` | `workspaces/<domain>/nonprod.tfstate` | Nonprod: one job per domain | groups, workspace, grants, Git |
 | `terraform/workspaces` | `workspaces/<domain>/prod.tfstate` | Prod-`<domain>`: saved plan | same code, different tfvars |
-| `terraform/domain-assignments` | `assignments/<domain>.tfstate` | Prod-`<domain>`, after content | workspace → domain (preview) |
+| `terraform/domain-assignments` | `assignments/<domain>.tfstate` | Prod-`<domain>`, after content, **only if** `assignDomains` | workspace → domain (preview) |
 
 One container (`stfabriccorp`), one blob per key (`tfstate`). A key is never shared between
 stages. The platform split is the point: destroying the nonprod capacity cannot reach prod's
@@ -33,7 +33,7 @@ reads it with `data "azurerm_resource_group"`. `runbook/00-bootstrap.md` creates
 ```
 platform/nonprod  ∥  platform/prod          (separate keys, no shared lock)
         └──────────────┬──────────────┘
-                    domains                 (conditional; one state, tenant-wide)
+                    domains (job in Platform; conditional on createDomains)
                        │
         workspaces/<domain>/nonprod         (one job per domain, in parallel)
                        │
@@ -49,10 +49,13 @@ platform/nonprod  ∥  platform/prod          (separate keys, no shared lock)
 Rules that follow from the state map, not from preference:
 
 - The same root at two keys is **two applies**, never one plan containing both environments.
-- `PlanProd` runs outside the prod stage, because an approval must not fire before a plan exists.
+- Platform and Nonprod plan and apply in the same job (no approval there); `PlanProd` runs outside the
+  prod band, because an approval would otherwise fire before the plan exists.
+  must not fire before a plan exists; `Guard` asserts every saved plan before prod.
 - A plan artifact is applied to the state and domain that produced it, and to no other.
 - Apply content only after the workspace apply for that domain/environment has completed. The
   workspace blocks until capacity assignment settles; an ambient workspace GUID has no such edge.
+- Content is per domain: `content/<domain>/<project>/` with `config/parameter.<domain>.yml`.
 
 ## 3. Inputs and outputs
 
@@ -71,10 +74,11 @@ Rules that follow from the state map, not from preference:
 Outputs: `capacity_name` (the join key), `capacity_id` (ARM ID — informational only; **never**
 pass it to `fabric_workspace.capacity_id`), `capacity_sku`, `resource_group_name`.
 
-**Not expressible in this root:** capacity overage (preview ARM property, default-on 25%, 3× rate),
+**Not expressible in this root:** capacity overage (an ARM property on the preview API, default-on
+at 25%, 3× rate, **reviewed and set by a human in the portal after the capacity exists**),
 pause/resume (an ARM action, not a property), surge protection, retention. Configuring any of them
-here would give one object two owners. They stay in the run-book / portal / a separately owned
-field hatch. See `capacity.tf.tmpl`.
+here would give one object two owners, and the pipeline does not manage overage at all. Pause,
+surge protection and retention stay in the run-book / portal. See `capacity.tf.tmpl`.
 
 ### `domains`
 
@@ -91,9 +95,11 @@ field hatch. See `capacity.tf.tmpl`.
 Outputs: `domain_ids`, `domain_display_names`.
 
 **Conditional root.** `fabric_domain` requires Fabric administrator; the SP must also have no
-Fabric permission that requires admin consent. Apply only after bootstrap has verified both with
-a real admin API call. `fabric_domain_role_assignments.principals` is a **set with ForceNew**:
-adding one principal replaces the whole assignment.
+Fabric permission that requires admin consent. It runs only when `createDomains=true` **and** the
+probe returned `PROBE-ADMIN` 200; the default is `false`, with a human creating the domain in the
+portal. Apply only after bootstrap has verified both with a real admin API call.
+`fabric_domain_role_assignments.principals` is a **set with ForceNew**: adding one principal
+replaces the whole assignment.
 
 ### `workspaces`
 
@@ -123,8 +129,9 @@ disabled), `group_object_ids`, `workspace_name`, `capacity_id`.
 | `tenant_id`, `admin_client_id`, `ado_service_connection_id` | string | federated inputs |
 
 Outputs: `domain_id`, `workspace_ids`. The provider block sets `preview = true`; this root is the
-only place that flag belongs. **Destroy unassigns workspaces from the domain** — it does not delete
-them, but it removes domain governance silently, so `prevent_destroy` stays on.
+only place that flag belongs. It runs only when `assignDomains=true`; the default is `false`, with a
+human assigning both workspaces in the portal. **Destroy unassigns workspaces from the domain** — it
+does not delete them, but it removes domain governance silently, so `prevent_destroy` stays on.
 
 ## 4. `config/domains.yaml` (corporate repo)
 
@@ -142,10 +149,12 @@ domains:
       members: ["00000000-0000-0000-0000-000000000000"]
 ```
 
-One row produces: one `domains.tfvars` entry; one `workspaces/<name>/{nonprod,prod}.tfvars` pair;
-the group owners; and (nonprod only) the Git binding to `fabric-<name>-nonprod`. The Build stage
-asserts parameter↔YAML parity; these skeletons do not read YAML at plan time — the pipeline
-materialises tfvars from it.
+One row produces: one `domains.tfvars` entry (only when `createDomains=true`); one
+`workspaces/<name>/{nonprod,prod}.tfvars` pair; the group owners; and (nonprod only) the Git binding
+to `fabric-<name>-nonprod`. Content is per domain too: `content/<name>/<project>/` with
+`config/parameter.<name>.yml`. The tfvars are **committed per domain**; nothing materialises them
+from YAML at run time. The Build stage compares `parameters.domains` and `parameters.matrix` with
+`config/domains.yaml` on the non-secret columns, and fails on drift.
 
 ## 5. What not to rename
 
@@ -171,18 +180,19 @@ materialises tfvars from it.
 
 ## 7. Scripts
 
-All three live in `skeletons/scripts/` and are renamed without `.tmpl`. They use only the Python
+All four live in `skeletons/scripts/` and are renamed without `.tmpl`. They use only the Python
 standard library except `deploy_items.py`, which needs `fabric-cicd` and `azure-identity`.
 
 ```bash
 python preflight.py --root workspaces terraform/workspaces/env/sales/nonprod.tfvars
 python assert_plan.py plan.json --root workspaces --phase nonprod   # reads checks/known-good/nonprod.json
 python deploy_items.py --environment nonprod --domain sales \
-  --workspace-id <guid> --content-dir build/content --parameter-file build/content/parameter.yml
+  --workspace-id <guid> --content-dir content/sales/forecast --parameter-file config/parameter.sales.yml
 ```
 
-`preflight.py` exit 0 pass / 1 findings / 2 unparseable. It rejects remaining `PLACEHOLDER` or
-all-zero GUID values, a bad `environment`, a wrong derived name, and a missing group.
+`probe.py` is the read-only prerequisite check; `preflight.py` exit 0 pass / 1 findings / 2
+unparseable. It rejects remaining `PLACEHOLDER` or all-zero GUID values, a bad `environment`, a
+wrong derived name, and a missing group.
 
 `assert_plan.py` implements contract §7 and exits non-zero on any violation. A missing
 `checks/known-good/<phase>.json` is a failure, not a skip. The baseline is created by a human,

@@ -357,6 +357,12 @@ def check(root: str, data: dict, phase: str | None = None):
                     findings.append(f"capacity_name: expected {expected!r}, got {capacity_name!r}")
         if data.get("capacity_sku") not in SKUS:
             findings.append(f"capacity_sku: expected one of {', '.join(SKUS)}")
+        expected_sku = {"nonprod": "F2", "prod": "F64"}.get(data.get("environment"))
+        if expected_sku and data.get("capacity_sku") != expected_sku:
+            findings.append(
+                f"capacity_sku: environment {data['environment']!r} requires {expected_sku}, "
+                f"got {data.get('capacity_sku')!r}"
+            )
         admins = data.get("capacity_admin_object_ids")
         if not isinstance(admins, list) or not admins:
             findings.append("capacity_admin_object_ids: expected a non-empty list")

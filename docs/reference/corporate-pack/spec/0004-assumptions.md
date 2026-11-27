@@ -18,9 +18,9 @@ scope.
 
 | Was assumed | Now assumed by default | Why |
 | --- | --- | --- |
-| The admin SP creates the Fabric domains | **A human creates the domains; the pipeline assigns workspaces through the Core API** (`scripts/assign_domains.py`). Terraform domain creation is an optional root, off by default. | Removes the dependence on whether an SP can hold Fabric administrator. The Core path needs only workspace admin plus domain contributor/admin. |
+| The admin SP creates the Fabric domains | **A human creates each domain and assigns its two workspaces in the portal.** `createDomains` and `assignDomains` are both `false`; the Terraform domain roots run only when the probe proves Fabric administrator. | Removes the dependence on whether an SP can hold Fabric administrator. The portal path needs a human with domain admin, not the role. |
 | A scheduled pause is available on nonprod | **No scheduled pause anywhere.** Pause is a manual, out-of-band action. | Removes #19 (refresh behaviour when paused) and #20 (reservation billing while paused) from the design. |
-| The capacity's overage default can be relied on | **Overage is written explicitly** through `azapi` after creation, then read back. | Removes #23 (what a Terraform-created capacity defaults to). |
+| The capacity's overage default can be relied on | **Overage is reviewed and set by a human in the portal after the capacity exists** — default on at 25% / 3×. The pipeline does not manage it. | Removes #23 (what a Terraform-created capacity defaults to) and gives the setting one owner. |
 | The admin SP holds capacity Contributor | **The SP is a capacity administrator** through `administration_members`. | Removes #15; the provider documents the member as a user or service principal. |
 | Viewers may read on a Free licence at F64 | **Every viewer is assumed to hold Pro or PPU.** F64's Free-viewer benefit is a bonus, not a dependency. | Removes the licence cliff from the sizing decision. |
 | The SP can create ADO repositories | **A human creates one repository per nonprod workspace** from a template; the pipeline only binds. | Repository-create permission is not documented for an SP. |
@@ -34,8 +34,8 @@ scope.
 | OQ-02 | SP capacity Contributor (#15) | Not needed; admin membership | `GET /v1/capacities` returns both capacities | `PROBE-CAPACITY`: check `administration_members` |
 | OQ-03 | Refresh while paused (#19) | Never auto-pause | none — policy | A human pause is a separate, documented operation |
 | OQ-04 | Reservation billing while paused (#20) | No reservation; never auto-pause | none — policy | If finance reports a reservation, pause stays unavailable |
-| OQ-05 | Overage default (#23) | Set explicitly after create | `azapi` read of `properties.overage` | the read-back is the check; re-apply the explicit setting |
-| OQ-06 | SP may hold Fabric administrator | **Assume no** | `GET /v1/admin/domains` | `PROBE-ADMIN`: domains stay human-created; Core assignment is already the default |
+| OQ-05 | Overage default (#23) | Portal setting, reviewed after the capacity exists; default on at 25% / 3× | none — a human reads the portal after Platform | A human sets it in the portal; the pipeline never manages it |
+| OQ-06 | SP may hold Fabric administrator | **Assume no** | `GET /v1/admin/domains` | `PROBE-ADMIN`: domains and assignments stay portal steps; both Terraform roots stay off |
 | OQ-07 | SP may create ADO repositories | Assume no | none — process | Human creates the repository from the template in run-book 00 |
 | OQ-08 | Graph consent granted | Assume yes, granted in bootstrap | `GET /groups?$top=1` (read) | `PROBE-GRAPH`: the consent step is incomplete; group create will 403 |
 | OQ-09 | 64-CU quota for F64 | Assume available | capacity create returns; quota error otherwise | a quota error at capacity create: request quota, or start at F32 and record the licensing change |
@@ -51,14 +51,14 @@ fails with one code per missing prerequisite:
 | --- | --- | --- |
 | `PROBE-AUTH` | ARM token; `az account show` | everything |
 | `PROBE-FABRIC` | `GET /v1/capacities` | Platform and everything after |
-| `PROBE-DOMAINS` | `GET /v1/domains` | the optional domains root and the assignment job |
+| `PROBE-DOMAINS` | `GET /v1/domains` | the optional domain roots and their jobs |
 | `PROBE-GRAPH` | `GET /groups?$top=1` | Nonprod group creation |
 | `PROBE-PROVIDER` | `Microsoft.Fabric` registration state | Platform |
 | `PROBE-ADMIN` | `GET /v1/admin/domains` (expected 403) | nothing — it *selects* the domain path |
 
-`PROBE-ADMIN` is the one probe whose failure is information: a 403 confirms A6 and the pipeline uses
-the Core assignment path. A 200 means the optional Terraform domain root may be enabled, but nothing
-depends on it.
+`PROBE-ADMIN` is the one probe whose failure is information: a 403 confirms A6 and domains plus
+assignments stay portal steps. A 200 means the optional Terraform domain roots may be enabled, but
+nothing depends on it.
 
 ## What is deliberately not probed
 

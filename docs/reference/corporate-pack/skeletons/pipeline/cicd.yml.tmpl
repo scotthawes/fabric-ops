@@ -713,11 +713,51 @@ stages:
                     -var-file=env/${{ domain }}/prod.tfvars \
                     -var 'bind_git=false' \
                     -out=${{ domain }}.tfplan
+
+                  # The JSON is what the credential-free Guard checks, so the approver's plan and
+                  # the guarded plan are the same file pair.
+                  terraform -chdir=terraform/workspaces show -json ${{ domain }}.tfplan > plan.json
               env:
                 FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
             - publish: terraform/workspaces/${{ domain }}.tfplan
               artifact: tfplan-${{ domain }}
               displayName: Publish ${{ domain }}.tfplan as tfplan-${{ domain }}
+            - publish: terraform/workspaces/plan.json
+              artifact: planjson-${{ domain }}
+              displayName: Publish ${{ domain }} plan.json as planjson-${{ domain }}
+
+  # =============================================================================================
+  # Guard — credential-free assert over every prod plan before any prod approval is requested.
+  # A plan that would replace a workspace, delete a group or drift a count fails here, so the
+  # approver is never asked to approve a plan the pipeline already knows is wrong.
+  # =============================================================================================
+  - stage: Guard
+    displayName: Guard — assert every prod plan before approval
+    dependsOn: PlanProd
+    condition: succeeded()
+    jobs:
+      - ${{ each domain in parameters.domains }}:
+        - job: guard_${{ replace(domain, '-', '_') }}
+          displayName: Guard prod plan — ${{ domain }}
+          steps:
+            - checkout: self
+            - download: current
+              artifact: planjson-${{ domain }}
+            - script: |
+                set -euo pipefail
+                plan="$(Pipeline.Workspace)/planjson-${{ domain }}/plan.json"
+                if [ -f checks/known-good/prod.json ]; then
+                  python3 scripts/assert_plan.py "$plan" --root workspaces --phase prod
+                else
+                  python3 scripts/assert_plan.py "$plan" --root workspaces --phase prod \
+                    --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                  echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/prod.json from this run's artifact"
+                fi
+              displayName: assert_plan — ${{ domain }} prod
+            - publish: $(Build.ArtifactStagingDirectory)/known-good
+              artifact: known-good-prod-${{ domain }}
+              condition: and(succeeded(), ne(variables['Build.Reason'], ''))
+              displayName: Publish first-run prod baseline (commit it)
 
   # =============================================================================================
   # Prod — one STAGE per domain, each gated by fabric-prod. `isSkippable: false` removes the stage
@@ -735,7 +775,7 @@ stages:
   - ${{ each domain in parameters.domains }}:
     - stage: Prod_${{ replace(domain, '-', '_') }}
       displayName: Prod — ${{ domain }}
-      dependsOn: PlanProd
+      dependsOn: Guard
       condition: succeeded()
       isSkippable: false
       jobs:

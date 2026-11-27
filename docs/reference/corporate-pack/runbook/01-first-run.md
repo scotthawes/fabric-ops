@@ -16,14 +16,15 @@ for each environment is written down, and the pipeline's plan stage exists as a 
 The pack is copied into the corporate repo before the first run; nothing runs from `fabric-ops`:
 
 ```bash
-bash skeletons/scripts/scaffold.sh --target <corporate-repo>
+bash skeletons/scripts/scaffold.sh.tmpl --target <corporate-repo>
 ```
 
-It copies the tree, renames every `.tmpl` to the name the pipeline reads (`pipelines/cicd.yml`,
-`scripts/probe.py`, …), copies `agents/`, and seeds `config/domains.yaml` from
-`skeletons/config/domains.yaml.tmpl`. Fill the placeholders from
-[runbook 00 §Placeholders](00-bootstrap.md#placeholders) and create the repositories (§10) before
-queueing anything.
+The runnable name is `scaffold.sh.tmpl` until it is copied; only the copy becomes
+`scripts/scaffold.sh`. It copies the tree, renames every `.tmpl` to the name the pipeline reads
+(`pipelines/cicd.yml`, `scripts/probe.py`, …), copies `agents/`, `checks/known-good/README.md` and
+the pack docs, and seeds `config/domains.yaml` from `skeletons/config/domains.yaml.tmpl`. Fill the
+placeholders from [runbook 00 §Placeholders](00-bootstrap.md#placeholders), create the repositories
+(§11) and add `content/<domain>/<project>/` for each domain before queueing anything.
 
 - **Check after.** `find . -name '*.tmpl'` in the corporate repo prints nothing; `config/domains.yaml`
   has a `domains:` list; `scripts/report.sh` exists. [runbook 02](02-readiness.md) R0 makes this a
@@ -34,21 +35,22 @@ queueing anything.
 ## The order
 
 ```
-Build ──▶ Probe ──▶ Platform ──▶ Domains ──▶ Nonprod ──▶ PlanProd ──▶ Prod-<domain>  (one per domain)
+Build ──▶ Probe ──▶ Platform ──▶ Nonprod ──▶ PlanProd ──▶ Guard ──▶ Prod-<domain>
 ```
 
-`Domains` exists only when `sp-fabric-admin` holds Fabric administrator and `domains.tfstate` is in
-use (contract §4). If it does not, the stage is absent, not empty.
+The `domains` job exists inside Platform and runs only when `sp-fabric-admin` holds Fabric
+administrator and `createDomains=true` (contract §4, §6). Otherwise it is skipped, not failed — read
+the job result, not the run colour. The same applies to the `assign` job when `assignDomains=false`.
 
 | Stage | Environment | Jobs | Gate |
 | --- | --- | --- | --- |
-| Build | none | bundle content, `fmt -check`, `validate`, parameter ↔ YAML parity | none — no connection, no backend |
+| Build | none | bundle one content tree per domain (`content/<domain>/<project>/`), `fmt -check`, `validate`, compare `parameters.domains`/`matrix` with `config/domains.yaml` | none — no connection, no backend |
 | Probe | none | read-only checks; writes `probe.json`; fails `PROBE-*` | none — a probe that writes is a deployment |
-| Platform | `fabric-platform` | `capacity-nonprod` ∥ `capacity-prod` | optional approval |
-| Domains | `fabric-platform` | one apply against `domains.tfstate` | same optional approval |
-| Nonprod | `fabric-nonprod` | one job per domain: control apply → content | none, or a reviewer |
+| Platform | `fabric-platform` | `capacity-nonprod` ∥ `capacity-prod`, each plan-then-apply in the job, then the `domains` job (conditional) | none — never add an Approvals check; the plan is made in the job |
+| Nonprod | `fabric-nonprod` | one job per domain: plan → apply → content | none — the environment carries the lock and the record |
 | PlanProd | **none** | one plan per domain, artifact `tfplan-<domain>` | none — read-only |
-| Prod-`<domain>` | `fabric-prod` | `assert_plan` → apply saved plan → content → assign | **human approval** |
+| Guard | **none** | credential-free `assert_plan` over every prod plan | none — fails closed |
+| Prod-`<domain>` | `fabric-prod` | apply the guarded plan → content → assign (conditional) | **human approval** |
 
 ## Baselines: the first run prints `BASELINE-MISSING`
 
@@ -99,43 +101,51 @@ Never create a baseline to quiet a count, and never write one from a plan you di
 
 ## Platform
 
-- **Runs.** `capacity-nonprod` and `capacity-prod` in parallel, each against its own state key
-  (`platform/nonprod.tfstate`, `platform/prod.tfstate`). The `domains` job is the next stage, not a
-  job here.
-- **Check after.** Each plan lists `rg-fabric-corporate` and its capacity and nothing else; the
-  capacity is `Active`; `SP_ADMIN_OBJECTID` appears in `administration_members`. Write down both
-  capacity GUIDs. A second plan for the same state is empty.
+- **Runs.** Each job plans **and** applies its own capacity in the same job — `capacity-nonprod` and
+  `capacity-prod` in parallel, each against its own state key (`platform/nonprod.tfstate`,
+  `platform/prod.tfstate`), with `assert_plan` inline before the apply. There is no approval on this
+  band: the plan is made in the job, so an approval here would fire before anyone could read it.
+  The `domains` job sits inside this stage and is skipped unless `createDomains=true`. Overage is
+  **not** set here or anywhere in the pipeline.
+- **Check after.** The plan reads `rg-fabric-corporate` as a data source and creates only its
+  capacity; the capacity is `Active`; `SP_ADMIN_OBJECTID` appears in `administration_members`. Write
+  down both capacity GUIDs. A second plan for the same state is empty.
 - **Stop if.** A plan proposes **replacing** an existing capacity (import it instead), a capacity is
-  not `Active`, the plan contains anything beyond the group and the capacity, or one environment's
-  job succeeded while the other failed — the pair is independent, so read both.
+  not `Active`, the plan would create the resource group, or one environment's job succeeded while
+  the other failed — the pair is independent, so read both.
 - **Half-state.** One capacity exists and is billed with no workspace on it; the other state key is
   untouched, so its job can be re-run alone. The split is deliberate: destroying nonprod cannot
   reach prod. Leaving one empty capacity is untidy, not dangerous — do not hand-delete it, because
   the other run may already reference it.
 
-## Domains
+## Domains job (inside Platform)
 
-- **Runs.** Applies `domains.tfstate`, the domain list from `config/domains.yaml`.
+- **Runs.** Only when `createDomains=true`, and applies `domains.tfstate`, the domain list from
+  `config/domains.yaml`. When `createDomains=false` it is **skipped** — a human created the domains
+  in the portal (runbook 00 §12), and a skipped job is green in the run view.
 - **Check after.** One `fabric_domain` per row, names match the YAML exactly, and a second plan is
   empty. Count the rows before you look at the plan.
 - **Stop if.** The plan proposes deleting a domain, the count differs from the YAML row count, or
-  the SP is not a Fabric administrator (the stage should not exist in that case).
+  the SP is not a Fabric administrator (`createDomains=true` without `PROBE-ADMIN` 200).
 - **Half-state.** Some domains exist and some do not; each is independent, and re-running is
   idempotent. A domain with no workspace is invisible to users and safe to leave for the next run.
   A **deleted** domain is not recoverable by re-apply — stop before that plan.
 
 ## Nonprod
 
-- **Runs.** Per domain, in the domain's own state key (`workspaces/<domain>/nonprod.tfstate`): the
-  control apply (groups, workspace, identity, a role assignment per group plus the identity's own,
-  optional storage grant, Git binding), then content with `sc-fabric-deploy`.
+- **Runs.** Per domain, plans and applies in the domain's own state key
+  (`workspaces/<domain>/nonprod.tfstate`): groups, workspace, identity, a role assignment per group
+  plus the identity's own, optional storage grant, Git binding, with `assert_plan` inline; then
+  content with `sc-fabric-deploy` from `content/<domain>/<project>/` and
+  `config/parameter.<domain>.yml`.
 - **Check after.** One role assignment per group (three), plus the workspace identity's own
   Contributor; a workspace identity with a `service_principal_id`; workspace `Active` on its
   capacity; groups carrying `-viewers`/`-contributors`/`-members` and a named human owner; item
-  count equal to the repo's.
+  count equal to that domain's content tree.
 - **Stop if.** `assert_plan` fails (fewer than three role assignments is rule 3), a plan shows a
   replacement or a group destroy, the identity has no `service_principal_id`, the capacity
-  postcondition fails, or content reports an orphan deletion on a workspace that should be empty.
+  postcondition fails, content reports `CONTENT-SCOPE` (content or parameter path does not carry
+  the domain), or content reports an orphan deletion on a workspace that should be empty.
 - **Half-state.** One domain may be applied and another not — they do not share a state key, so
   finish the applied one and re-run the other. A workspace may exist with no content: usable, empty,
   and safe to re-run. A workspace with **zero** role assignments must not be left in place; that is
@@ -156,13 +166,25 @@ Never create a baseline to quiet a count, and never write one from a plan you di
   an old run cannot be approved later. If the plan is rejected, the next attempt is a **new run**,
   never a retry of the apply.
 
+## Guard
+
+- **Runs.** Credential-free `assert_plan` over every prod plan — the JSON `PlanProd` published — against
+  contract §7. No `environment:`, no service connection, no state write.
+- **Check after.** One verdict line per artifact, all passing; the artifacts it passed are the ones
+  the prod stages may consume.
+- **Stop if.** Any verdict is non-zero, an artifact is missing, or `Guard` was skipped — a skipped
+  guard means no prod plan was asserted.
+- **Half-state.** Nothing applied. Fix the cause, then a new run: a new plan, a new Guard, a new
+  approval.
+
 ## Prod-`<domain>`
 
-- **Runs.** `assert_plan` on the saved file, then apply **that file** (no plan, no `-var-file`), then
-  content from the Build artifact, then the domain assignment.
+- **Runs.** Applies the **guarded** artifact (no plan, no `-var-file`), then content from that
+  domain's Build tree, then the domain assignment **only if `assignDomains=true`**.
 - **Check after.** The apply consumed the approved artifact; no replacement and no destroy on
   `fabric_workspace`, `azurerm_fabric_capacity`, `fabric_domain` or `azuread_group`; the workspace
-  is `Active`; item count equals nonprod; the assignment lists only the intended workspace IDs.
+  is `Active`; item count equals that domain's nonprod count; the assignment lists only the
+  domain's two workspace IDs.
 - **Stop if.** The plan is stale, `assert_plan` fails, the approval is `skipped` (timeout, not
   success), the approver is the person who queued the run, or the applied plan differs from the one
   that was read.
@@ -176,8 +198,8 @@ Never create a baseline to quiet a count, and never write one from a plan you di
 
 Stop the run, do not retry, and carry the finding out, when any of these is true:
 
-1. `probe.json` carries a red code — `PROBE-ADMIN` 403 is not red, it selects the Core path; an
-   ADMIN 401/5xx is red.
+1. `probe.json` carries a red code — `PROBE-ADMIN` 403 is not red, it keeps domains and
+   assignments on the portal path; an ADMIN 401/5xx is red.
 2. `assert_plan` exits non-zero — read its verdict line and the addresses; never bypass it.
 3. A plan proposes replacement of a workspace, capacity or domain; or a destroy of a group,
    workspace or capacity.

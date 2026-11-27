@@ -9,8 +9,13 @@ Azure DevOps pipeline as `.tmpl`, four Python scripts and two shell scripts as `
 registry example, a spec, an operator run-book, four agent briefs and a checker.
 
 It describes **one estate**: N domains, two environments (`nonprod`, `prod`), one capacity each,
-one resource group, one state container, one pipeline. The fixed names, state keys and stage graph
-are in `spec/0002-contract.md`; a file here that disagrees with that contract is wrong.
+one platform resource group plus a separate state resource group, one state container, one pipeline,
+and one content tree and parameter file per domain. The fixed names, state keys and stage graph are
+in `spec/0002-contract.md`; a file here that disagrees with that contract is wrong.
+
+By default a human creates each Fabric domain **and assigns its two workspaces in the portal**:
+`createDomains` and `assignDomains` are both `false`, and the two Terraform domain roots run only
+when the probe proves Fabric administrator.
 
 **What it is not.** It is not a Terraform root, an applied pipeline or a credential store. Nothing
 here executes. The corporate machine reads this repository and copies the pack into the work repo;
@@ -35,28 +40,36 @@ place the pack version is written; every file's header repeats it for greppabili
 A new corporate repo takes the pack in one command:
 
 ```bash
-bash skeletons/scripts/scaffold.sh --target <corporate-repo>
+bash skeletons/scripts/scaffold.sh.tmpl --target <corporate-repo>
 ```
 
-It copies the tree, renames every `.tmpl` to the name the pipeline reads (`pipelines/cicd.yml`,
-`scripts/probe.py`, …), copies `agents/`, and seeds `config/domains.yaml` from
-`skeletons/config/domains.yaml.tmpl`. These are v3 additions to the tree in `spec/0002-contract.md`
-§2, together with `checks/known-good/README.md`; the names and state keys there are unchanged.
+`scaffold.sh.tmpl` is the runnable name; only the copy becomes `scripts/scaffold.sh`. It copies the
+tree, renames every `.tmpl` to the name the pipeline reads (`pipelines/cicd.yml`, `scripts/probe.py`,
+…), copies `agents/`, `checks/known-good/README.md` and the pack docs, and seeds
+`config/domains.yaml` from `skeletons/config/domains.yaml.tmpl`. These are v3 additions to the tree
+in `spec/0002-contract.md` §2, together with the per-domain content and parameter files; the names
+and state keys there are unchanged.
 
 Then, in this order:
 
 1. **Fill the placeholders.** Preflight refuses a plan while a `PLACEHOLDER-…` or an all-zero GUID
    survives; the values, and who supplies each, are in [runbook 00](runbook/00-bootstrap.md).
-2. **Create the repositories.** One `fabric-<domain>-nonprod` per registry row, plus the ops repo
-   that holds `pipelines/cicd.yml` (runbook 00 §10).
-3. **Run readiness.** Every row of [runbook 02](runbook/02-readiness.md) is answered by a repo file
+2. **Create the repositories and the content trees.** One `fabric-<domain>-nonprod` per registry
+   row, `content/<domain>/<project>/` in each, plus the ops repo that holds `pipelines/cicd.yml`
+   (runbook 00 §11).
+3. **Create the domain rows in the portal**, once each (runbook 00 §12). Do not hand-create the
+   workspaces.
+4. **Run readiness.** Every row of [runbook 02](runbook/02-readiness.md) is answered by a repo file
    or a `Probe` output — including the scaffold's own output: no `.tmpl` remains, and
-   `config/domains.yaml` and `scripts/report.sh` exist.
-4. **Run `Probe`.** Read-only, no environment, no state. It writes `probe.json` and fails `PROBE-*`;
+   `config/domains.yaml`, `scripts/report.sh` and `checks/known-good/README.md` exist.
+5. **Run `Probe`.** Read-only, no environment, no state. It writes `probe.json` and fails `PROBE-*`;
    a red probe is a tenant setting, not a repo fix.
-5. **Run the first pipeline.** [runbook 01](runbook/01-first-run.md): it prints `BASELINE-MISSING`
+6. **Run the first pipeline.** [runbook 01](runbook/01-first-run.md): it prints `BASELINE-MISSING`
    once per root and phase and continues, and a human commits the `known-good-<phase>` files before
-   the next run.
+   the next run. The first apply stops short of content until the per-domain
+   `config/parameter.<domain>.yml` exists (runbook 00 §14).
+7. **Assign the workspaces, set overage, and record them.** Also runbook 00 §14: both are portal
+   actions, and the pipeline never manages overage.
 
 `report.sh` is the only thing a person carries out of the tenant: `bash scripts/report.sh` writes one
 archive naming the stage, the run id, the error code, the failing resource address or state key, and
@@ -102,7 +115,7 @@ disagree, the contract wins and the runbook is wrong.
 | `spec/0004-assumptions.md` | the assumption, probe and fallback for each unknown |
 | `skeletons/terraform/README.md` | module contract for the four roots |
 | `skeletons/pipeline/cicd.yml.tmpl` | the one pipeline: stages, environments, gates |
-| `skeletons/pipeline/parameter.yml.tmpl` | `fabric-cicd` parameter file |
+| `skeletons/pipeline/parameter.yml.tmpl` | `fabric-cicd` parameter template; copy once per domain to `config/parameter.<domain>.yml` |
 | `skeletons/scripts/assert_plan.py.tmpl` | the fail-closed plan gate |
 | `skeletons/scripts/preflight.py.tmpl` | parameter ↔ YAML parity, placeholder refusal |
 | `skeletons/scripts/probe.py.tmpl` | read-only tenant probes; writes `probe.json`, fails `PROBE-*` |
@@ -156,7 +169,7 @@ skeletons/terraform/domain-assignments/env/sales.tfvars
 
 | Not decided here | Where it is decided | Default if nobody decides |
 | --- | --- | --- |
-| **Capacity sizing** — SKU, overage, surge protection, pause/resume | the corporate tenant, recorded in the work repo; the pack only carries `capacity_sku` as `F2` or `F64` | nothing scales; a paused capacity fails the plan, it is not resizeable from the pack |
+| **Capacity sizing** — SKU, overage, surge protection, pause/resume | the corporate tenant, recorded in the work repo; the pack only carries `capacity_sku` as `F2` or `F64` | nothing scales; overage stays at its default on 25% / 3× until a human sets it in the portal, and a paused capacity fails the plan |
 | **Tenant settings** beyond the three switches in `runbook/00-bootstrap.md` §8 | the Fabric administrator; the full catalogue is a fabric-ops research note, not this pack | the pipeline's first Fabric call returns 401/403 |
 | **Approver roster** — who may approve `fabric-prod`, how many, for how long | the corporate project administrator, expressed as the ADO environment approval | no prod stage can start; an approval timeout marks the stage *skipped*, not failed |
 | **Region** — `location` for the capacity and the state account | the corporate Azure landing zone | every command containing `PLACEHOLDER-region` fails before it changes anything |
@@ -165,7 +178,7 @@ skeletons/terraform/domain-assignments/env/sales.tfvars
 Two further non-decisions, deliberately: the pack does **not** say whether the agent may run a
 read-only `terraform plan` on the corporate laptop (default: no — the pipeline's plan is the plan),
 and it does **not** name the ops repository that holds `pipelines/cicd.yml` (see
-`runbook/00-bootstrap.md` §10). Both are carried in `spec/0003-open-questions.md`.
+`runbook/00-bootstrap.md` §11). Both are carried in `spec/0003-open-questions.md`.
 
 ## Checking the pack
 
