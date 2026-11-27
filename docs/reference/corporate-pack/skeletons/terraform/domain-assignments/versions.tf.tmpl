@@ -19,7 +19,7 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "rg-fabric-corporate"
+    resource_group_name  = "rg-fabric-tfstate"
     storage_account_name = "stfabriccorp"
     container_name       = "tfstate"
 

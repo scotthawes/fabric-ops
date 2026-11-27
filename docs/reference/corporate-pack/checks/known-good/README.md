@@ -11,7 +11,7 @@ accepted.
 {
   "root": "workspaces",
   "phase": "prod",
-  "counts": { "azuread_group": 1, "fabric_workspace": 1, "...": 0 },
+  "counts": { "azuread_group": 3, "fabric_workspace": 1, "...": 0 },
   "addresses": ["azuread_group.members", "azuread_group.viewers", "..."]
 }
 ```
@@ -83,7 +83,7 @@ Not every run needs a baseline edit. A run that matches is silent, which is the 
 
 - **A new domain re-baselines `domains.json` deliberately.** The domains root is one plan for the
   whole matrix: each domain adds `fabric_domain.this["<domain>"]` plus its admins and contributors
-  role assignments, so the per-type counts grow by two. Adding a row in `config/domains.yaml` and its
+  role assignments, so the per-type counts grow by three. Adding a row in `config/domains.yaml` and its
   `parameters.domains` entry without re-baselining is count drift on the next run — expected drift,
   but still a reviewed change, not a silent one.
 - **`nonprod.json` and `prod.json` are shared by every domain.** `<domain>.tfvars` can toggle

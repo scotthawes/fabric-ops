@@ -40,7 +40,7 @@ terraform {
   #     -backend-config="key=workspaces/sales/nonprod.tfstate"
   # One blob per domain per environment => one lock per apply. Never share a key across stages.
   backend "azurerm" {
-    resource_group_name  = "rg-fabric-corporate"
+    resource_group_name  = "rg-fabric-tfstate"
     storage_account_name = "stfabriccorp"
     container_name       = "tfstate"
 

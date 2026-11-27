@@ -80,30 +80,30 @@ find_replace:
   # workspace is the nonprod one (authors commit out of it; test and prod are never authored), so
   # the `find_value` is that workspace's GUID and the `nonprod` key maps it to itself.
   #
-  # The all-zero GUID below is a placeholder standing in for the real one. Verbatim GUIDs are the
-  # common case and the reason this file exists: a GUID used only in a report binding still needs an
-  # entry, and a missing entry is silent.
+  # Each `find_value` below is a distinct placeholder, never a shared all-zero GUID: three entries
+  # with the same key would silently apply one replacement to three different objects. Replace each
+  # with the verbatim value from the authoring workspace.
   # -------------------------------------------------------------------------------------------
-  - find_value: "00000000-0000-0000-0000-000000000000"
+  - find_value: "PLACEHOLDER-NONPROD-WORKSPACE-ID"
     replace_value:
       nonprod: "<nonprod-workspace-id-of-<domain>>"
       prod: "<prod-workspace-id-of-<domain>>"
-    is_regex: "false"
+    is_regex: false
 
-  - find_value: "00000000-0000-0000-0000-000000000000"
+  - find_value: "PLACEHOLDER-LAKEHOUSE-ID"
     replace_value:
       nonprod: "<nonprod-lakehouse-id-of-<domain>>"
       prod: "<prod-lakehouse-id-of-<domain>>"
-    is_regex: "false"
+    is_regex: false
 
   # A connection or gateway ID, when an item definition names one. Both keys may hold the same value
   # if the connection is shared across environments — that is a legitimate sameness, and writing it
   # twice is how the reviewer sees that it is deliberate.
-  - find_value: "00000000-0000-0000-0000-000000000000"
+  - find_value: "PLACEHOLDER-CONNECTION-ID"
     replace_value:
       nonprod: "<nonprod-connection-id>"
       prod: "<prod-connection-id>"
-    is_regex: "false"
+    is_regex: false
 
 # Two extensions this pack deliberately does not ship, because each needs a decision recorded in the
 # corporate repo rather than a placeholder here:

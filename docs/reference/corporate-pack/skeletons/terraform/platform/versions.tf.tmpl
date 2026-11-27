@@ -30,7 +30,7 @@ terraform {
   # The account and container are fixed by contract §3 and are not secret. If the state storage
   # lives in another resource group or subscription, override those with -backend-config too.
   backend "azurerm" {
-    resource_group_name  = "rg-fabric-corporate"
+    resource_group_name  = "rg-fabric-tfstate"
     storage_account_name = "stfabriccorp"
     container_name       = "tfstate"
 

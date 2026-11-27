@@ -8,7 +8,7 @@
 # and implements the six rules. No tenant access, no provider, no `terraform` call.
 #
 #   python assert_plan.py plan.json --root workspaces --phase nonprod
-#   python assert_plan.py plan.json --root platform   --phase prod
+#   python assert_plan.py plan.json --root platform   --phase platform
 #
 # Exit 0 pass, 1 rule failure, 2 unreadable/malformed plan. A non-zero exit blocks the apply.
 #
@@ -223,7 +223,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Assert the corporate-pack plan rules (contract §7).")
     parser.add_argument("plan", type=Path, help="JSON from `terraform show -json <plan>`")
     parser.add_argument("--root", required=True, choices=sorted(EXPECTED_ADDRESSES))
-    parser.add_argument("--phase", required=True, help="baseline key: nonprod | prod | domains | <domain>")
+    parser.add_argument("--phase", required=True, help="baseline key: platform | domains | nonprod | prod | assignments")
     parser.add_argument(
         "--known-good-dir",
         type=Path,
