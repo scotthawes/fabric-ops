@@ -53,7 +53,7 @@
 #   - per-pipeline authorisation on sc-fabric-admin AND sc-fabric-deploy (never "grant access to
 #     all pipelines" — a connection carries standing access to what it connects to);
 #   - an Approvals check with a named approver list, instructions and a Timeout on `fabric-prod`
-#     (and optionally `fabric-platform`, `fabric-nonprod`);
+#     (on `fabric-prod` only);
 #   - an Exclusive lock on each environment if an admin run and a content run must not overlap.
 #     Terraform locks per state blob; Fabric items have no lock at all.
 
@@ -131,11 +131,6 @@ parameters:
 variables:
   - name: TF_IN_AUTOMATION
     value: "true"
-  # The fabric-cicd parameter file. Pack source: skeletons/pipeline/parameter.yml.tmpl. It lives
-  # beside the pipeline because its keys are wired by this file; the older reference layout names
-  # `config/parameter.yml`, so one variable holds the path and a move is a one-line edit.
-  - name: parameterFile
-    value: config/parameter.yml
 
 pool:
   name: fabric-self-hosted # image carries terraform, python3 + pip (and PyYAML), az CLI >= 2.30, git >= 2.9.0
@@ -256,15 +251,15 @@ stages:
           # at fabric-capacity-nonprod would reach a plan and an apply.
           - script: |
               set -euo pipefail
-              python3 scripts/preflight.py --root platform terraform/platform/env/nonprod.tfvars
-              python3 scripts/preflight.py --root platform terraform/platform/env/prod.tfvars
+              python3 scripts/preflight.py --root platform --phase nonprod terraform/platform/env/nonprod.tfvars
+              python3 scripts/preflight.py --root platform --phase prod terraform/platform/env/prod.tfvars
               for domain in $(printf '%s' '${{ convertToJson(parameters.domains) }}' \
                 | python3 -c 'import json,sys; print(" ".join(json.load(sys.stdin)))'); do
-                python3 scripts/preflight.py --root workspaces "terraform/workspaces/env/${domain}/nonprod.tfvars"
-                python3 scripts/preflight.py --root workspaces "terraform/workspaces/env/${domain}/prod.tfvars"
+                python3 scripts/preflight.py --root workspaces --phase nonprod "terraform/workspaces/env/${domain}/nonprod.tfvars"
+                python3 scripts/preflight.py --root workspaces --phase prod "terraform/workspaces/env/${domain}/prod.tfvars"
               done
               if [ '${{ parameters.createDomains }}' = 'true' ]; then
-                python3 scripts/preflight.py --root domains terraform/domains/env/domains.tfvars
+                python3 scripts/preflight.py --root domains --phase domains terraform/domains/env/domains.tfvars
               fi
             displayName: Preflight — placeholders and capacity/environment cross-checks
 
@@ -329,8 +324,10 @@ stages:
     jobs:
       - deployment: capacity_nonprod
         displayName: Capacity — nonprod
-        # Gate carrier. The approval here is optional: this band changes yearly. The environment
-        # still gives the run a deployment record and a place for the lock.
+        # No Approvals check here. The plan is made inside this job, so an approval on
+        # fabric-platform would fire before anyone could read it; preflight has already checked the
+        # SKU against the environment, and assert_plan runs before the apply. The environment still
+        # gives the run a deployment record and the lock.
         environment: fabric-platform
         download: none # a control-plane job never consumes the content artifact
         strategy:
@@ -514,7 +511,7 @@ stages:
                       terraform -chdir=terraform/domains show -json domains.tfplan > plan.json
 
                       # First-run baseline capture; the `domains` phase covers every domain in the
-                      # one plan, so an added domain changes this baseline's counts by two role
+                      # one plan, so an added domain changes this baseline's counts by three resources
                       # assignments. Re-baseline deliberately — see checks/known-good/README.md.
                       if [ -f checks/known-good/domains.json ]; then
                         python3 scripts/assert_plan.py plan.json --root domains --phase domains
@@ -660,6 +657,9 @@ stages:
                         # and $idToken and hands it to fabric-cicd. fabric-cicd is stateless, so
                         # this job takes no Terraform lock; only the environment lock can keep it
                         # from colliding with an admin run.
+                        export AZURE_TENANT_ID="$tenantId"
+                        export AZURE_CLIENT_ID="$servicePrincipalId"
+                        export AZURE_FEDERATED_TOKEN="$idToken"
                         python3 scripts/deploy_items.py \
                           --environment nonprod \
                           --domain ${{ domain }} \
@@ -755,8 +755,8 @@ stages:
                 fi
               displayName: assert_plan — ${{ domain }} prod
             - publish: $(Build.ArtifactStagingDirectory)/known-good
-              artifact: known-good-prod-${{ domain }}
-              condition: and(succeeded(), ne(variables['Build.Reason'], ''))
+              artifact: known-good-prod-guard-${{ domain }}
+              condition: succeeded()
               displayName: Publish first-run prod baseline (commit it)
 
   # =============================================================================================
@@ -903,6 +903,9 @@ stages:
                         # Same bytes as nonprod; only the parameter.yml keys differ. Orphan removal
                         # is one-way, which is why content runs after the control plane and never
                         # before it, and why this stage cannot be re-run casually.
+                        export AZURE_TENANT_ID="$tenantId"
+                        export AZURE_CLIENT_ID="$servicePrincipalId"
+                        export AZURE_FEDERATED_TOKEN="$idToken"
                         python3 scripts/deploy_items.py \
                           --environment prod \
                           --domain ${{ domain }} \

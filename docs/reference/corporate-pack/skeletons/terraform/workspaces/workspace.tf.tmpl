@@ -126,7 +126,7 @@ resource "azurerm_role_assignment" "identity_storage" {
 # }
 
 # ---------------------------------------------------------------------------------------------
-# NONPROD ONLY: the Git binding. `bind_git = false` in prod (ADR 0005). test/prod are deployment
+# NONPROD ONLY: the Git binding. `bind_git = false` in prod (ADR 0005). prod is a deployment
 # targets whose only way in is the pipeline, so a portal edit is overwritten, not resurrected.
 # The resource precondition below refuses bind_git = true when environment is prod.
 # ---------------------------------------------------------------------------------------------

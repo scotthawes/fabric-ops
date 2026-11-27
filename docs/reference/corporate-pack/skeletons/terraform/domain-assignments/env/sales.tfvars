@@ -9,7 +9,8 @@ domain = "sales"
 # Workspace GUIDs come from `terraform output workspace_id` in workspaces/sales/<env>.tfstate.
 # The all-zero value is a placeholder; preflight.py and the variable validation reject it.
 workspace_ids = [
-  "00000000-0000-0000-0000-000000000000",
+  "00000000-0000-0000-0000-000000000000", # nonprod
+  "00000000-0000-0000-0000-000000000000", # prod
 ]
 
 tenant_id                 = "00000000-0000-0000-0000-000000000000"

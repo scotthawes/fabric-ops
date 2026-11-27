@@ -164,7 +164,7 @@ Pipeline parameters, and their defaults:
 | `createDomains` | **`false`** | run `terraform/domains`; only after `PROBE-ADMIN` 200 |
 | `assignDomains` | **`false`** | run `terraform/domain-assignments`; only after `PROBE-ADMIN` 200 |
 
-`environment` is a fourth parameter and an inert run label; no key or path is derived from it.
+`environment` is a fifth parameter and an inert run label; no key or path is derived from it. The five are `domains`, `matrix`, `environment`, `createDomains` and `assignDomains`.
 
 Content and its parameter file are per domain:
 
@@ -185,8 +185,8 @@ Build ──▶ Probe ──▶ Platform ──▶ Nonprod ──▶ PlanProd �
 | --- | --- | --- | --- |
 | Build | bundle one content tree per domain, `fmt -check`, `validate` per root, compare `parameters.domains`/`parameters.matrix` with `config/domains.yaml` | none | none |
 | Probe | read-only checks; writes `probe.json`; fails with `PROBE-*` codes | none | none (a probe that writes is a deployment) |
-| Platform | two capacity apply jobs in parallel (`capacity-nonprod`, `capacity-prod`), then the `domains` **job** in the same stage | `fabric-platform` | optional approval |
-| Nonprod | one job per domain: plan → apply → content | `fabric-nonprod` | none — the environment carries the lock and the deployment record |
+| Platform | two capacity jobs in parallel (`capacity-nonprod`, `capacity-prod`), each plan-then-apply in the job, then the `domains` **job** | `fabric-platform` | none — never add an Approvals check; the plan is made in the job |
+| Nonprod | two jobs per domain: `control` (plan → apply) and `content` | `fabric-nonprod` | none — the environment carries the lock and the deployment record |
 | PlanProd | one plan job per domain, artifact `tfplan-<domain>` | **none** | none (read-only) |
 | Guard | credential-free `assert_plan` over every prod plan; exit non-zero stops the prod band | **none** | none (fails closed) |
 | Prod-`<domain>` | apply the guarded plan → content → optional assign | `fabric-prod` | **human approval** |

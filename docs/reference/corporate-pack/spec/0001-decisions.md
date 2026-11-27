@@ -158,7 +158,7 @@ access to every one. Every nonprod commit has one obvious home, which means a cr
 N pull requests. A portal edit in prod is invisible to the repo and is overwritten on the next
 deploy; that must be said to every Contributor, not discovered.
 
-**Supersedes/amends.** Amends ADR 0005 (dev-bound, test and prod unbound becomes nonprod-bound,
+**Supersedes/amends.** Amends ADR 0005 (dev-bound, test and prod unbound becomes nonprod-bound, prod unbound,
 prod unbound). Recorded from #43 and #52.
 
 ---

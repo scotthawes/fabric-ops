@@ -188,7 +188,7 @@ a connection that verifies and a role assignment that grants nothing.
   On each: **Approvals and checks** →
   - **Approvals**: on `fabric-prod` at least two named humans, instructions naming the artefact
     ("apply the plan published by PlanProd; compare resource count and any replacement"), a Timeout
-    you can live with, and **self-approval off**. On the other two, a reviewer or nothing.
+    you can live with, and **self-approval off**. The other two carry **no Approvals check**: their plans are made in the job, so an approval there would fire before anyone could read it.
   - **Branch control** on `fabric-prod` only: `refs/heads/main`, fully qualified, exact. It *fails*
     the stage, which is right at a gate.
   - **Exclusive lock** on all three, paired with `lockBehavior: sequential` so a queued run waits
@@ -320,7 +320,7 @@ capacity:
   workspaces** → select `fabric-<domain>-nonprod` and `fabric-<domain>-prod`. This is the default
   path (`assignDomains: false`); record the date and the person. Only if `PROBE-ADMIN` was 200 and
   the estate chose Terraform do you set `assignDomains: true` and let the assign job do it.
-- **Create `config/parameter.<domain>.yml`.** Copy `config/parameter.yml` (the scaffold's base) and
+- **Create `config/parameter.<domain>.yml`.** Copy the scaffold's `config/parameter.sales.yml` once per domain and
   fill that domain's workspace, lakehouse and connection IDs from the applied workspaces. This is
   why content cannot deploy on the very first run: `deploy_items.py` refuses a missing parameter
   file. Run the control applies, create the file, then re-run content and promotion.

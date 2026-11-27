@@ -47,7 +47,7 @@ the job result, not the run colour. The same applies to the `assign` job when `a
 | Build | none | bundle one content tree per domain (`content/<domain>/<project>/`), `fmt -check`, `validate`, compare `parameters.domains`/`matrix` with `config/domains.yaml` | none — no connection, no backend |
 | Probe | none | read-only checks; writes `probe.json`; fails `PROBE-*` | none — a probe that writes is a deployment |
 | Platform | `fabric-platform` | `capacity-nonprod` ∥ `capacity-prod`, each plan-then-apply in the job, then the `domains` job (conditional) | none — never add an Approvals check; the plan is made in the job |
-| Nonprod | `fabric-nonprod` | one job per domain: plan → apply → content | none — the environment carries the lock and the record |
+| Nonprod | `fabric-nonprod` | two jobs per domain: `control` (plan → apply) and `content` | none — the environment carries the lock and the record |
 | PlanProd | **none** | one plan per domain, artifact `tfplan-<domain>` | none — read-only |
 | Guard | **none** | credential-free `assert_plan` over every prod plan | none — fails closed |
 | Prod-`<domain>` | `fabric-prod` | apply the guarded plan → content → assign (conditional) | **human approval** |

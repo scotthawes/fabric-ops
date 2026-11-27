@@ -180,7 +180,7 @@ copy_tree "$pack_root/skeletons/terraform" "$target/terraform" tf
 
 # --- Pipeline and the corporate repo's config/. ------------------------------------------------
 copy_file "$pack_root/skeletons/pipeline/cicd.yml.tmpl" "$target/pipelines/cicd.yml"
-copy_file "$pack_root/skeletons/pipeline/parameter.yml.tmpl" "$target/config/parameter.yml"
+copy_file "$pack_root/skeletons/pipeline/parameter.yml.tmpl" "$target/config/parameter.sales.yml"
 copy_file "$pack_root/skeletons/config/domains.yaml.tmpl" "$target/config/domains.yaml"
 
 # --- Content: one empty directory per example domain. -----------------------------------------
@@ -242,7 +242,7 @@ cat <<'EOF'
   2. Create one repository per nonprod workspace, named fabric-<domain>-nonprod, default branch
      main (runbook 00 §10). The pipeline binds; it does not create repositories.
   3. After the first apply of each domain's workspace, create that domain's parameter file beside
-     config/parameter.yml, named for the domain (for example config/parameter-sales.yml).
+     config/parameter.<domain>.yml, one per domain (the example is config/parameter.sales.yml).
      deploy_items.py refuses a parameter file whose name does not carry the domain, and the first
      apply is what produces the workspace and item IDs the file substitutes.
   4. Date the three human steps in the work repo's bootstrap record: the Fabric-administrator

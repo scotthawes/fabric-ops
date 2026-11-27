@@ -3,7 +3,7 @@
 # Pack: 2026-11-27.1
 # Dated 2026-11-26. Illustrative only: no tenant was contacted, nothing here runs from fabric-ops
 # (ADR 0001), and every value below is a placeholder. Copy to the corporate work repo (the pack's
-# pipeline expects `config/parameter.yml`; change the `parameterFile` variable in cicd.yml if it
+# pipeline expects `config/parameter.<domain>.yml`; the path is built per domain and is not a variable.
 # lives elsewhere) and fill the placeholders there. Never edit the template to match a copy.
 #
 # WHAT THIS FILE DOES: item definitions are committed out of the authoring workspace, so they carry
@@ -14,7 +14,7 @@
 #
 # THE KEYS `nonprod` AND `prod` MUST MATCH the environment string passed to
 # `FabricWorkspace(environment=...)` in scripts/deploy_items.py, which this pipeline passes as
-# `--env nonprod` / `--env prod`. A mismatch is NOT an error: fabric-cicd leaves the value
+# `--environment nonprod` / `--environment prod`. A mismatch is NOT an error: fabric-cicd leaves the value
 # unsubstituted and the item deploys pointing at the authoring workspace, with no warning. Check
 # the deployed item, not the deploy log.
 #
@@ -46,7 +46,7 @@ find_replace:
   # -------------------------------------------------------------------------------------------
   # Per-domain placeholders. The pipeline deploys one workspace per domain per environment, and the
   # domain is part of the workspace name (contract §3: `fabric-<domain>-<env>`), so a token rather
-  # than a literal keeps one parameter file serving every domain in the matrix.
+  # than a literal keeps one parameter file per domain, which is what the pipeline passes.
   #
   # `<domain>` is a token for the corporate copy to substitute when the copy is made — it is NOT
   # resolved by fabric-cicd, which substitutes `find_value`, not `replace_value`. A domain whose
@@ -77,7 +77,7 @@ find_replace:
 
   # -------------------------------------------------------------------------------------------
   # The values the definitions actually carry out of the authoring workspace. The authoring
-  # workspace is the nonprod one (authors commit out of it; test and prod are never authored), so
+  # workspace is the nonprod one (authors commit out of it; prod is never authored), so
   # the `find_value` is that workspace's GUID and the `nonprod` key maps it to itself.
   #
   # Each `find_value` below is a distinct placeholder, never a shared all-zero GUID: three entries

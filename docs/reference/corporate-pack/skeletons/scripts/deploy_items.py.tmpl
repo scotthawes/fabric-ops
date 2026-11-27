@@ -9,7 +9,7 @@
 #   python deploy_items.py \
 #     --environment nonprod --domain sales \
 #     --workspace-id "$(terraform -chdir=... output -raw workspace_id)" \
-#     --content-dir build/content/sales --parameter-file build/content/sales.parameter.yml
+#     --content-dir content/sales --parameter-file config/parameter.sales.yml
 #
 # SCOPE. The content directory's basename must equal --domain, the parameter file's name must
 # carry that domain and must not still contain the literal `<domain>` token, and
