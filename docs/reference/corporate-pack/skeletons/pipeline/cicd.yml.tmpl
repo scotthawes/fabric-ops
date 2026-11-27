@@ -261,6 +261,12 @@ stages:
               if [ '${{ parameters.createDomains }}' = 'true' ]; then
                 python3 scripts/preflight.py --root domains --phase domains terraform/domains/env/domains.tfvars
               fi
+              if [ '${{ parameters.assignDomains }}' = 'true' ]; then
+                for domain in $(printf '%s' '${{ convertToJson(parameters.domains) }}' \
+                  | python3 -c 'import json,sys; print(" ".join(json.load(sys.stdin)))'); do
+                  python3 scripts/preflight.py --root domain-assignments "terraform/domain-assignments/env/${domain}.tfvars"
+                done
+              fi
             displayName: Preflight — placeholders and capacity/environment cross-checks
 
   # =============================================================================================
@@ -746,18 +752,12 @@ stages:
             - script: |
                 set -euo pipefail
                 plan="$(Pipeline.Workspace)/planjson-${{ domain }}/plan.json"
-                if [ -f checks/known-good/prod.json ]; then
-                  python3 scripts/assert_plan.py "$plan" --root workspaces --phase prod
-                else
-                  python3 scripts/assert_plan.py "$plan" --root workspaces --phase prod \
-                    --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
-                  echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/prod.json from this run's artifact"
-                fi
+                # No baseline yet on the first run: assert_plan prints BASELINE-MISSING and passes
+                # rules 1-4 and 6. The Prod assert captures the baseline after the approval, so
+                # this stage never writes or publishes one — a publish of a directory that does
+                # not exist fails the task and blocks prod.
+                python3 scripts/assert_plan.py "$plan" --root workspaces --phase prod
               displayName: assert_plan — ${{ domain }} prod
-            - publish: $(Build.ArtifactStagingDirectory)/known-good
-              artifact: known-good-prod-guard-${{ domain }}
-              condition: succeeded()
-              displayName: Publish first-run prod baseline (commit it)
 
   # =============================================================================================
   # Prod — one STAGE per domain, each gated by fabric-prod. `isSkippable: false` removes the stage
@@ -919,7 +919,7 @@ stages:
         - deployment: assign
           displayName: Assignments — ${{ domain }}
           dependsOn: content
-          condition: and(succeeded(), eq(parameters.assignDomains, true))
+          condition: and(succeeded(), eq(parameters.assignDomains, true), eq(parameters.createDomains, true))
           environment: fabric-prod
           download: none
           strategy:

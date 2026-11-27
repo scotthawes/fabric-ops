@@ -17,8 +17,8 @@
 #   scripts/*.py          skeletons/scripts/*.py.tmpl
 #   scripts/scaffold.sh   skeletons/scripts/scaffold.sh.tmpl (this file)
 #   scripts/report.sh     skeletons/scripts/report.sh.tmpl
-#   checks/               checks/**, including checks/known-good/README.md
-#   content/<domain>/     an empty placeholder; the content bundle is built here after the first apply
+#   checks/known-good/    the baseline ledger; the pack checker itself is not copied
+#   content/<domain>/<project>/   an empty placeholder; the bundle is built here after the first apply
 #   AGENTS.md             agents/AGENTS.md
 #   .opencode/agents/     agents/*.md role briefs (AGENTS.md excluded)
 #   docs/corporate-pack/  spec/, runbook/, README.md, forbid.md, VERSION
@@ -184,9 +184,10 @@ copy_file "$pack_root/skeletons/pipeline/parameter.yml.tmpl" "$target/config/par
 copy_file "$pack_root/skeletons/config/domains.yaml.tmpl" "$target/config/domains.yaml"
 
 # --- Content: one empty directory per example domain. -----------------------------------------
-# The bundle fabric-cicd reads is content/<domain>/; deploy_items.py refuses a --content-dir whose
+# The bundle fabric-cicd reads is content/<domain>/<project>/; deploy_items.py refuses a --content-dir whose
 # basename is not the domain, so the placeholder carries a real domain name rather than "content".
 example_domain=""
+example_project="forecast"
 for candidate in "$pack_root"/skeletons/terraform/workspaces/env/*/; do
   [ -d "$candidate" ] || continue
   candidate=${candidate%/}
@@ -194,7 +195,7 @@ for candidate in "$pack_root"/skeletons/terraform/workspaces/env/*/; do
   break
 done
 [ -n "$example_domain" ] || die "cannot determine the example domain from skeletons/terraform/workspaces/env"
-make_placeholder "$target/content/$example_domain/.gitkeep"
+make_placeholder "$target/content/$example_domain/$example_project/.gitkeep"
 
 # --- Scripts: Python without .tmpl, plus this scaffold and the report packer. ------------------
 copy_file "$pack_root/skeletons/scripts/scaffold.sh.tmpl" "$target/scripts/scaffold.sh" yes
@@ -227,7 +228,7 @@ copy_file "$pack_root/forbid.md" "$target/docs/corporate-pack/forbid.md"
 copy_file "$pack_root/VERSION" "$target/docs/corporate-pack/VERSION"
 
 # --- Checks: the pack's checker and the known-good baseline contract. --------------------------
-copy_tree "$pack_root/checks" "$target/checks" keep
+copy_tree "$pack_root/checks/known-good" "$target/checks/known-good" keep
 
 if [ "$dry_run" -eq 1 ]; then
   printf '\nDry run: nothing was written. A real run would also print the next six steps.\n'

@@ -31,7 +31,13 @@ from collections import Counter
 from pathlib import Path
 
 REPLACE_FORBIDDEN = {"fabric_workspace", "azurerm_fabric_capacity", "fabric_domain"}
-DELETE_FORBIDDEN = {"azuread_group", "fabric_workspace", "azurerm_fabric_capacity"}
+DELETE_FORBIDDEN = {
+    "azuread_group",
+    "fabric_workspace",
+    "azurerm_fabric_capacity",
+    "fabric_domain_workspace_assignments",
+    "fabric_domain_role_assignments",
+}
 # A `forget` action removes the object from state without destroying it: the object keeps existing,
 # unmanaged, and the next plan cannot see it. For a protected object that is the same escape as a
 # delete, so it is rule 2. fabric_domain is included: forgetting one drops the domain from

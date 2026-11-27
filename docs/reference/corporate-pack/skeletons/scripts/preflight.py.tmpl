@@ -331,7 +331,10 @@ def check(root: str, data: dict, phase: str | None = None):
 
     check_guids(root, data, findings)
 
+    bind_git = data.get("bind_git") is True
     for path, value in walk_strings(data):
+        if not bind_git and (path.startswith("git_") or path.startswith("ado_")):
+            continue  # unused while bind_git is false; prod carries placeholders deliberately
         if "PLACEHOLDER" in value.upper():
             findings.append(f"{path}: still contains PLACEHOLDER ({value!r})")
         if value == DEFAULT_GUID:

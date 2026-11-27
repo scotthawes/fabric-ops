@@ -182,6 +182,8 @@ and it does **not** name the ops repository that holds `pipelines/cicd.yml` (see
 
 ## Checking the pack
 
+**This runs in the pack repository, not in the corporate copy.**
+
 ```bash
 bash checks/check-pack.sh
 ```
@@ -191,7 +193,10 @@ Fails, printing the offending path, on: a broken relative link, an unindexed fil
 string outside the two files that define or detect it, or a `VERSION` that disagrees with the
 headers. It also checks that the scaffold and the report script parse (`bash -n`), that every v3
 artefact exists and is indexed here, and that `skeletons/config/domains.yaml.tmpl` carries a
-`domains:` key. It is the same script the corporate machine runs first.
+`domains:` key.
+
+The corporate repo does **not** carry this script: the scaffold copies `checks/known-good/` only.
+Its gates are Build's preflight and the pipeline's `assert_plan`.
 
 ## Divergence
 

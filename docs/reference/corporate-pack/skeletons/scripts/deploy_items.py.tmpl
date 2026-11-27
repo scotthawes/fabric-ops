@@ -96,6 +96,8 @@ def parse_args(argv=None):
 def resolve_workspace_id(args) -> str:
     if args.workspace_id:
         workspace_id = args.workspace_id.strip()
+        if args.check_only and workspace_id == "00000000-0000-0000-0000-000000000000":
+            return workspace_id  # interface check only; nothing contacts Fabric
     else:
         try:
             text = args.workspace_id_file.read_text(encoding="utf-8").strip()
@@ -185,6 +187,17 @@ def check_scope(args) -> tuple[str, str] | None:
             "PARAMETER-SCOPE",
             f"parameter file name {parameter_name!r} must contain the domain {args.domain!r}; "
             "one parameter file per domain keeps its IDs from crossing a workspace boundary",
+        )
+
+    try:
+        parameter_text = args.parameter_file.read_text(encoding="utf-8")
+    except OSError as exc:
+        return ("PARAMETER-SCOPE", f"cannot read {args.parameter_file}: {exc}")
+    if "<" in parameter_text:
+        return (
+            "PARAMETER-SCOPE",
+            f"parameter file {parameter_name!r} still contains <...> placeholders; "
+            "fill every replace_value for this domain before deploying",
         )
 
     item_types = args.item_type or []
