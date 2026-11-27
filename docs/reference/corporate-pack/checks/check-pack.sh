@@ -16,9 +16,15 @@
 #   8. every OQ id in spec/0003 appears in spec/0004
 #   9. every contract stage (§6) is named in runbook/troubleshooting.md
 #  10. every skeletons/scripts/*.py.tmpl is wired into cicd.yml.tmpl or README.md
+#  11. every v3 artefact exists and is indexed in README.md: the scaffold, the report archive,
+#      the domain registry example and the note on first-run baselines
+#  12. skeletons/scripts/scaffold.sh.tmpl and report.sh.tmpl are `bash -n` clean
+#  13. skeletons/config/domains.yaml.tmpl carries a `domains:` key
 #
 # Rules 8–10 are completeness, not formatting: a stage with no entry, a question with no
 # absorption and a script nothing calls are all silent gaps the tenant cannot report back.
+# Rules 11–13 are the v3 additions: the installer, the carried report and the registry. Rule 2
+# already demands the header on every `.tmpl`, including the new ones.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -186,6 +192,53 @@ for script in skeletons/scripts/probe.py.tmpl \
   fi
 done
 [ "$unwired" -eq 0 ] && ok "every script is wired into the pipeline or README.md"
+
+echo "v3 artefacts"
+# v3 adds the installer, the carried report, the registry example and the baseline note. Each must
+# exist and be named by that exact path in README.md: a README that calls a file something else is
+# a path the corporate machine will not find.
+v3_bad=0
+for f in skeletons/scripts/scaffold.sh.tmpl \
+         skeletons/scripts/report.sh.tmpl \
+         skeletons/config/domains.yaml.tmpl \
+         checks/known-good/README.md; do
+  if [ ! -f "$f" ]; then
+    bad "$f" "v3 artefact missing"
+    v3_bad=1
+  elif ! grep -Fq "$f" README.md; then
+    bad "$f" "not named in README.md with this exact path"
+    v3_bad=1
+  fi
+done
+[ "$v3_bad" -eq 0 ] && ok "every v3 artefact exists and is indexed in README.md"
+
+# Both are bash with a .tmpl suffix. `bash -n` parses without executing, so a template that would
+# fail before it copies anything is caught here, not on the corporate machine. When either file is
+# absent the v3 rule above has already reported it, so this section is skipped rather than empty.
+if [ -f skeletons/scripts/scaffold.sh.tmpl ] && [ -f skeletons/scripts/report.sh.tmpl ]; then
+  echo "shell templates"
+  shell_bad=0
+  for script in skeletons/scripts/scaffold.sh.tmpl skeletons/scripts/report.sh.tmpl; do
+    if err=$(bash -n "$script" 2>&1); then
+      :
+    else
+      err=${err%%$'\n'*}
+      bad "$script" "bash -n: ${err:-syntax error}"
+      shell_bad=1
+    fi
+  done
+  [ "$shell_bad" -eq 0 ] && ok "scaffold.sh.tmpl and report.sh.tmpl are bash -n clean"
+fi
+
+echo "domain registry"
+registry=skeletons/config/domains.yaml.tmpl
+if [ -f "$registry" ]; then
+  if grep -Eq '^[[:space:]]*domains:' "$registry"; then
+    ok "$registry carries a domains: key"
+  else
+    bad "$registry" "no domains: key; the corporate repo copies its registry from here"
+  fi
+fi
 
 echo
 if [ "$fail" -ne 0 ]; then

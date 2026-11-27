@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+# Pack: 2026-11-27.1 — illustrative scaffold; copy into the corporate work repo and run it there.
+# corporate-pack 2026-11-26. ILLUSTRATIVE ONLY: never run from fabric-ops (ADR 0001).
+#
+# Seeds a corporate work repo from the pack's skeletons. It copies files; it never contacts a
+# tenant, never runs terraform, never edits the pack, and writes only inside --target.
+#
+#   bash skeletons/scripts/scaffold.sh.tmpl --target ../fabric-corporate
+#   bash skeletons/scripts/scaffold.sh.tmpl --target ../fabric-corporate --dry-run
+#   PACK_ROOT=/path/to/pack bash scripts/scaffold.sh --target ../other-repo --force
+#
+# Copy map (contract spec/0002-contract.md §2, plus the corporate repo's config/):
+#   terraform/            skeletons/terraform/**, every *.tf.tmpl renamed to *.tf
+#   pipelines/cicd.yml    skeletons/pipeline/cicd.yml.tmpl
+#   config/parameter.yml  skeletons/pipeline/parameter.yml.tmpl
+#   config/domains.yaml   skeletons/config/domains.yaml.tmpl
+#   scripts/*.py          skeletons/scripts/*.py.tmpl
+#   scripts/scaffold.sh   skeletons/scripts/scaffold.sh.tmpl (this file)
+#   scripts/report.sh     skeletons/scripts/report.sh.tmpl
+#   AGENTS.md             agents/AGENTS.md
+#   .opencode/agents/     agents/*.md role briefs (AGENTS.md excluded)
+#   docs/corporate-pack/  spec/, runbook/, README.md, forbid.md, VERSION
+#
+# Safety: a non-empty target is refused without --force; a target that already has terraform/ is
+# refused even with --force, because that is a seeded repo and a second scaffold would half-
+# overwrite a filled-in root. --force overwrites files it copies; it never deletes anything.
+#
+# Dependencies: bash and POSIX/coreutils only (macOS cp, find, sed, sort, mktemp).
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: scaffold.sh --target DIR [--force] [--dry-run]
+
+  --target DIR   directory to seed; created if it does not exist
+  --force        copy into a non-empty target (never into one that has terraform/)
+  --dry-run      print every action; write nothing at all
+  -h, --help     this text
+
+Run from the pack checkout (skeletons/scripts/scaffold.sh.tmpl), or set PACK_ROOT to it.
+The defence against a stale copy is the pack itself: no file here contacts a tenant.
+EOF
+}
+
+die() {
+  printf 'scaffold: %s\n' "$*" >&2
+  exit 1
+}
+
+target=""
+force=0
+dry_run=0
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --target)
+      [ "$#" -ge 2 ] || die "--target needs a directory"
+      target=$2
+      shift 2
+      ;;
+    --target=*)
+      target=${1#*=}
+      shift
+      ;;
+    --force)
+      force=1
+      shift
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die "unknown argument: $1 (try --help)"
+      ;;
+  esac
+done
+
+[ -n "$target" ] || die "--target DIR is required (try --help)"
+
+self=${BASH_SOURCE[0]}
+self_dir=$(cd "$(dirname "$self")" && pwd -P)
+
+# The pack root is two levels above skeletons/scripts/. PACK_ROOT overrides it for the copied
+# script, whose ../.. is the work repo rather than the pack.
+if [ -n "${PACK_ROOT:-}" ]; then
+  pack_root=$(cd "$PACK_ROOT" && pwd -P) || die "PACK_ROOT is not a directory: $PACK_ROOT"
+else
+  pack_root=$(cd "$self_dir/../.." && pwd -P) || die "cannot resolve the pack root from $self_dir"
+fi
+[ -d "$pack_root/skeletons/terraform" ] || die "not a pack root (no skeletons/terraform): $pack_root"
+[ -d "$pack_root/spec" ] || die "not a pack root (no spec/): $pack_root"
+
+# Absolute target for the inside-the-pack guard. Best effort when a parent does not exist yet.
+target_abs=$target
+if [ -d "$target" ]; then
+  target_abs=$(cd "$target" && pwd -P)
+elif [ -d "$(dirname "$target")" ]; then
+  target_abs=$(cd "$(dirname "$target")" && pwd -P)/$(basename "$target")
+fi
+case "$target_abs/" in
+  "$pack_root"/*) die "target is inside the pack ($pack_root); scaffold into the work repo instead" ;;
+esac
+
+if [ -e "$target" ] && [ ! -d "$target" ]; then
+  die "target exists and is not a directory: $target"
+fi
+if [ -d "$target" ]; then
+  first=$(find "$target" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null || true)
+  if [ -n "$first" ] && [ "$force" -ne 1 ]; then
+    die "target is not empty: $target (use --force to copy into it anyway)"
+  fi
+fi
+if [ -d "$target/terraform" ]; then
+  die "refusing: $target/terraform already exists — this target is already scaffolded"
+fi
+
+copy_file() {
+  local src=$1
+  local dst=$2
+  local exec_bit=${3:-no}
+  [ -f "$src" ] || die "missing source: $src"
+  if [ "$dry_run" -eq 1 ]; then
+    printf 'would copy   %s -> %s\n' "$src" "$dst"
+    return 0
+  fi
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  if [ "$exec_bit" = yes ]; then
+    chmod 755 "$dst"
+  fi
+  printf 'copied       %s -> %s\n' "$src" "$dst"
+}
+
+# copy_tree SRC DST tf|keep — recursive, file by file, so a dry run names every write.
+copy_tree() {
+  local src_dir=$1
+  local dst_dir=$2
+  local rename=${3:-keep}
+  [ -d "$src_dir" ] || die "missing source directory: $src_dir"
+  (
+    cd "$src_dir"
+    find . -type f -print | sed 's|^\./||' | LC_ALL=C sort
+  ) | while IFS= read -r rel; do
+    out=$rel
+    if [ "$rename" = tf ]; then
+      case "$rel" in
+        *.tf.tmpl) out=${rel%.tmpl} ;;
+      esac
+    fi
+    copy_file "$src_dir/$rel" "$dst_dir/$out"
+  done
+}
+
+# --- Terraform: the four roots, README and env/*.tfvars; only .tf.tmpl is renamed. -------------
+copy_tree "$pack_root/skeletons/terraform" "$target/terraform" tf
+
+# --- Pipeline and the corporate repo's config/. ------------------------------------------------
+copy_file "$pack_root/skeletons/pipeline/cicd.yml.tmpl" "$target/pipelines/cicd.yml"
+copy_file "$pack_root/skeletons/pipeline/parameter.yml.tmpl" "$target/config/parameter.yml"
+copy_file "$pack_root/skeletons/config/domains.yaml.tmpl" "$target/config/domains.yaml"
+
+# --- Scripts: Python without .tmpl, plus this scaffold and the report packer. ------------------
+copy_file "$pack_root/skeletons/scripts/scaffold.sh.tmpl" "$target/scripts/scaffold.sh" yes
+copy_file "$pack_root/skeletons/scripts/report.sh.tmpl" "$target/scripts/report.sh" yes
+script_seen=0
+for src in "$pack_root"/skeletons/scripts/*.py.tmpl; do
+  [ -f "$src" ] || continue
+  script_seen=1
+  base=${src##*/}
+  copy_file "$src" "$target/scripts/${base%.tmpl}"
+done
+[ "$script_seen" -eq 1 ] || die "no skeletons/scripts/*.py.tmpl found under $pack_root"
+
+# --- Agents: the invariants at the root, the four role briefs under .opencode/agents/. ---------
+copy_file "$pack_root/agents/AGENTS.md" "$target/AGENTS.md"
+for src in "$pack_root"/agents/*.md; do
+  [ -f "$src" ] || continue
+  base=${src##*/}
+  if [ "$base" = AGENTS.md ]; then
+    continue
+  fi
+  copy_file "$src" "$target/.opencode/agents/$base"
+done
+
+# --- Pack documentation, verbatim. The work repo edits its copies, never the pack. -------------
+copy_tree "$pack_root/spec" "$target/docs/corporate-pack/spec" keep
+copy_tree "$pack_root/runbook" "$target/docs/corporate-pack/runbook" keep
+copy_file "$pack_root/README.md" "$target/docs/corporate-pack/README.md"
+copy_file "$pack_root/forbid.md" "$target/docs/corporate-pack/forbid.md"
+copy_file "$pack_root/VERSION" "$target/docs/corporate-pack/VERSION"
+
+if [ "$dry_run" -eq 1 ]; then
+  printf '\nDry run: nothing was written. A real run would also print the next five steps.\n'
+  exit 0
+fi
+
+printf '\nScaffolded %s\n\nNext five steps:\n' "$target_abs"
+cat <<'EOF'
+  1. Fill the placeholders. Replace the config/domains.yaml rows first, then
+     grep -rn 'PLACEHOLDER\|00000000-0000-0000-0000-000000000000' terraform pipelines config scripts
+     must print nothing, and python3 scripts/preflight.py --root <root> <tfvars> must print PASS.
+  2. Create one repository per nonprod workspace, named fabric-<domain>-nonprod, default branch
+     main (runbook 00 §10). The pipeline binds; it does not create repositories.
+  3. Date the three human steps in the work repo's bootstrap record: the Fabric-administrator
+     proof, the Graph consent, and the prod-approval rehearsal (runbook 00 §1, §5, §7; 02 H3).
+  4. Work through docs/corporate-pack/runbook/02-readiness.md until every row is green.
+  5. Queue the Probe stage, read probe.json, and stop before Platform on any red PROBE-* code.
+EOF

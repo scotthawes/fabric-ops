@@ -6,10 +6,30 @@ The stage order, the check after each stage, the stop conditions, and the half-s
 behind. Read `../spec/0002-contract.md` §6 first; the graph is fixed there and this page only adds
 the checks.
 
-**Before the first run:** every verify in [runbook 00](00-bootstrap.md) has passed,
-[runbook 02](02-readiness.md) is green, the capacity GUID for each environment is written down, and
-the pipeline's plan stage exists as a separate stage (never inside `Prod-<domain>`, or the approval
-would fire before the plan exists).
+**Before the first run:** the repository has been scaffolded (step 0), every verify in
+[runbook 00](00-bootstrap.md) has passed, [runbook 02](02-readiness.md) is green, the capacity GUID
+for each environment is written down, and the pipeline's plan stage exists as a separate stage
+(never inside `Prod-<domain>`, or the approval would fire before the plan exists).
+
+## 0. Scaffold the repository
+
+The pack is copied into the corporate repo before the first run; nothing runs from `fabric-ops`:
+
+```bash
+bash skeletons/scripts/scaffold.sh --target <corporate-repo>
+```
+
+It copies the tree, renames every `.tmpl` to the name the pipeline reads (`pipelines/cicd.yml`,
+`scripts/probe.py`, …), copies `agents/`, and seeds `config/domains.yaml` from
+`skeletons/config/domains.yaml.tmpl`. Fill the placeholders from
+[runbook 00 §Placeholders](00-bootstrap.md#placeholders) and create the repositories (§10) before
+queueing anything.
+
+- **Check after.** `find . -name '*.tmpl'` in the corporate repo prints nothing; `config/domains.yaml`
+  has a `domains:` list; `scripts/report.sh` exists. [runbook 02](02-readiness.md) R0 makes this a
+  gate row.
+- **Stop if.** A `.tmpl` survives. The file the pipeline reads is that name minus the suffix, so a
+  leftover template is a missing file — discovered a stage later, where it reads as a config error.
 
 ## The order
 
@@ -29,6 +49,27 @@ use (contract §4). If it does not, the stage is absent, not empty.
 | Nonprod | `fabric-nonprod` | one job per domain: control apply → content | none, or a reviewer |
 | PlanProd | **none** | one plan per domain, artifact `tfplan-<domain>` | none — read-only |
 | Prod-`<domain>` | `fabric-prod` | `assert_plan` → apply saved plan → content → assign | **human approval** |
+
+## Baselines: the first run prints `BASELINE-MISSING`
+
+`assert_plan` compares each root's resource count with `checks/known-good/<phase>.json` when that
+file exists (contract §7 rule 5). The first run has no baseline — only
+`checks/known-good/README.md` — so it prints
+
+```
+BASELINE-MISSING root=<root> phase=<phase> counts=<n>
+```
+
+and continues — that line is the expected output, not a stage failure, and rules 1–4 and 6 still
+fail closed on that run.
+
+The run produces one `known-good-<phase>` artefact per root and phase. A human checks each against
+the plan they just approved and commits it as `checks/known-good/<phase>.json`, in its own reviewed
+change, **after** that run and **before** the next one — the procedure is in
+[`../checks/known-good/README.md`](../checks/known-good/README.md). The next run compares against
+those committed counts, so a difference becomes a finding instead of noise.
+
+Never create a baseline to quiet a count, and never write one from a plan you did not see applied.
 
 ## Build
 
@@ -167,4 +208,5 @@ Check the estate, not the pipeline: each workspace is `Active` and on its capaci
 `Active` with Contributor, each group has a named human owner, each role assignment resolves to the
 group (`Viewer`, `Contributor` or `Member` — never `Admin`), and the audit log attributes the create
 to `sp-fabric-admin`. If the audit log is empty after 24 hours, suspect the diagnostic setting
-before the pipeline.
+before the pipeline. If any of it fails, `scripts/report.sh` writes the archive to carry out — stage,
+run id, error code, failing address, last check that passed.

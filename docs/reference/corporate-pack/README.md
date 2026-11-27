@@ -5,8 +5,8 @@
 ## What this pack is
 
 A build-ready pack for the corporate work repo: four Terraform roots as `.tmpl` skeletons, one
-Azure DevOps pipeline as `.tmpl`, four Python scripts as `.tmpl`, a spec, an operator run-book, four
-agent briefs and a checker.
+Azure DevOps pipeline as `.tmpl`, four Python scripts and two shell scripts as `.tmpl`, a domain
+registry example, a spec, an operator run-book, four agent briefs and a checker.
 
 It describes **one estate**: N domains, two environments (`nonprod`, `prod`), one capacity each,
 one resource group, one state container, one pipeline. The fixed names, state keys and stage graph
@@ -30,27 +30,63 @@ the only apply path is the pipeline described in `skeletons/pipeline/cicd.yml.tm
 `ADR 0001` (fabric-ops, 2026-11-11) makes the research-only shape permanent. `VERSION` is the only
 place the pack version is written; every file's header repeats it for greppability.
 
+## Installing the pack
+
+A new corporate repo takes the pack in one command:
+
+```bash
+bash skeletons/scripts/scaffold.sh --target <corporate-repo>
+```
+
+It copies the tree, renames every `.tmpl` to the name the pipeline reads (`pipelines/cicd.yml`,
+`scripts/probe.py`, …), copies `agents/`, and seeds `config/domains.yaml` from
+`skeletons/config/domains.yaml.tmpl`. These are v3 additions to the tree in `spec/0002-contract.md`
+§2, together with `checks/known-good/README.md`; the names and state keys there are unchanged.
+
+Then, in this order:
+
+1. **Fill the placeholders.** Preflight refuses a plan while a `PLACEHOLDER-…` or an all-zero GUID
+   survives; the values, and who supplies each, are in [runbook 00](runbook/00-bootstrap.md).
+2. **Create the repositories.** One `fabric-<domain>-nonprod` per registry row, plus the ops repo
+   that holds `pipelines/cicd.yml` (runbook 00 §10).
+3. **Run readiness.** Every row of [runbook 02](runbook/02-readiness.md) is answered by a repo file
+   or a `Probe` output — including the scaffold's own output: no `.tmpl` remains, and
+   `config/domains.yaml` and `scripts/report.sh` exist.
+4. **Run `Probe`.** Read-only, no environment, no state. It writes `probe.json` and fails `PROBE-*`;
+   a red probe is a tenant setting, not a repo fix.
+5. **Run the first pipeline.** [runbook 01](runbook/01-first-run.md): it prints `BASELINE-MISSING`
+   once per root and phase and continues, and a human commits the `known-good-<phase>` files before
+   the next run.
+
+`report.sh` is the only thing a person carries out of the tenant: `bash scripts/report.sh` writes one
+archive naming the stage, the run id, the error code, the failing resource address or state key, and
+the last check that passed. Everything else stays in the corporate repo.
+
 ## Reading order
 
 | # | Read | Why |
 | --- | --- | --- |
-| 1 | `README.md` | this page: what the pack is and is not |
+| 1 | `README.md` | this page: what the pack is, how it is installed, and what it is not |
 | 2 | `forbid.md` | the ten rules that are never negotiable |
 | 3 | `spec/0002-contract.md` | the interface: names, state keys, parameters, stages |
 | 4 | `spec/0001-decisions.md` | why each decision was taken |
 | 5 | `spec/0003-open-questions.md` | tenant facts still unverified — each VERIFY, date, owner |
 | 6 | `spec/0004-assumptions.md` | how each unknown is absorbed: assume, probe, fallback |
-| 7 | `runbook/00-bootstrap.md` | the human steps before the first run |
-| 8 | `runbook/01-first-run.md` | stage order, checks after each, and the stop conditions; read 02 before you queue |
-| 9 | `runbook/02-readiness.md` | the pre-run gate: every row is a repo file or a `Probe` output |
-| 10 | `runbook/troubleshooting.md` | keep open during the first run |
-| 11 | `agents/AGENTS.md` | authority order and the invariants an agent works under |
-| 12 | `agents/<role>.md` | the brief for the role you are acting as |
-| 13 | `skeletons/terraform/README.md` | the module contract: inputs, outputs, what not to rename |
-| 14 | `skeletons/pipeline/cicd.yml.tmpl`, `skeletons/scripts/*.tmpl` | the mechanism |
-| 15 | `checks/check-pack.sh` | what the pack checks about itself |
+| 7 | `skeletons/scripts/scaffold.sh.tmpl` | how the pack becomes a corporate repo: copy, rename, agents |
+| 8 | `skeletons/config/domains.yaml.tmpl` | the domain registry: one row per domain, in the contract's shape |
+| 9 | `runbook/00-bootstrap.md` | the human steps before the first run |
+| 10 | `runbook/01-first-run.md` | stage order, checks after each, and the stop conditions; read 02 before you queue |
+| 11 | `runbook/02-readiness.md` | the pre-run gate: every row is a repo file or a `Probe` output |
+| 12 | `runbook/troubleshooting.md` | keep open during the first run |
+| 13 | `agents/AGENTS.md` | authority order and the invariants an agent works under |
+| 14 | `agents/<role>.md` | the brief for the role you are acting as |
+| 15 | `skeletons/terraform/README.md` | the module contract: inputs, outputs, what not to rename |
+| 16 | `skeletons/pipeline/cicd.yml.tmpl`, `skeletons/scripts/*.tmpl` | the mechanism |
+| 17 | `checks/known-good/README.md` | how the first baseline is recorded, reviewed and committed |
+| 18 | `skeletons/scripts/report.sh.tmpl` | the one artefact carried out of the tenant |
+| 19 | `checks/check-pack.sh` | what the pack checks about itself |
 
-`forbid.md` outranks every runbook. Steps 3–5 outrank 6–15: if a runbook step and the contract
+`forbid.md` outranks every runbook. Steps 3–5 outrank 6–19: if a runbook step and the contract
 disagree, the contract wins and the runbook is wrong.
 
 ## Index
@@ -71,6 +107,9 @@ disagree, the contract wins and the runbook is wrong.
 | `skeletons/scripts/preflight.py.tmpl` | parameter ↔ YAML parity, placeholder refusal |
 | `skeletons/scripts/probe.py.tmpl` | read-only tenant probes; writes `probe.json`, fails `PROBE-*` |
 | `skeletons/scripts/deploy_items.py.tmpl` | content deployment with `fabric-cicd` |
+| `skeletons/scripts/scaffold.sh.tmpl` | installs the pack into a corporate repo: copies, renames `.tmpl`, copies agents |
+| `skeletons/scripts/report.sh.tmpl` | builds the carryable report archive: stage, run id, code, address, last pass |
+| `skeletons/config/domains.yaml.tmpl` | the domain registry example `config/domains.yaml` is copied from |
 | `runbook/00-bootstrap.md` | the human steps before the first run |
 | `runbook/01-first-run.md` | stage order, checks, stop conditions, half-states |
 | `runbook/02-readiness.md` | the pre-run checklist: repository, Probe, people, stop conditions |
@@ -80,7 +119,8 @@ disagree, the contract wins and the runbook is wrong.
 | `agents/reviewer.md` | reads a plan artifact; blocks or demands a re-plan |
 | `agents/bootstrap-guide.md` | walks the human checklist; dates a VERIFY |
 | `agents/migration-assessor.md` | inventories and maps an existing estate; recommends a stop |
-| `checks/check-pack.sh` | links, index, headers, placeholders, secrets, `VERSION` |
+| `checks/known-good/README.md` | how a first-run baseline is produced, reviewed and committed |
+| `checks/check-pack.sh` | links, index, headers, placeholders, secrets, `VERSION`, v3 artefacts |
 
 ### Skeleton files
 
@@ -136,7 +176,9 @@ bash checks/check-pack.sh
 Fails, printing the offending path, on: a broken relative link, an unindexed file, a header without
 `Pack: 2026-11-27.1`, any `*.tf`, any GUID that is not the all-zero placeholder, a secret-shaped
 string outside the two files that define or detect it, or a `VERSION` that disagrees with the
-headers. It is the same script the corporate machine runs first.
+headers. It also checks that the scaffold and the report script parse (`bash -n`), that every v3
+artefact exists and is indexed here, and that `skeletons/config/domains.yaml.tmpl` carries a
+`domains:` key. It is the same script the corporate machine runs first.
 
 ## Divergence
 

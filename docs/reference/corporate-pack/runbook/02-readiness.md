@@ -8,7 +8,8 @@ answered that way is not a readiness row: it is a VERIFY in
 [`../spec/0003-open-questions.md`](../spec/0003-open-questions.md) or out of scope. Do not ask the
 pack's authors; there is no return channel ([`../README.md`](../README.md)).
 
-Run this after [00-bootstrap](00-bootstrap.md)'s verifies pass and after one `Probe` run exists.
+Run this after the scaffold ([01-first-run](01-first-run.md) step 0), after
+[00-bootstrap](00-bootstrap.md)'s verifies pass, and after one `Probe` run exists.
 [01-first-run](01-first-run.md) describes what happens once every row is green.
 
 ## What you need open
@@ -22,11 +23,13 @@ Run this after [00-bootstrap](00-bootstrap.md)'s verifies pass and after one `Pr
 
 | Check | How to see it | Pass looks like | If it fails |
 | --- | --- | --- | --- |
+| **R0 — the scaffold ran and left no template.** | `find . -name '*.tmpl'` at the corporate repo root; `ls config/domains.yaml`; the scaffold's own summary line. | The `find` prints nothing; `config/domains.yaml` is present and opens with a `domains:` list; `scripts/report.sh` exists. | Stop. Re-run `scaffold.sh --target .` from the pack. A surviving `.tmpl` means the real filename is missing, so the stage that reads it fails one step later with a path error that looks like a config error. |
 | **R1 — no placeholder survives into an apply.** No `PLACEHOLDER`, no all-zero GUID in `terraform/`, `pipelines/`, `config/`, `scripts/`. | `python3 scripts/preflight.py --root <root> <tfvars>` for every tfvars file; `grep -rn 'PLACEHOLDER\|00000000-0000-0000-0000-000000000000' terraform pipelines config scripts`. The spec and this runbook keep their placeholders on purpose — scope the grep to those four directories. | Every file prints `PASS preflight … findings=0`; the grep prints nothing. | Stop. Preflight names the path; the owner is the row it came from in [00-bootstrap §Placeholders](00-bootstrap.md#placeholders). Copy the value; never invent one. |
 | **R2 — `config/domains.yaml` names equal `parameters.domains`** and the `parameters.matrix` keys. | The Build log line `domain matrix parity OK for <n> domain(s): …`; the two parameters in `pipelines/cicd.yml`; the YAML itself. | Same names, same count, no duplicates; every `repo:` is `fabric-<name>-nonprod`. | Build fails, so nothing after it runs. Add the row to all three places; a name in one place only is the failure this row exists to catch. |
 | **R3 — one repository per nonprod workspace**, named exactly. | Project → Repos, beside the `repo:` column of `config/domains.yaml`. | One repository per domain row, `fabric-<domain>-nonprod`, default branch `main`. No prod repository: prod is never bound (`../forbid.md` rule 8). | Stop for that domain. A human creates it from the template ([00-bootstrap](00-bootstrap.md) §10); the pipeline only binds. |
-| **R4 — `checks/known-good/` is absent on the first run, and that is expected.** | `ls checks/known-good`; the first run's `assert_plan` lines `BASELINE-MISSING root=… phase=… counts=…`. | Directory absent or empty; one `BASELINE-MISSING` line per root and phase; rules 1–4 and 6 still fail closed (contract §7). | A baseline present before the first run has no provenance: stop and find who added it. Never create one to quiet a count; a human records the counts after a clean run, in its own reviewed change. |
+| **R4 — `checks/known-good/` holds no baseline on the first run, and that is expected.** | `ls checks/known-good`; the first run's `assert_plan` lines `BASELINE-MISSING root=… phase=… counts=…`. | Only `README.md` is present — no `<phase>.json` for any root; one `BASELINE-MISSING` line per root and phase; rules 1–4 and 6 still fail closed (contract §7). | A `<phase>.json` present before the first run has no provenance: stop and find who added it. Never create one to quiet a count; a human records the counts after a clean run, in its own reviewed change. |
 | **R5 — the copied pipeline keeps the stage graph.** | Read the `stages:` block of `pipelines/cicd.yml`; search for `environment:`. | `Build` → `Probe` → `Platform` → `Nonprod` → `PlanProd` → `Prod_<domain>`; `environment:` only where contract §6 puts it; `PlanProd` has none; `isSkippable: false` on every prod stage. | Stop before queueing. The gate is the `environment:` line; a missing one deploys ungated and silently. |
+| **R6 — the report path exists.** | `ls scripts/report.sh`; run it once with no arguments if it has a help text. | Present and executable; it names the archive it writes. | Stop. `report.sh` is the only thing a person carries out of the tenant; without it a stop leaves as "it did not work". Re-run the scaffold, or copy `skeletons/scripts/report.sh.tmpl` and drop the suffix. |
 
 ## Tenant prerequisites — read `probe.json`, not the portal
 

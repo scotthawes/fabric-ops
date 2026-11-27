@@ -33,6 +33,16 @@
 # between plan and apply the apply fails stale, and the answer is a new PlanProd run and a fresh
 # approval — never a forced refresh of a plan the approver did not see.
 #
+# THE FIRST-RUN BASELINE LOOP. assert_plan's rule 5 compares resource counts with
+# checks/known-good/<phase>.json, and the first run has no such file. There is no report channel,
+# so the pipeline closes that loop itself: at every assert_plan invocation, an absent baseline
+# makes the script WRITE the observed counts into $(Build.ArtifactStagingDirectory)/known-good and
+# the job publishes them as a `known-good-<phase>` artifact. A human reviews that file and commits
+# it as checks/known-good/<phase>.json in a reviewed change. A present baseline takes the plain
+# branch and never passes --write-baseline, so a run cannot rewrite its own reference. The publish
+# step is conditional on the variable set in that absent-baseline branch, so a normal run publishes
+# no empty artifact. See checks/known-good/README.md.
+#
 # NO SECRETS: no variable group, no Key Vault link, no secret variable. Both connections use
 # workload identity federation, Terraform reaches state with ARM_USE_OIDC (no storage key), and
 # fabric-cicd uses the same assertion. A stored value would buy nothing and cost rotation.
@@ -338,7 +348,26 @@ stages:
                       # stages assert in a separate, credential-free job because their plan arrives
                       # as an artifact. Phase names select checks/known-good/<phase>.json.
                       terraform -chdir=terraform/platform show -json nonprod.tfplan > plan.json
-                      python3 scripts/assert_plan.py plan.json --root platform --phase platform
+
+                      # First-run baseline capture (contract §7 rule 5). ONLY the absent-baseline
+                      # branch passes --write-baseline; with the file committed the plain call runs
+                      # and the counts are compared, so a run can never rewrite its own reference.
+                      # The script still refuses to write while any other rule fails, so a first run
+                      # that breaks rule 1-4 or 6 fails here and publishes nothing.
+                      #
+                      # ONE `platform` baseline for both capacities, not one each. Both jobs apply
+                      # the same root: request, overage and outputs are per-capacity values, not
+                      # extra resources, so the counts cannot differ. The two artifacts are named
+                      # apart only because ADO requires a unique artifact name per run; commit the
+                      # one `platform.json`, from either.
+                      if [ -f checks/known-good/platform.json ]; then
+                        python3 scripts/assert_plan.py plan.json --root platform --phase platform
+                      else
+                        python3 scripts/assert_plan.py plan.json --root platform --phase platform \
+                          --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                        echo "##vso[task.setvariable variable=baselinePlatform]true"
+                        echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/platform.json from this run's artifact"
+                      fi
 
                       # Applying a saved plan IS the confirmation; -auto-approve is irrelevant once
                       # a plan file is passed.
@@ -346,6 +375,12 @@ stages:
                         -lock-timeout=5m nonprod.tfplan
                   env:
                     FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                # Published only when this run wrote a baseline; an empty directory is never
+                # published, so a normal run leaves no known-good artifact at all.
+                - publish: $(Build.ArtifactStagingDirectory)/known-good
+                  artifact: known-good-platform-nonprod
+                  displayName: Publish first-run baseline as known-good-platform-nonprod
+                  condition: and(succeeded(), eq(variables['baselinePlatform'], 'true'))
 
       - deployment: capacity_prod
         displayName: Capacity — prod
@@ -379,12 +414,26 @@ stages:
                         -lock-timeout=5m -var-file=env/prod.tfvars -out=prod.tfplan
 
                       terraform -chdir=terraform/platform show -json prod.tfplan > plan.json
-                      python3 scripts/assert_plan.py plan.json --root platform --phase platform
+
+                      # Same single `platform` baseline as the nonprod capacity; see the comment in
+                      # capacity_nonprod above. A prod first run captures the identical counts.
+                      if [ -f checks/known-good/platform.json ]; then
+                        python3 scripts/assert_plan.py plan.json --root platform --phase platform
+                      else
+                        python3 scripts/assert_plan.py plan.json --root platform --phase platform \
+                          --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                        echo "##vso[task.setvariable variable=baselinePlatform]true"
+                        echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/platform.json from this run's artifact"
+                      fi
 
                       terraform -chdir=terraform/platform apply -input=false \
                         -lock-timeout=5m prod.tfplan
                   env:
                     FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                - publish: $(Build.ArtifactStagingDirectory)/known-good
+                  artifact: known-good-platform-prod
+                  displayName: Publish first-run baseline as known-good-platform-prod
+                  condition: and(succeeded(), eq(variables['baselinePlatform'], 'true'))
 
       # Contract §6 draws Domains as its own node in the graph. It is a job inside Platform, not a
       # stage: it shares this band's approval, its authority (the SP must hold the Fabric
@@ -437,12 +486,27 @@ stages:
                         -lock-timeout=5m -var-file=env/domains.tfvars -out=domains.tfplan
 
                       terraform -chdir=terraform/domains show -json domains.tfplan > plan.json
-                      python3 scripts/assert_plan.py plan.json --root domains --phase domains
+
+                      # First-run baseline capture; the `domains` phase covers every domain in the
+                      # one plan, so an added domain changes this baseline's counts by two role
+                      # assignments. Re-baseline deliberately — see checks/known-good/README.md.
+                      if [ -f checks/known-good/domains.json ]; then
+                        python3 scripts/assert_plan.py plan.json --root domains --phase domains
+                      else
+                        python3 scripts/assert_plan.py plan.json --root domains --phase domains \
+                          --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                        echo "##vso[task.setvariable variable=baselineDomains]true"
+                        echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/domains.json from this run's artifact"
+                      fi
 
                       terraform -chdir=terraform/domains apply -input=false \
                         -lock-timeout=5m domains.tfplan
                   env:
                     FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                - publish: $(Build.ArtifactStagingDirectory)/known-good
+                  artifact: known-good-domains
+                  displayName: Publish first-run baseline as known-good-domains
+                  condition: and(succeeded(), eq(variables['baselineDomains'], 'true'))
 
   # =============================================================================================
   # Nonprod — one chain per domain: control plane, then content. The workspace, its identity and
@@ -504,8 +568,23 @@ stages:
                         # Rule 3 again: a nonprod workspace that would be replaced or lose a role
                         # assignment still costs a re-onboarded group owner, so it is refused here
                         # too. --phase selects the known-good baseline for this root.
+                        #
+                        # First-run baseline capture. The `nonprod` baseline is shared by every
+                        # domain's workspace plan, so a domain whose tfvars set
+                        # enable_workspace_identity differently adds two resources of its own
+                        # (fabric_workspace_role_assignment.identity and
+                        # azurerm_role_assignment.identity_storage) and will read as count drift.
+                        # Either keep the identity setting uniform or give that domain its own
+                        # phase; a re-baseline is a reviewed change, never a quiet fix.
                         terraform -chdir=terraform/workspaces show -json nonprod.tfplan > plan.json
-                        python3 scripts/assert_plan.py plan.json --root workspaces --phase nonprod
+                        if [ -f checks/known-good/nonprod.json ]; then
+                          python3 scripts/assert_plan.py plan.json --root workspaces --phase nonprod
+                        else
+                          python3 scripts/assert_plan.py plan.json --root workspaces --phase nonprod \
+                            --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                          echo "##vso[task.setvariable variable=baselineNonprod]true"
+                          echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/nonprod.json from this run's artifact"
+                        fi
 
                         terraform -chdir=terraform/workspaces apply -input=false \
                           -lock-timeout=5m nonprod.tfplan
@@ -519,6 +598,13 @@ stages:
                       FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
                   - publish: $(Build.ArtifactStagingDirectory)/workspace-id.txt
                     artifact: workspace-${{ domain }}-nonprod
+                  # One artifact per phase per job: the domain suffix exists only because several
+                  # jobs can capture the same `nonprod` baseline in one run, and ADO rejects two
+                  # artifacts with the same name. The file inside is always `nonprod.json`.
+                  - publish: $(Build.ArtifactStagingDirectory)/known-good
+                    artifact: known-good-nonprod-${{ domain }}
+                    displayName: Publish first-run baseline as known-good-nonprod-${{ domain }}
+                    condition: and(succeeded(), eq(variables['baselineNonprod'], 'true'))
 
         - deployment: content_${{ replace(domain, '-', '_') }}
           displayName: Items — ${{ domain }} nonprod
@@ -649,8 +735,23 @@ stages:
                 # Pack source: skeletons/scripts/assert_plan.py.tmpl (unit B). It prints a one-line
                 # verdict plus offending addresses and exits non-zero to block the apply; the phase
                 # selects the expected-address baseline under checks/known-good/.
-                python3 scripts/assert_plan.py plan.json --root workspaces --phase prod
+                #
+                # First-run baseline capture. The `prod` baseline is shared by every domain's prod
+                # workspace plan, so a domain with a different enable_workspace_identity setting
+                # reads as count drift; see the nonprod job above and checks/known-good/README.md.
+                if [ -f checks/known-good/prod.json ]; then
+                  python3 scripts/assert_plan.py plan.json --root workspaces --phase prod
+                else
+                  python3 scripts/assert_plan.py plan.json --root workspaces --phase prod \
+                    --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                  echo "##vso[task.setvariable variable=baselineProd]true"
+                  echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/prod.json from this run's artifact"
+                fi
               displayName: assert_plan — ${{ domain }}
+            - publish: $(Build.ArtifactStagingDirectory)/known-good
+              artifact: known-good-prod-${{ domain }}
+              displayName: Publish first-run baseline as known-good-prod-${{ domain }}
+              condition: and(succeeded(), eq(variables['baselineProd'], 'true'))
 
         # An apply long enough to outlive the federated assertion fails with AADSTS700024 (the
         # assertion expires around an hour, not the access token). Keeping apply alone in its own
@@ -782,10 +883,29 @@ stages:
 
                         # A role assignment deleted here removes a human's access, which rule 2
                         # refuses; assert runs before the apply, as in every other band.
+                        #
+                        # First-run baseline capture. This is the last stage of the graph, so its
+                        # artifact arrives after the others: commit each phase as it appears, and an
+                        # uncommitted phase simply prints BASELINE-MISSING on later runs without
+                        # blocking an apply.
                         terraform -chdir=terraform/domain-assignments show -json assignments.tfplan > plan.json
-                        python3 scripts/assert_plan.py plan.json --root domain-assignments --phase assignments
+                        if [ -f checks/known-good/assignments.json ]; then
+                          python3 scripts/assert_plan.py plan.json --root domain-assignments --phase assignments
+                        else
+                          python3 scripts/assert_plan.py plan.json --root domain-assignments --phase assignments \
+                            --write-baseline --known-good-dir "$(Build.ArtifactStagingDirectory)/known-good"
+                          echo "##vso[task.setvariable variable=baselineAssignments]true"
+                          echo "##vso[task.logissue type=warning]FIRST-RUN BASELINE: commit known-good/assignments.json from this run's artifact"
+                        fi
 
                         terraform -chdir=terraform/domain-assignments apply -input=false \
                           -lock-timeout=5m assignments.tfplan
                     env:
                       FABRIC_OIDC_REQUEST_TOKEN: $(System.AccessToken)
+                  # The `assignments` baseline is shared across domains: the plan is one data source
+                  # plus one multi-instance assignment resource per domain, so the per-type counts
+                  # do not vary with the domain count.
+                  - publish: $(Build.ArtifactStagingDirectory)/known-good
+                    artifact: known-good-assignments-${{ domain }}
+                    displayName: Publish first-run baseline as known-good-assignments-${{ domain }}
+                    condition: and(succeeded(), eq(variables['baselineAssignments'], 'true'))

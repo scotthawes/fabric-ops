@@ -1,0 +1,46 @@
+# Corporate pack — domain registry. This file is the matrix truth.
+# Pack: 2026-11-27.1 — illustrative, dated 2026-11-26; not runnable from fabric-ops (ADR 0001).
+#
+# Copy to <work repo>/config/domains.yaml and edit there. Every value below is a placeholder:
+# the all-zero GUID stands for an Entra object ID, and it must be replaced before the first run
+# (preflight.py rejects it). Never commit a real tenant, subscription or principal identifier to
+# a shared reference; the work repo's own config is the only place a real value belongs.
+#
+# ONE ROW PER DOMAIN. `name` and `project` are lowercase hyphenated words (contract §2, §3);
+# one project per domain. `repo` must be fabric-<name>-nonprod: the nonprod workspace binds to it,
+# and prod is never bound (forbid.md rule 8). `owners` are Entra object IDs (users or groups),
+# not UPNs and not e-mail addresses; one owner per role is enough to start.
+#
+# THIS FILE AND THE PIPELINE MUST AGREE. The Build stage asserts that
+# `parameters.domains` (the ordered list) and the `parameters.matrix` keys in
+# pipelines/cicd.yml match these names exactly — same names, same count, no duplicates —
+# and that display_name, project and repo agree (readiness row R2). Add a domain in all
+# three places in one change; a name in one place only is the failure R2 exists to catch.
+# Owners deliberately do not appear in the pipeline: they are principal identifiers, and
+# config/domains.yaml is their only home.
+#
+# One row produces: one terraform/domains/env/domains.tfvars entry; the
+# terraform/workspaces/env/<name>/{nonprod,prod}.tfvars pair; the three group owners; and
+# (nonprod only) the Git binding to fabric-<name>-nonprod. Terraform does not read this file
+# at plan time — the pipeline materialises the tfvars from it.
+
+domains:
+  - name: sales
+    display_name: Sales
+    project: forecast
+    repo: fabric-sales-nonprod
+    owners:
+      viewers: ["00000000-0000-0000-0000-000000000000"]
+      contributors: ["00000000-0000-0000-0000-000000000000"]
+      members: ["00000000-0000-0000-0000-000000000000"]
+
+  # A second domain is one more row, plus its rows in the pipeline parameters and the domains
+  # root. Copy the shape; do not invent a field the contract does not name.
+  # - name: marketing
+  #   display_name: Marketing
+  #   project: campaigns
+  #   repo: fabric-marketing-nonprod
+  #   owners:
+  #     viewers: ["00000000-0000-0000-0000-000000000000"]
+  #     contributors: ["00000000-0000-0000-0000-000000000000"]
+  #     members: ["00000000-0000-0000-0000-000000000000"]

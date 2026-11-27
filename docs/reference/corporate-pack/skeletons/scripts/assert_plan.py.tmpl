@@ -13,9 +13,13 @@
 # Exit 0 pass, 1 rule failure, 2 unreadable/malformed plan. A non-zero exit blocks the apply.
 #
 # Rule 5 needs a baseline: checks/known-good/<phase>.json. Rules 1-4 and 6 fail closed on every
-# run. When the baseline is absent — only possible on the first run — the counts are printed as
-# BASELINE-MISSING so a human can record them; from the next run the count check is exact. A human
-# may also create one with --write-baseline after reviewing a plan by hand.
+# run. When no committed baseline exists — only possible on the first run — the counts are printed
+# as BASELINE-MISSING so a human can record them, and with --write-baseline they are also written
+# out. That is how the pipeline captures the first run: the absent-baseline branch passes
+# --write-baseline with --known-good-dir pointing at the artifact staging directory, publishes the
+# file, and a human commits it as checks/known-good/<phase>.json. The committed-baseline branch
+# never passes the flag, so a run cannot rewrite its own reference. From the next run the count
+# check is exact.
 
 from __future__ import annotations
 
@@ -168,6 +172,7 @@ def check_rules(root, phase, plan, known_good_dir, write_baseline):
     if write_baseline and violations:
         fail(5, str(baseline_path), "refusing to write a baseline while another rule fails")
     elif write_baseline:
+        existed = baseline_path.exists()
         baseline = {
             "root": root,
             "phase": phase,
@@ -176,6 +181,12 @@ def check_rules(root, phase, plan, known_good_dir, write_baseline):
         }
         baseline_path.parent.mkdir(parents=True, exist_ok=True)
         baseline_path.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        # Contract §7 rule 5's first-run signal is this counts line, so keep printing it whenever no
+        # committed baseline existed — the pipeline's capture writes the file but must not hide the
+        # fact that this phase had nothing to compare against. A hand re-baseline of an existing
+        # file prints only BASELINE, because the phase was not missing.
+        if not existed:
+            print(f"BASELINE-MISSING root={root} phase={phase} counts={json.dumps(observed_counts, sort_keys=True)}")
         print(f"BASELINE root={root} phase={phase} file={baseline_path}")
     elif not baseline_path.exists():
         # First run: no reviewed baseline can exist yet. Rules 1-4 and 6 still fail closed; the

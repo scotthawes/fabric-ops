@@ -1,0 +1,324 @@
+#!/usr/bin/env bash
+# Pack: 2026-11-27.1 — illustrative report packer; copy into the corporate work repo.
+# corporate-pack 2026-11-26. ILLUSTRATIVE ONLY: never run from fabric-ops (ADR 0001).
+#
+# Builds the one artefact a person can carry out of the tenant: a tar.gz holding REPORT.md and
+# the run files that were handed to it. REPORT.md carries the five facts that survive the trip
+# (README.md, "The one-way channel"): stage, run id, error code, the failing resource address or
+# state key, and the last check that passed — plus the pack version and the local tool versions.
+#
+#   bash scripts/report.sh --out ~/carry/report.tar.gz --stage Nonprod --run-id 12345 \
+#     --code BASELINE-MISSING --address workspaces/sales/nonprod.tfstate \
+#     --last-check "Probe: AUTH, FABRIC, PROVIDER, GRAPH green" \
+#     --probe probe.json --plan tfplan-sales.txt --plan-json plan.json --log run.log
+#
+# NO TENANT CONTACT: `terraform version` and `az version` read local binaries only. There is no
+# login, no token and no API call here. The archive leaves by hand, never through a repository.
+#
+# WRITES: --out and nothing else that survives. Assembly happens in a mktemp -d staging directory
+# that is removed on exit (including on error), so the working tree is never touched.
+#
+# REFUSES credential-shaped names — .env, .env.*, *.pem, *.key, and anything matching *secret*
+# (case-insensitive) — and prints each refusal. That is a name check, not a content scan: do not
+# hand it a file whose name is innocent and whose bytes are not.
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: report.sh --out FILE [--stage S] [--run-id ID] [--code CODE] [--address ADDR]
+                 [--last-check TEXT] [--probe probe.json] [--plan plan.txt]
+                 [--plan-json plan.json] [--log run.log]
+
+  --out FILE         archive to write; its directory must already exist
+  --stage S          pipeline stage, e.g. Probe, Nonprod, Prod-sales
+  --run-id ID        ADO run id
+  --code CODE        error code, e.g. PROBE-GRAPH or BASELINE-MISSING
+  --address ADDR     failing resource address or state key
+  --last-check TEXT  last check that passed (the fifth fact; omitted -> NOT SUPPLIED)
+  --probe FILE       probe.json, attached as supplied
+  --plan FILE        saved/text plan, attached as supplied
+  --plan-json FILE   `terraform show -json` output, attached as supplied
+  --log FILE         job log excerpt, attached as supplied
+  -h, --help         this text
+
+Every fact is optional except --out: an absent fact is printed as NOT SUPPLIED, never guessed.
+Inputs are refused, with the reason printed, when their basename looks like a credential.
+EOF
+}
+
+die() {
+  printf 'report: %s\n' "$*" >&2
+  exit 1
+}
+
+out=""
+stage=""
+run_id=""
+code=""
+address=""
+last_check=""
+probe=""
+plan=""
+plan_json=""
+log=""
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --out)
+      [ "$#" -ge 2 ] || die "--out needs a file"
+      out=$2
+      shift 2
+      ;;
+    --out=*)
+      out=${1#*=}
+      shift
+      ;;
+    --stage)
+      [ "$#" -ge 2 ] || die "--stage needs a value"
+      stage=$2
+      shift 2
+      ;;
+    --stage=*)
+      stage=${1#*=}
+      shift
+      ;;
+    --run-id)
+      [ "$#" -ge 2 ] || die "--run-id needs a value"
+      run_id=$2
+      shift 2
+      ;;
+    --run-id=*)
+      run_id=${1#*=}
+      shift
+      ;;
+    --code)
+      [ "$#" -ge 2 ] || die "--code needs a value"
+      code=$2
+      shift 2
+      ;;
+    --code=*)
+      code=${1#*=}
+      shift
+      ;;
+    --address)
+      [ "$#" -ge 2 ] || die "--address needs a value"
+      address=$2
+      shift 2
+      ;;
+    --address=*)
+      address=${1#*=}
+      shift
+      ;;
+    --last-check)
+      [ "$#" -ge 2 ] || die "--last-check needs a value"
+      last_check=$2
+      shift 2
+      ;;
+    --last-check=*)
+      last_check=${1#*=}
+      shift
+      ;;
+    --probe)
+      [ "$#" -ge 2 ] || die "--probe needs a file"
+      probe=$2
+      shift 2
+      ;;
+    --probe=*)
+      probe=${1#*=}
+      shift
+      ;;
+    --plan)
+      [ "$#" -ge 2 ] || die "--plan needs a file"
+      plan=$2
+      shift 2
+      ;;
+    --plan=*)
+      plan=${1#*=}
+      shift
+      ;;
+    --plan-json)
+      [ "$#" -ge 2 ] || die "--plan-json needs a file"
+      plan_json=$2
+      shift 2
+      ;;
+    --plan-json=*)
+      plan_json=${1#*=}
+      shift
+      ;;
+    --log)
+      [ "$#" -ge 2 ] || die "--log needs a file"
+      log=$2
+      shift 2
+      ;;
+    --log=*)
+      log=${1#*=}
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die "unknown argument: $1 (try --help)"
+      ;;
+  esac
+done
+
+[ -n "$out" ] || die "--out FILE is required (try --help)"
+out_dir=$(dirname "$out")
+[ -d "$out_dir" ] || die "output directory does not exist: $out_dir (this script creates no directories)"
+[ ! -d "$out" ] || die "--out is a directory: $out"
+
+self=${BASH_SOURCE[0]}
+self_dir=$(cd "$(dirname "$self")" && pwd -P)
+
+stage_dir=$(mktemp -d "${TMPDIR:-/tmp}/corporate-pack-report.XXXXXX") || die "mktemp -d failed"
+cleanup() {
+  rm -rf "$stage_dir"
+}
+trap cleanup EXIT
+trap 'exit 130' HUP INT TERM
+
+members=(REPORT.md)
+file_rows=()
+refused_rows=()
+seen=" "
+
+check_refuse() {
+  local path=$1
+  local base=${path##*/}
+  local lower
+  lower=$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')
+  case "$lower" in
+    .env|.env.*|*.pem|*.key|*secret*)
+      printf 'REFUSED  %s — credential-shaped name (%s); not included\n' "$path" "$base" >&2
+      refused_rows+=("$path — credential-shaped name")
+      return 1
+      ;;
+  esac
+  return 0
+}
+
+add_file() {
+  local flag=$1
+  local path=$2
+  local base size
+  [ -n "$path" ] || return 0
+  [ -f "$path" ] || die "$flag: no such file: $path"
+  check_refuse "$path" || return 0
+  base=${path##*/}
+  case "$seen" in
+    *" $base "*) die "two inputs share the basename '$base'; rename one before reporting" ;;
+  esac
+  seen="$seen$base "
+  cp "$path" "$stage_dir/$base"
+  members+=("$base")
+  size=$(wc -c < "$stage_dir/$base" | tr -d '[:space:]')
+  file_rows+=("$base — $size bytes (from $path)")
+}
+
+add_file --probe "$probe"
+add_file --plan "$plan"
+add_file --plan-json "$plan_json"
+add_file --log "$log"
+
+# --- Pack version: beside the docs copy in a work repo, or at the pack root in a checkout. -----
+pack_version=${PACK_VERSION:-}
+pack_source=""
+if [ -z "$pack_version" ]; then
+  for candidate in \
+    "$self_dir/../docs/corporate-pack/VERSION" \
+    "$self_dir/../../VERSION" \
+    "$self_dir/../VERSION"; do
+    if [ -f "$candidate" ]; then
+      pack_source=$(cd "$(dirname "$candidate")" && pwd -P)/VERSION
+      pack_version=$(sed -n 's/^[Pp]ack:[[:space:]]*//p' "$candidate" | head -n 1 | tr -d '[:space:]')
+      break
+    fi
+  done
+fi
+[ -n "$pack_version" ] || pack_version="UNKNOWN (VERSION not found; set PACK_VERSION)"
+
+# --- Local tool versions only: no login, no token, no request to a tenant. ---------------------
+terraform_version="not installed"
+if command -v terraform >/dev/null 2>&1; then
+  terraform_version=$(CHECKPOINT_DISABLE=1 terraform version 2>/dev/null | head -n 1) || terraform_version=""
+  [ -n "$terraform_version" ] || terraform_version="present, version unreadable"
+fi
+
+az_version="not installed"
+if command -v az >/dev/null 2>&1; then
+  az_version=$(az version 2>/dev/null | sed -n 's/.*"azure-cli": *"\([^"]*\)".*/\1/p' | head -n 1) || az_version=""
+  [ -n "$az_version" ] || az_version="present, version unreadable"
+fi
+
+one_line() {
+  printf '%s' "$1" | tr '\n\r' '  '
+}
+
+or_unknown() {
+  if [ -n "$1" ]; then
+    printf '%s' "$1"
+  else
+    printf 'NOT SUPPLIED'
+  fi
+}
+
+now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+report_file=$stage_dir/REPORT.md
+
+{
+  printf '# Corporate pack run report\n\n'
+  printf -- '- **Pack:** %s\n' "$pack_version"
+  if [ -n "$pack_source" ]; then
+    printf -- '- **VERSION read from:** %s\n' "$pack_source"
+  fi
+  printf -- '- **Generated (UTC):** %s\n' "$now"
+  printf -- '- **terraform:** %s\n' "$(one_line "$terraform_version")"
+  printf -- '- **azure-cli:** %s\n\n' "$(one_line "$az_version")"
+
+  printf '## The five carryable facts\n\n'
+  printf -- '- **Stage:** %s\n' "$(one_line "$(or_unknown "$stage")")"
+  printf -- '- **Run id:** %s\n' "$(one_line "$(or_unknown "$run_id")")"
+  printf -- '- **Error code:** %s\n' "$(one_line "$(or_unknown "$code")")"
+  printf -- '- **Failing address or state key:** %s\n' "$(one_line "$(or_unknown "$address")")"
+  printf -- '- **Last check that passed:** %s\n\n' "$(one_line "$(or_unknown "$last_check")")"
+
+  printf 'Fewer than these five facts does not survive the trip: "it did not work" is not a '
+  printf 'finding. Write NOT SUPPLIED out by hand only when the fact genuinely does not exist.\n\n'
+
+  printf '## Files in this archive\n\n'
+  if [ "${#file_rows[@]}" -eq 0 ]; then
+    printf 'No run files were attached; this archive holds only REPORT.md.\n'
+  else
+    for row in "${file_rows[@]}"; do
+      printf -- '- %s\n' "$row"
+    done
+  fi
+  printf '\n'
+
+  if [ "${#refused_rows[@]}" -gt 0 ]; then
+    printf '## Refused (not in this archive)\n\n'
+    for row in "${refused_rows[@]}"; do
+      printf -- '- %s\n' "$row"
+    done
+    printf '\n'
+  fi
+
+  printf '## What this report is\n\n'
+  printf 'A hand-carried finding from the corporate tenant. It contains no credentials: '
+  printf 'credential-shaped names were refused before staging. Nothing here was uploaded, and '
+  printf 'nothing was read back from a tenant while building it. The pack date above is what the '
+  printf 'run was built from; the terraform and azure-cli versions are what ran on the machine '
+  printf 'that assembled the archive.\n'
+} > "$report_file"
+
+command -v tar >/dev/null 2>&1 || die "tar not found"
+tar -czf "$out" -C "$stage_dir" "${members[@]}"
+
+printf 'wrote %s (%s file(s) in the archive)\n' "$out" "$((${#members[@]}))"
+if [ "${#refused_rows[@]}" -gt 0 ]; then
+  printf 'warning: %s input(s) refused; see the REFUSED lines above\n' "${#refused_rows[@]}" >&2
+fi
+exit 0
