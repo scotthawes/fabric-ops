@@ -1,6 +1,6 @@
 # 0004 — Assumptions, probes and fallbacks
 
-**Pack: 2026-11-26.2 · illustrative, not runnable from fabric-ops (ADR 0001)**
+**Pack: 2026-11-27.1 · illustrative, not runnable from fabric-ops (ADR 0001)**
 
 **Dated 2026-11-26.** The corporate machine cannot answer questions: there is no report channel, and
 asking the tenant would breach the rules under which this pack exists. So every fact the pack cannot

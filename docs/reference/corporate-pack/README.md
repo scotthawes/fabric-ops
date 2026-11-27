@@ -1,6 +1,6 @@
 # Corporate design pack
 
-**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-27.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 ## What this pack is
 
@@ -134,7 +134,7 @@ bash checks/check-pack.sh
 ```
 
 Fails, printing the offending path, on: a broken relative link, an unindexed file, a header without
-`Pack: 2026-11-26.2`, any `*.tf`, any GUID that is not the all-zero placeholder, a secret-shaped
+`Pack: 2026-11-27.1`, any `*.tf`, any GUID that is not the all-zero placeholder, a secret-shaped
 string outside the two files that define or detect it, or a `VERSION` that disagrees with the
 headers. It is the same script the corporate machine runs first.
 

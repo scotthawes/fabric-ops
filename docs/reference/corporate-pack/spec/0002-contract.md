@@ -1,6 +1,6 @@
 # 0002 — Corporate pack contract
 
-Pack: 2026-11-26.2 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-27.1 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 **Dated 2026-11-26.** The interface every file in this pack composes against. Fixed names, state keys,
 parameters and stage graph. A file that disagrees with this document is wrong, however plausible it

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-27.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 Symptom → cause → action, keyed by the thing you will actually see. Each entry names the pipeline
 stage it appears in, because the same error in two stages has two causes.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Illustrative. Pack: 2026-11-26.2 (2026-11-26). Not runnable from fabric-ops (ADR 0001);
+# Illustrative. Pack: 2026-11-27.1 (2026-11-26). Not runnable from fabric-ops (ADR 0001);
 # the corporate work repo runs it against its own copy. Exit non-zero on the first class of
 # failure it finds, printing every offending path. Read-only: it edits nothing.
 #
@@ -7,7 +7,7 @@
 #
 # Rules, in the order the contract names them (spec/0002-contract.md §9):
 #   1. VERSION exists and its pack version matches every file header
-#   2. every file header carries "Pack: 2026-11-26.2"
+#   2. every file header carries "Pack: 2026-11-27.1"
 #   3. no *.tf exists anywhere in the pack
 #   4. every GUID is the all-zero placeholder
 #   5. no secret-shaped string, unless the file defines or detects it

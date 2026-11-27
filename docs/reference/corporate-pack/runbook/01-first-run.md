@@ -1,6 +1,6 @@
 # Runbook 01 — First run
 
-**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-27.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 The stage order, the check after each stage, the stop conditions, and the half-state a stop leaves
 behind. Read `../spec/0002-contract.md` §6 first; the graph is fixed there and this page only adds

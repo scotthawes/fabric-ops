@@ -1,6 +1,6 @@
 # 0001 — Closed decisions
 
-Pack: 2026-11-26.2 · illustrative, not runnable from fabric-ops (ADR 0001)
+Pack: 2026-11-27.1 · illustrative, not runnable from fabric-ops (ADR 0001)
 
 Thirteen decisions, each closed on 2026-11-26 against wayfinder map
 [#41](https://github.com/scotthawes/fabric-ops/issues/41). One section per decision: what was

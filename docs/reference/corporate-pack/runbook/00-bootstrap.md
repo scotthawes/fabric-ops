@@ -1,6 +1,6 @@
 # Runbook 00 — Bootstrap
 
-**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-27.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 The human steps that must pass before the pipeline's first run, in order, for this shape: one ADO
 project, three environments, two environments per domain (`nonprod`, `prod`), two capacities, N

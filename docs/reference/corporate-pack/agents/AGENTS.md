@@ -1,6 +1,6 @@
 # AGENTS.md — pack invariants
 
-**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-27.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 Read this before acting in any role. It governs the four briefs beside it and is itself governed by
 `../forbid.md` and `../spec/0002-contract.md`. If this page and the contract disagree, the contract

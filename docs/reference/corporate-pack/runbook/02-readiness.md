@@ -1,6 +1,6 @@
 # Runbook 02 — Readiness
 
-**Illustrative · Pack: 2026-11-26.2 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
+**Illustrative · Pack: 2026-11-27.1 · dated 2026-11-26 · not runnable from `fabric-ops` (ADR 0001).**
 
 The gate before the first pipeline run. Every row is answered by an artefact — a file in the
 corporate repo or an output of the `Probe` stage — and by nothing else. A row that cannot be
